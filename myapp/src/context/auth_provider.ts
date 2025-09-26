@@ -29,7 +29,7 @@ interface AuthContextType {
   isLoading: boolean
 }
 
-export const API_URL = "http://192.168.29.106:5000/api";
+export const API_URL = "http://localhost:5000/api";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
