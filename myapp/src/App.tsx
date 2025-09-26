@@ -1,0 +1,53 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import { Header } from "./components/header";
+import Footer from "./components/footer";
+import ScrollToTop from "./components/scroll_to_top";
+
+import HomePage from "./pages/Home/page";
+import LoginPage from "./pages/auth/login";
+import SignupPage from "./pages/auth/signup";
+import SignupSuccessPage from "./pages/auth/signup-success";
+import LogoutPage from "./pages/auth/logout";
+import NotFound from "./components/not_found";
+import ProfilePage from "./pages/profile/page";
+import AboutPage from "./pages/about/page";
+import FaqPage from "./pages/faq/page";
+import ContactPage from "./pages/contact/page";
+import HelpPage from "./pages/help/page";
+
+function App() {
+  return (
+    <Router>
+      <div className="min-h-screen bg-background">
+        <Header />
+        <ScrollToTop />
+
+        <Routes>
+          {/* Main Pages */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/professionals" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="faq" element={<FaqPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/help" element={<HelpPage/>} />
+
+          {/* Auth Pages */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/signup-success" element={<SignupSuccessPage />} />
+          <Route path="/logout" element={<LogoutPage />} />
+
+          <Route path="/profile" element={<ProfilePage />} />
+
+          {/* Catch-all 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+
+        <Footer />
+      </div>
+    </Router>
+  );
+}
+
+export default App;
