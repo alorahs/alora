@@ -29,7 +29,7 @@ router.post('/register', [
   body('email').isEmail().withMessage('Invalid email address'),
   body('phone').isMobilePhone().withMessage('Invalid phone number'),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
-  body('role').isIn(['customer', 'professional']).withMessage('Role must be either customer or professional'),
+  body('role').isIn(['customer', 'professional']).withMessage('Role must be either customer, professional'),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {

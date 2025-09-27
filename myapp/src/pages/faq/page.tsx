@@ -47,7 +47,7 @@ function FaqPage() {
       return acc;
     }, {} as Record<string, FaqItem[]>);
   }, [faqs]);
-  console.log(faqs);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}

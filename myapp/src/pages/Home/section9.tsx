@@ -5,17 +5,14 @@ import { StarIcon } from "lucide-react";
 import { Img } from "react-image";
 import { AdvancedSearchFilters } from "../../components/advanced-search-filters"
 
-function Section9({ categories, handleViewSwitch, selectedCategory, setSelectedCategory, sortedProfessionals, searchQuery, setSearchQuery, priceFilter, setPriceFilter, ratingFilter, setRatingFilter, availabilityFilter, setAvailabilityFilter, clearAllFilters, showMobileFilters, setShowMobileFilters, setSelectedProfessional }:
-  { categories: { name: string; icon: string }[]; handleViewSwitch: (view: string) => void; selectedCategory: string | null; setSelectedCategory: (category: string | null) => void; sortedProfessionals: any[]; searchQuery: string; setSearchQuery: (query: string) => void; priceFilter: string | null; setPriceFilter: (filter: string | null) => void; ratingFilter: string | null; setRatingFilter: (filter: string | null) => void; availabilityFilter: string | null; setAvailabilityFilter: (filter: string | null) => void; clearAllFilters: () => void; showMobileFilters: boolean; setShowMobileFilters: (show: boolean) => void; setSelectedProfessional: (professional: any) => void; }) {
+function Section9({ categories, selectedCategory, setSelectedCategory, sortedProfessionals, searchQuery, setSearchQuery, priceFilter, setPriceFilter, ratingFilter, setRatingFilter, availabilityFilter, setAvailabilityFilter, clearAllFilters, showMobileFilters, setShowMobileFilters, setSelectedProfessional }:
+  { categories: { name: string; icon: string }[]; selectedCategory: string | null; setSelectedCategory: (category: string | null) => void; sortedProfessionals: any[]; searchQuery: string; setSearchQuery: (query: string) => void; priceFilter: string | null; setPriceFilter: (filter: string | null) => void; ratingFilter: string | null; setRatingFilter: (filter: string | null) => void; availabilityFilter: string | null; setAvailabilityFilter: (filter: string | null) => void; clearAllFilters: () => void; showMobileFilters: boolean; setShowMobileFilters: (show: boolean) => void; setSelectedProfessional: (professional: any) => void; }) {
 
 
   return (
     <section className="py-6 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 sm:mb-8">
-          <Button variant="ghost" onClick={() => handleViewSwitch("landing")} className="mb-4">
-            ← Back to Home
-          </Button>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">

@@ -19,8 +19,11 @@ import HelpPage from "./pages/help/page";
 import ServicePage from "./pages/services/page";
 import FeedbackPage from "./pages/feedback/page";
 import EmailVerify from "./pages/auth/email_verify";
+import { useAuth } from "./context/auth_provider";
+import { ProfessionalPage } from "./pages/professional/page";
 
 function App() {
+  const { user } = useAuth();
   return (
     <Router>
       <div className="min-h-screen bg-background">
@@ -30,7 +33,7 @@ function App() {
         <Routes>
           {/* Main Pages */}
           <Route path="/" element={<HomePage />} />
-          <Route path="/professionals" element={<HomePage />} />
+          <Route path="/professionals" element={<ProfessionalPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="faq" element={<FaqPage />} />
           <Route path="/contact" element={<ContactPage />} />
@@ -42,10 +45,10 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/signup-success" element={<SignupSuccessPage />} />
-          <Route path="/logout" element={<LogoutPage />} />
+          {user && <Route path="/logout" element={<LogoutPage />} />}
           <Route path="/verification/email" element={<EmailVerify />} />
 
-          <Route path="/profile" element={<ProfilePage />} />
+          {user && <Route path="/profile" element={<ProfilePage />} />}
 
           {/* Catch-all 404 */}
           <Route path="*" element={<NotFound />} />

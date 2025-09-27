@@ -33,7 +33,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      navigate("/")
+      if (user.emailVerified === false) {
+        navigate("/signup-success");
+      } else {
+        navigate("/");
+      }
     }
   }, [user])
 
@@ -49,7 +53,11 @@ export default function LoginPage() {
       if (typeof response === "object" && response !== null && Array.isArray(response.errors)) {
         setError(response.errors[0].msg)
       } else {
-        navigate("/")
+        if (user.emailVerified === false) {
+          navigate("/signup-success");
+        } else {
+          navigate("/");
+        }
       }
     } catch (error: unknown) {
       console.error("Login failed:", error)

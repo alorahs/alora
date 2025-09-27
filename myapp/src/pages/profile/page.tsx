@@ -31,10 +31,12 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/context/auth_provider"
 import { User } from "@/interfaces/user"
+import { useNavigate } from "react-router"
 
 export default function ProfilePage() {
   const { user: authUser } = useAuth()
   const [user, setUser] = useState<User | null>(authUser || null)
+  const navigate = useNavigate()
   const [editData, setEditData] = useState<User>(
     authUser || {
       _id: "",
@@ -44,7 +46,7 @@ export default function ProfilePage() {
       phone: "",
       role: "user",
       isActive: true,
-      createdAt: user.createdAt || new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       skills: [],
       availability: [],
@@ -79,6 +81,8 @@ export default function ProfilePage() {
           zip: authUser.address?.zip || "",
         },
       })
+    } else {
+      navigate("/");
     }
   }, [authUser])
 

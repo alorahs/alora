@@ -8,9 +8,20 @@ export default function SignupSuccessPage() {
   const navigate = useNavigate()
   
   useEffect(() => {
-    if (user) {
-      navigate("/")
-    }
+    const handleNavigation = async () => {
+      if (user) {
+        if (user.emailVerified === true) {
+          navigate("/");
+        } else {
+          await new Promise((r) => setTimeout(r, 2000));
+          navigate("/");
+        }
+      } else {
+        await new Promise((r) => setTimeout(r, 2000));
+        navigate("/login");
+      }
+    };
+    handleNavigation();
   }, [user, navigate])
 
   return (

@@ -1,13 +1,15 @@
 import { API_URL } from "@/context/auth_provider";
 import { useEffect, useState } from "react";
-import { redirect } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function EmailVerify() {
   const [status, setStatus] = useState("Verifying...");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
+    
 
     if (!token) {
       setStatus("Invalid verification link.");
@@ -27,7 +29,8 @@ function EmailVerify() {
 
         if (res.ok) {
           setStatus("✅ Email verified successfully!");
-          redirect("/");
+          await new Promise((r) => setTimeout(r, 2000));
+          navigate("/");
         } else {
           const data = await res.json().catch(() => ({}));
           setStatus(data.message || "❌ Verification failed.");
@@ -38,7 +41,7 @@ function EmailVerify() {
     };
 
     verifyEmail();
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-lg font-semibold">

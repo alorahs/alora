@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendVerificationEmail = async (email, token, name) => {
   const verificationLink = `${process.env.CLIENT_URL || "http://192.168.29.106:8000"}/verification/email?token=${token}`;
-  const siteName = "Cyber Rakshak";
+  const siteName = "Alora";
   const userName = name ? name : "User"; // Extract username from email
 
   const mailOptions = {
@@ -154,7 +154,6 @@ export const sendVerificationEmail = async (email, token, name) => {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log("Verification email sent successfully");
   } catch (error) {
     console.error("Error sending verification email:", error);
     throw new Error("Failed to send verification email");
