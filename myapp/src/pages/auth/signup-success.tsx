@@ -25,7 +25,7 @@ export default function SignupSuccessPage() {
             <p className="text-sm text-muted-foreground text-center">
               Please check your email and click the confirmation link to activate your account. Once confirmed, you can
               sign in to your ALORA dashboard.
-            </p>
+            </p>          
           </CardContent>
         </Card>
       </div>

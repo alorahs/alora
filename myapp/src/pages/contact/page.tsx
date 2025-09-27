@@ -1,5 +1,18 @@
 import { API_URL } from "@/context/auth_provider";
-import { useState } from "react"
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { MapPin, Phone, Mail } from "lucide-react";
 
 function ContactPage() {
   const [formData, setFormData] = useState({
@@ -9,195 +22,306 @@ function ContactPage() {
     subject: "",
     message: "",
   });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.subject || !formData.message) {
-      setError("Please fill in all fields.");
+    setIsLoading(true);
+
+    // Validation
+    if (
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.email ||
+      !formData.subject ||
+      !formData.message
+    ) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all fields.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
       return;
     }
+
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setError("Please enter a valid email address.");
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
       return;
     }
+
     if (formData.message.length < 10 || formData.message.length > 5000) {
-      setError("Message must be between 10 and 5000 characters.");
+      toast({
+        title: "Message Length Error",
+        description: "Message must be between 10 and 5000 characters.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
       return;
     }
-    const response = await fetch(`${API_URL}/_/reachus`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({fullName: formData.firstName + " " + formData.lastName, email: formData.email, subject: formData.subject, message: formData.message}),
-    });
-    if (!response.ok || response.status !== 200) {
-      const errorData = await response.json();
-      setError(errorData.errors || "Failed to submit form");
-      return;
+
+    try {
+      const response = await fetch(`${API_URL}/_/reachus`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: formData.firstName + " " + formData.lastName,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+        }),
+      });
+
+      if (!response.ok || response.status !== 200) {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description:
+            errorData.errors || "Failed to submit form. Please try again.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Success
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for contacting us. We'll get back to you soon!",
+      });
+    } catch (error) {
+      toast({
+        title: "Network Error",
+        description:
+          "Failed to send message. Please check your connection and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    setFormData({ firstName: "", lastName: "", email: "", subject: "", message: "" });
-    setSuccess("Your message has been sent successfully!");
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    setSuccess("");
-    setError("");
-  }
+  };
   return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section with illustration */}
+      <div className="bg-white py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left side - Text content */}
+            <div>
+              <h1 className="text-5xl font-bold text-gray-900 mb-6">
+                Get In Touch With Alora
+              </h1>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                Have questions, feedback, or need support? Our team is here to
+                help. Reach out to us through the form below or using our direct
+                contact details.
+              </p>
+            </div>
 
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Get in touch with us. We'd love to hear from you and answer any questions you may have.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Information */}
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Get in Touch</h2>
-
-            <div className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            {/* Right side - Illustration */}
+            <div className="flex justify-center">
+              <div className="w-80 h-80 bg-gray-200 rounded-2xl flex items-center justify-center">
+                {/* Placeholder for illustration - you can replace with actual image */}
+                <div className="text-center">
+                  <div className="w-32 h-32 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <svg
+                      className="w-16 h-16 text-blue-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
                     </svg>
                   </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Address</h3>
-                  <p className="text-gray-600">123 Business Ave, Suite 100<br />City, State 12345</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Phone</h3>
-                  <p className="text-gray-600">+1 (555) 123-4567</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">Email</h3>
-                  <p className="text-gray-600">contact@example.com</p>
+                  <p className="text-gray-500 text-sm">Contact Illustration</p>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Contact Form */}
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Send us a Message</h2>
+      {/* Main Content Section */}
+      <div className="py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            {/* Left side - Contact Form */}
+            <div>
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Get in Touch
+                </h2>
 
-            <form className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    required
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label
+                        htmlFor="firstName"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Name
+                      </Label>
+                      <Input
+                        id="firstName"
+                        type="text"
+                        value={formData.firstName}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            firstName: e.target.value,
+                          })
+                        }
+                        placeholder="Your full name"
+                        className="w-full h-10"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                        placeholder="you@example.com"
+                        className="w-full h-10"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="subject"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Phone Number
+                      </Label>
+                      <Input
+                        id="subject"
+                        type="text"
+                        value={formData.subject}
+                        onChange={(e) =>
+                          setFormData({ ...formData, subject: e.target.value })
+                        }
+                        placeholder="(123) 456-7890"
+                        className="w-full h-10"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="message"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        Message
+                      </Label>
+                      <Textarea
+                        id="message"
+                        value={formData.message}
+                        onChange={(e) =>
+                          setFormData({ ...formData, message: e.target.value })
+                        }
+                        placeholder="Tell us how we can help you"
+                        rows={5}
+                        className="w-full resize-none"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition duration-200"
+                  >
+                    {isLoading ? "Sending..." : "Submit"}
+                  </Button>
+                </form>
+              </div>
+            </div>
+
+            {/* Right side - Contact Information */}
+            <div className="space-y-8">
+              <div className="bg-white rounded-lg shadow-lg p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                  Our Information
+                </h2>
+
+                <div className="space-y-6">
+                  <div className="flex items-start space-x-3">
+                    <MapPin className="w-5 h-5 text-blue-600 mt-1" />
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        123 Alora Avenue, Suite 456, Metropolis, MA 02108
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3">
+                    <Phone className="w-5 h-5 text-blue-600 mt-1" />
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        (123) 456-7890
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3">
+                    <Mail className="w-5 h-5 text-blue-600 mt-1" />
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        support@alora.com
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    required
-                    value={formData.lastName}
-                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
+              </div>
+
+              {/* Map placeholder */}
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div className="h-64 bg-gray-200 flex items-center justify-center">
+                  <div className="text-center">
+                    <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">Interactive Map</p>
+                    <p className="text-sm text-gray-400">
+                      123 Alora Avenue, Metropolis, MA
+                    </p>
+                  </div>
                 </div>
               </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  id="subject"
-                  required
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  rows={5}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  required
-                  value={formData.message}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Tell us how we can help you..."
-                ></textarea>
-              </div>
-
-              {error && <p className="text-red-500 text-sm">{error}</p>}
-              {success && <p className="text-green-500 text-sm">{success}</p>}
-
-              <button
-                type="submit"
-                onClick={handleSubmit}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 font-medium"
-              >
-                Send Message
-              </button>
-            </form>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
-export default ContactPage
+export default ContactPage;

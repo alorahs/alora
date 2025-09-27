@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Card, CardContent } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
+import { useGeolocation } from "@/hooks/use-geoloaction";
 import {
   Search,
   Star,
@@ -12,6 +11,24 @@ import {
   CheckCircle,
   Users,
   ArrowRight,
+  Wrench,
+  Zap,
+  Paintbrush,
+  Hammer,
+  Wind,
+  Droplets,
+  Settings,
+  Eye,
+  ClipboardCheck,
+  MessageCircle,
+  Home,
+  Network,
+  Plug,
+  Lightbulb,
+  Monitor,
+  Lock,
+  FileText,
+  Smile,
 } from "lucide-react";
 
 import Section9 from "./section9";
@@ -210,44 +227,144 @@ const professionals = [
   },
 ];
 
-function HomePage() {
-  const location = useLocation();
+// Services data matching the design
+const services = [
+  {
+    title: "Plumbing Repair",
+    description:
+      "Expert solutions for leaks, clogs, and pipe issues. Ensuring smooth water flow throughout your home.",
+    icon: Wrench,
+    color: "blue",
+  },
+  {
+    title: "Tech Support",
+    description:
+      "On-demand assistance for software, hardware, and network problems. Get immediate help for all your tech issues.",
+    icon: Monitor,
+    color: "green",
+  },
+  {
+    title: "Electrical Services",
+    description:
+      "Safe installation, repair, and maintenance of home electrical systems and appliances. Licensed electricians available.",
+    icon: Zap,
+    color: "yellow",
+  },
+  {
+    title: "Deep Cleaning",
+    description:
+      "Thorough and meticulous cleaning services to refresh and rejuvenate your living environment.",
+    icon: Shield,
+    color: "purple",
+  },
+  {
+    title: "Interior Painting",
+    description:
+      "Professional painting for walls, ceilings, and trim. Transform your space with expert color consultation.",
+    icon: Paintbrush,
+    color: "orange",
+  },
+  {
+    title: "Locksmith Services",
+    description:
+      "Emergency lockouts, lock repair, and installation services for enhanced home safety and security.",
+    icon: Lock,
+    color: "red",
+  },
+  {
+    title: "Network Setup",
+    description:
+      "Secure and reliable home network installation and optimization for seamless connectivity across devices.",
+    icon: Network,
+    color: "blue",
+  },
+  {
+    title: "Water Damage Restoration",
+    description:
+      "Fast response and effective restoration for water leaks and flood damage, restoring your home quickly.",
+    icon: Droplets,
+    color: "blue",
+  },
+  {
+    title: "Appliance Repair",
+    description:
+      "Repair services for common household appliances, extending their lifespan and ensuring optimal performance.",
+    icon: Settings,
+    color: "gray",
+  },
+  {
+    title: "Fixture Installation",
+    description:
+      "Installation of new light fixtures, fans, and other electrical components for enhanced home functionality.",
+    icon: Lightbulb,
+    color: "yellow",
+  },
+  {
+    title: "Window Cleaning",
+    description:
+      "Professional window cleaning service for clear views and a brighter, more welcoming interior space.",
+    icon: Eye,
+    color: "blue",
+  },
+  {
+    title: "HVAC Maintenance",
+    description:
+      "Regular maintenance and repair of heating, ventilation, and air conditioning systems for comfort.",
+    icon: Wind,
+    color: "green",
+  },
+];
 
-  // Simplified categories for cleaner design
-  const categories = [
-    {
-      name: "Plumber",
-      icon: "🔧",
-      description: "Emergency repairs & installations",
-    },
-    {
-      name: "Electrician",
-      icon: "⚡",
-      description: "Wiring & smart home solutions",
-    },
-    {
-      name: "AC Technician",
-      icon: "❄️",
-      description: "Cooling system services",
-    },
-    {
-      name: "Cleaner",
-      icon: "🧹",
-      description: "Professional cleaning services",
-    },
-    {
-      name: "Carpenter",
-      icon: "🔨",
-      description: "Custom furniture & repairs",
-    },
-    {
-      name: "Painter",
-      icon: "🎨",
-      description: "Interior & exterior painting",
-    },
-  ];
+// Categories for filtering (simplified)
+const categories = [
+  { name: "All Services", active: true, icon: "🏠" },
+  { name: "Home Repair", active: false, icon: "🔧" },
+  { name: "Tech Support", active: false, icon: "💻" },
+  { name: "Cleaning", active: false, icon: "🧹" },
+  { name: "Electrical", active: false, icon: "⚡" },
+  { name: "Plumbing", active: false, icon: "🚿" },
+];
+
+// How it works steps
+const howItWorksSteps = [
+  {
+    step: "1",
+    title: "Choose Your Service",
+    description:
+      "Select the home service you need from our wide range of professional offerings.",
+  },
+  {
+    step: "2",
+    title: "Schedule a Professional",
+    description:
+      "Connect with qualified and vetted professionals who are available at your convenience.",
+  },
+  {
+    step: "3",
+    title: "Relax & Enjoy",
+    description:
+      "Our professional handles the service while you can focus on what matters most to you.",
+  },
+];
+
+// Customer testimonials
+const testimonials = [
+  {
+    name: "Sarah J.",
+    text: "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
+    rating: 5,
+  },
+  {
+    name: "David K.",
+    text: "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
+    rating: 5,
+  },
+];
+
+function HomePage() {
 
   // Modern stats for trust building
+  const detectUserLocation = useGeolocation();
   const stats = [
     { number: "50K+", label: "Happy Customers", icon: Users },
     { number: "1000+", label: "Verified Pros", icon: Shield },
@@ -255,7 +372,6 @@ function HomePage() {
     { number: "24/7", label: "Support", icon: Clock },
   ];
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [priceFilter, setPriceFilter] = useState<string | null>(null);
   const [ratingFilter, setRatingFilter] = useState<string | null>(null);
@@ -264,6 +380,7 @@ function HomePage() {
   );
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [selectedProfessional, setSelectedProfessional] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Enhanced filtering and sorting logic for better home services experience
   const sortedProfessionals = professionals
@@ -362,36 +479,106 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {location.pathname === "/" && (
-        <div className="space-y-24">
+        <div>
           {/* Hero Section */}
-          <section className="relative bg-gradient-to-br from-blue-50 via-white to-indigo-50 pt-20 pb-32">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center max-w-4xl mx-auto">
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-8 leading-tight">
-                  Your Home.
-                  <span className="block text-blue-600">Our Experts.</span>
-                </h1>
-                <p className="text-xl sm:text-2xl text-gray-600 mb-12 leading-relaxed">
-                  Connect with verified professionals for all your home service
-                  needs. Quality work, transparent pricing, instant booking.
-                </p>
+          <section className="relative min-h-[80vh] flex items-center overflow-hidden">
+            {/* Background Image */}
+            <div className="absolute inset-0 z-0">
+              <div className="w-full h-full bg-gradient-to-r from-gray-100 via-blue-50 to-amber-50 relative">
+                {/* City Skyline Background */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/20">
+                  <div className="absolute bottom-0 right-0 w-2/3 h-full bg-gradient-to-t from-gray-800 via-gray-600 to-transparent opacity-30"></div>
+                  {/* City silhouette */}
+                  <div className="absolute bottom-0 right-0 w-2/3 h-1/2">
+                    <div className="flex items-end justify-end h-full space-x-1 pr-8">
+                      <div className="bg-gray-700 w-8 h-32 opacity-40"></div>
+                      <div className="bg-gray-600 w-12 h-40 opacity-40"></div>
+                      <div className="bg-gray-700 w-6 h-24 opacity-40"></div>
+                      <div className="bg-gray-800 w-16 h-48 opacity-40"></div>
+                      <div className="bg-gray-600 w-10 h-36 opacity-40"></div>
+                      <div className="bg-gray-700 w-14 h-44 opacity-40"></div>
+                      <div className="bg-gray-600 w-8 h-28 opacity-40"></div>
+                      <div className="bg-gray-800 w-20 h-52 opacity-40"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-                {/* Search Bar */}
-                <div className="max-w-2xl mx-auto mb-12">
-                  <div className="relative bg-white rounded-2xl shadow-xl p-2 border border-gray-100">
-                    <div className="flex items-center">
-                      <Search className="text-gray-400 ml-4" size={20} />
-                      <Input
-                        placeholder="Search for services..."
-                        className="flex-1 border-0 focus:ring-0 text-lg h-14 pl-4"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                {/* Left Content */}
+                <div className="">
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                    Connect with Local
+                    <span className="block">Home Service</span>
+                    <span className="block">Experts Instantly</span>
+                  </h1>
+                  <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-lg">
+                    From urgent repairs to routine maintenance, Alora connects
+                    you directly with certified professionals. Get immediate
+                    support with a single call.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button
+                      size="lg"
+                      className="bg-blue-600 hover:bg-blue-700 px-8 py-4 text-lg font-semibold rounded-lg flex items-center justify-center"
+                      onClick={() => handleCategoryClick("")}
+                    >
+                      <Plug className="mr-2" size={20} />
+                      Call an Expert
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="border-blue-200 text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold rounded-lg"
+                      onClick={() => handleCategoryClick("")}
+                    >
+                      Explore Professionals
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Right Search Form */}
+                <div className="relative">
+                  <div className="bg-white rounded-2xl p-8 shadow-2xl border border-gray-100 max-w-md ml-auto">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                      Find Services Near You
+                    </h2>
+
+                    <div className="space-y-4">
+                      {/* Location Input */}
+                      <div className="relative">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                          <Home className="text-gray-400" size={20} />
+                        </div>
+                        <Input
+                          type="text"
+                          placeholder="123 Main St, Anytown, USA"
+                          className="pl-12 py-4 text-lg border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                      </div>
+
+                      {/* Detect Location Button */}
                       <Button
-                        className="bg-blue-600 hover:bg-blue-700 h-12 px-8 mr-1 rounded-xl"
-                        onClick={() => handleCategoryClick(searchQuery)}
+                        variant="ghost"
+                        className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 py-3 rounded-lg flex items-center justify-center"
+                        onClick={detectUserLocation.getLocation}
                       >
-                        Search
+                        <Settings className="mr-2" size={16} />
+                        Detect My Location
+                      </Button>
+
+                      {/* Search Button */}
+                      <Button
+                        size="lg"
+                        className="w-full bg-blue-600 hover:bg-blue-700 py-4 text-lg font-semibold rounded-lg flex items-center justify-center"
+                        onClick={() => handleCategoryClick("")}
+                      >
+                        <Search className="mr-2" size={20} />
+                        Search Services
                       </Button>
                     </div>
                   </div>
@@ -401,109 +588,66 @@ function HomePage() {
           </section>
 
           {/* Services Section */}
-          <section className="py-20">
+          <section className="py-20 bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                  Popular Services
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  Our Comprehensive Services
                 </h2>
-                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                  Book trusted professionals for your home needs
-                </p>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+              {/* Service Categories Filter */}
+              <div className="flex flex-wrap justify-center gap-4 mb-12">
                 {categories.map((category, index) => (
-                  <Card
+                  <Button
                     key={category.name}
-                    className="group cursor-pointer border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-gradient-to-br from-white to-gray-50"
-                    onClick={() => handleCategoryClick(category.name)}
+                    variant={category.active ? "default" : "outline"}
+                    className={`rounded-full px-6 py-2 ${
+                      category.active
+                        ? "bg-blue-600 text-white"
+                        : "bg-white text-gray-600 hover:bg-blue-50"
+                    }`}
                   >
-                    <CardContent className="p-6 text-center">
-                      <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                        {category.icon}
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                        {category.name}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {category.description}
-                      </p>
-                    </CardContent>
-                  </Card>
+                    {category.name}
+                  </Button>
                 ))}
               </div>
-            </div>
-          </section>
 
-          {/* Stats Section */}
-          <section className="bg-gray-50 py-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                {stats.map((stat, index) => {
-                  const IconComponent = stat.icon;
-                  return (
-                    <div key={stat.label} className="text-center">
-                      <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <IconComponent className="text-blue-600" size={24} />
-                      </div>
-                      <div className="text-3xl font-bold text-gray-900 mb-2">
-                        {stat.number}
-                      </div>
-                      <div className="text-gray-600">{stat.label}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-          {/* Features Section */}
-          <section className="py-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-16">
-                <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                  Why Choose Alora?
-                </h2>
-                <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                  We make home services simple, safe, and reliable
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-8">
-                {[
-                  {
-                    icon: Shield,
-                    title: "Verified Professionals",
-                    description:
-                      "Background-checked and licensed experts you can trust",
-                  },
-                  {
-                    icon: CheckCircle,
-                    title: "Quality Guaranteed",
-                    description:
-                      "100% satisfaction guarantee or your money back",
-                  },
-                  {
-                    icon: Clock,
-                    title: "Quick Response",
-                    description: "Fast booking with same-day service available",
-                  },
-                ].map((feature, index) => {
-                  const IconComponent = feature.icon;
+              {/* Services Grid */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {services.map((service, index) => {
+                  const IconComponent = service.icon;
                   return (
                     <Card
-                      key={feature.title}
-                      className="text-center border-0 shadow-lg"
+                      key={service.title}
+                      className="group cursor-pointer border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white"
                     >
-                      <CardContent className="p-8">
-                        <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
-                          <IconComponent className="text-blue-600" size={24} />
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div
+                            className={`p-3 rounded-lg bg-${service.color}-100 flex-shrink-0`}
+                          >
+                            <IconComponent
+                              className={`text-${service.color}-600`}
+                              size={24}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                              {service.title}
+                            </h3>
+                            <p className="text-sm text-gray-600 mb-4">
+                              {service.description}
+                            </p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-blue-600 hover:text-blue-700 p-0 h-auto font-medium"
+                            >
+                              Connect with a Pro →
+                            </Button>
+                          </div>
                         </div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                          {feature.title}
-                        </h3>
-                        <p className="text-gray-600">{feature.description}</p>
                       </CardContent>
                     </Card>
                   );
@@ -512,23 +656,105 @@ function HomePage() {
             </div>
           </section>
 
-          {/* CTA Section */}
-          <section className="bg-blue-600 py-20">
+          {/* How Alora Works Section */}
+          <section className="py-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-16">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  How Alora Works
+                </h2>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-8">
+                {howItWorksSteps.map((step, index) => (
+                  <div key={step.step} className="text-center">
+                    <div className="relative mb-6">
+                      <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto text-lg font-bold">
+                        {step.step}
+                      </div>
+                      {/* Icons for each step */}
+                      <div className="mt-4">
+                        {index === 0 && (
+                          <ClipboardCheck
+                            className="mx-auto text-gray-400"
+                            size={32}
+                          />
+                        )}
+                        {index === 1 && (
+                          <Users className="mx-auto text-gray-400" size={32} />
+                        )}
+                        {index === 2 && (
+                          <MessageCircle
+                            className="mx-auto text-gray-400"
+                            size={32}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                      {step.title}
+                    </h3>
+                    <p className="text-gray-600">{step.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Customer Testimonials */}
+          <section className="bg-gray-50 py-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-16">
+                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                  What Our Customers Say
+                </h2>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                {testimonials.map((testimonial, index) => (
+                  <Card
+                    key={testimonial.name}
+                    className="border-0 shadow-lg bg-white"
+                  >
+                    <CardContent className="p-8">
+                      <div className="flex mb-4">
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <Star
+                            key={i}
+                            className="text-yellow-400 fill-current"
+                            size={20}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-gray-700 mb-4 italic">
+                        "{testimonial.text}"
+                      </p>
+                      <p className="font-semibold text-gray-900">
+                        - {testimonial.name}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Final CTA Section */}
+          <section className="bg-gradient-to-r from-blue-600 to-blue-700 py-20">
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
               <h2 className="text-4xl font-bold text-white mb-6">
-                Ready to get started?
+                Ready to Transform Your Home?
               </h2>
               <p className="text-xl text-blue-100 mb-8">
-                Join thousands of satisfied customers who trust Alora for their
-                home services
+                Experience the convenience and quality of Alora's professional
+                home services. Get started today!
               </p>
               <Button
                 size="lg"
-                className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold"
+                className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 text-lg font-semibold rounded-lg"
                 onClick={() => handleCategoryClick("")}
               >
-                Find Professionals
-                <ArrowRight className="ml-2" size={20} />
+                Get a Free Quote
               </Button>
             </div>
           </section>
@@ -568,7 +794,8 @@ function HomePage() {
         />
       )}
     </div>
-  );
-}
+  )
+};
+
 
 export default HomePage;

@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "./ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { useState, useEffect } from "react";
+import { Button } from "./ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,52 +10,68 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet"
-import { User, Settings, LogOut, Menu } from "lucide-react"
-import { useIsMobile } from "../hooks/use-mobile"
-import { Link } from "react-router-dom"
-import { useAuth } from "@/context/auth_provider"
+} from "./ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./ui/sheet";
+import { User, Settings, LogOut, Menu } from "lucide-react";
+import { useIsMobile } from "../hooks/use-mobile";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/context/auth_provider";
 
 const navigationItems = [
   { href: "/", label: "Home" },
-  { href: "/features", label: "Features" },
-  { href: "/about", label: "About" },
-]
+  { href: "/services", label: "Services" },
+  { href: "/about", label: "About Us" },
+  { href: "/contact", label: "Contact" },
+  { href: "/feedback", label: "Feedback" },
+];
 
 const authenticatedItems = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/projects", label: "Projects" },
-]
+];
 
 export function Header() {
-  const { user } = useAuth()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const isMobile = useIsMobile()
+  const { user } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    setIsAuthenticated(!!user)
-  }, [user])
+    setIsAuthenticated(!!user);
+  }, [user]);
 
   const handleNavigation = (href: string) => {
-    setIsMobileMenuOpen(false)
+    setIsMobileMenuOpen(false);
     // Close mobile menu when navigating
-  }
+  };
 
   const handleLogout = () => {
     // Add actual logout logic here
-    console.log("Logging out...")
-    window.location.href = "/logout"
-  }
+    console.log("Logging out...");
+    window.location.href = "/logout";
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border shadow-sm">
       <div className="mx-auto max-w-screen-xl flex items-center justify-between px-4 sm:px-6 h-16">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+        <Link
+          to="/"
+          className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+        >
           <div className="rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg h-9 w-9">
-            <img src="/alora-logo.png" alt="Alora Logo" className="h-full w-full object-contain" />
+            <img
+              src="/alora-logo.png"
+              alt="Alora Logo"
+              className="h-full w-full object-contain"
+            />
           </div>
           <span className="font-semibold text-xl text-foreground">Alora</span>
         </Link>
@@ -113,7 +129,10 @@ export function Header() {
                     className="relative rounded-full p-1 hover:bg-muted/30 transition-all duration-200"
                   >
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={user.profilePicture || "/placeholder.svg"} alt={user.fullName || "User"} />
+                      <AvatarImage
+                        src={user.profilePicture || "/placeholder.svg"}
+                        alt={user.fullName || "User"}
+                      />
                       <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-medium">
                         {(user.fullName || "U")
                           .split(" ")
@@ -132,8 +151,12 @@ export function Header() {
                 >
                   <DropdownMenuLabel className="font-normal p-4">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-semibold leading-none">{user.fullName}</p>
-                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                      <p className="text-sm font-semibold leading-none">
+                        {user.fullName}
+                      </p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user.email}
+                      </p>
                     </div>
                   </DropdownMenuLabel>
 
@@ -187,7 +210,9 @@ export function Header() {
             <SheetContent side="right" className="w-[300px] sm:w-[400px] p-6">
               <SheetHeader>
                 <SheetTitle className="text-left">Navigation</SheetTitle>
-                <SheetDescription className="text-left">Access all pages and features</SheetDescription>
+                <SheetDescription className="text-left">
+                  Access all pages and features
+                </SheetDescription>
               </SheetHeader>
 
               <div className="flex flex-col space-y-4 mt-8">
@@ -249,7 +274,10 @@ export function Header() {
                   <div className="pt-6 border-t border-border space-y-3">
                     <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/30">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.profilePicture || "/placeholder.svg"} alt={user.fullName || "User"} />
+                        <AvatarImage
+                          src={user.profilePicture || "/placeholder.svg"}
+                          alt={user.fullName || "User"}
+                        />
                         <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-medium">
                           {(user.fullName || "U")
                             .split(" ")
@@ -259,8 +287,12 @@ export function Header() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate">{user.fullName}</p>
-                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                        <p className="text-sm font-semibold truncate">
+                          {user.fullName}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {user.email}
+                        </p>
                       </div>
                     </div>
 
@@ -291,8 +323,8 @@ export function Header() {
                     <Button
                       variant="ghost"
                       onClick={() => {
-                        setIsMobileMenuOpen(false)
-                        handleLogout()
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
                       }}
                       className="w-full justify-start h-12 rounded-lg hover:bg-destructive/10 hover:text-destructive text-destructive"
                     >
@@ -307,5 +339,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }

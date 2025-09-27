@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Header } from "./components/header";
 import Footer from "./components/footer";
 import ScrollToTop from "./components/scroll_to_top";
+import { Toaster } from "./components/ui/toaster";
 
 import HomePage from "./pages/Home/page";
 import LoginPage from "./pages/auth/login";
@@ -15,6 +16,9 @@ import AboutPage from "./pages/about/page";
 import FaqPage from "./pages/faq/page";
 import ContactPage from "./pages/contact/page";
 import HelpPage from "./pages/help/page";
+import ServicePage from "./pages/services/page";
+import FeedbackPage from "./pages/feedback/page";
+import EmailVerify from "./pages/auth/email_verify";
 
 function App() {
   return (
@@ -30,13 +34,16 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="faq" element={<FaqPage />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/help" element={<HelpPage/>} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/services" element={<ServicePage />} />
+          <Route path="/feedback" element={<FeedbackPage />} />
 
           {/* Auth Pages */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/signup-success" element={<SignupSuccessPage />} />
           <Route path="/logout" element={<LogoutPage />} />
+          <Route path="/verification/email" element={<EmailVerify />} />
 
           <Route path="/profile" element={<ProfilePage />} />
 
@@ -45,6 +52,7 @@ function App() {
         </Routes>
 
         <Footer />
+        <Toaster />
       </div>
     </Router>
   );

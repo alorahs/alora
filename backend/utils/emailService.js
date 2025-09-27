@@ -15,14 +15,15 @@ const transporter = nodemailer.createTransport({
   logger: true, // Enable logging for debugging
   debug: true, // Show debug output
 });
+
 export const sendVerificationEmail = async (email, token, name) => {
-  const verificationLink = `${process.env.CLIENT_URL || "https://cyberrakshak.me"}/api/verification/email?token=${token}`;
+  const verificationLink = `${process.env.CLIENT_URL || "http://192.168.29.106:8000"}/verification/email?token=${token}`;
   const siteName = "Cyber Rakshak";
   const userName = name ? name : "User"; // Extract username from email
 
   const mailOptions = {
     from:
-      process.env.EMAIL_FROM || '"Cyber Rakshak Admin" <admin@cyberrakshak.me>',
+      process.env.EMAIL_FROM || '"Alora Admin" <admin@cyberrakshak.me>',
     to: email,
     subject: "Email Verification",
     html: `<!DOCTYPE html>
