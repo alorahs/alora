@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,14 +10,27 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Search, HelpCircle, Phone, Mail } from "lucide-react";
+import { API_URL } from "@/context/auth_provider";
 
 function FaqPage() {
   const [searchQuery, setSearchQuery] = useState("");
-
-  const response = await fetch("")
+  const [faqData, setFaqData] = useState<Record<string, { type: string; question: string; answer: string }[]>>({});
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(`${API_URL}/_/faqs`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      setFaqData(await response.json());
+    };
+    fetchData();
+  }, []);
 
   const filteredFAQ = Object.entries(faqData).reduce(
-    (acc, [category, questions]) => {
+    (acc, [type , questions]) => {
       const filteredQuestions = questions.filter(
         (item) =>
           item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
