@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Section9 from "../Home/section9";
+import Layout from "./layout";
 import ProfessionalProfileModal from "@/components/professional-profile-modal";
 import { categories } from "../Home/page";
 export function ProfessionalPage() {
@@ -78,7 +78,7 @@ export function ProfessionalPage() {
 
   return (
     <>
-      <Section9
+      <Layout
         categories={categories}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
