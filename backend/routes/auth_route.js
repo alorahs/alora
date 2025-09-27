@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 import RefreshToken from '../models/refresh_token.js';
 import { sendVerificationEmail } from '../utils/emailService.js';
+import verifyAccessToken from '../middleware/authentication.js';
 
 const router = express.Router();
 
@@ -204,14 +205,9 @@ router.post('/refresh', async (req, res) => {
   }
 });
 
-router.get('/me', async (req, res) => {
-  const accessToken = req.cookies.accessToken;
-  if (!accessToken) {
-    return res.status(401).json({ errors: [{ msg: 'No access token provided' }] });
-  }
+router.get('/me', verifyAccessToken, async (req, res) => {
   try {
-    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.sub).select('-password');
+    const user = await User.findById(req.user._id).select('-password');
     if (!user) {
       return res.status(401).json({ errors: [{ msg: 'User not found' }] });
     }

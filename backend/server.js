@@ -7,11 +7,7 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
 import connectDB from './config/db.js';
-import authRouter from './routes/auth_route.js';
 import apiRouter from './routes/api_route.js';
-import shareRouter from './routes/share_route.js';
-import verifyAccessToken from './middleware/authentication.js';
-
 
 const app = express();
 
@@ -30,9 +26,7 @@ app.use(cors({
 
 
 // API Routes - keep before frontend static serving
-app.use('/api/auth', authRouter);
-app.use('/api/_', shareRouter);
-app.use('/api', verifyAccessToken, apiRouter);
+app.use('/api', apiRouter);
 
 app.get('/', (req, res) => {
     res.json({'message': 'Welcome to the API', 'status': 'running', 'version': '1.0.0', 'author': 'Alora', 'req': req.method + ' ' + req.originalUrl});

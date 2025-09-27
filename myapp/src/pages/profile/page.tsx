@@ -32,6 +32,7 @@ import {
 import { useAuth } from "@/context/auth_provider"
 import { User } from "@/interfaces/user"
 import { useNavigate } from "react-router"
+import AdminProfilePage from "./admin"
 
 export default function ProfilePage() {
   const { user: authUser } = useAuth()
@@ -139,6 +140,12 @@ export default function ProfilePage() {
   }
 
   if (!user) return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+
+  if( user.role === "admin") {
+    return (
+      <AdminProfilePage />
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
