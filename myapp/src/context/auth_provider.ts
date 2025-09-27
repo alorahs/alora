@@ -28,8 +28,8 @@ interface AuthContextType {
   logout: () => void
   isLoading: boolean
 }
+export const API_URL = import.meta.env.VITE_API_URL || "http://192.168.29.106:5000/api";
 
-export const API_URL = "http://192.168.29.106:5000/api";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {

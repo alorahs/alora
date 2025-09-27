@@ -1,6 +1,6 @@
-import { API_URL } from "@/context/auth_provider";
-import { HelpCircle, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,44 +9,30 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Card, CardContent } from "@/components/ui/card";
+import { Search, HelpCircle, Phone, Mail } from "lucide-react";
+import { API_URL } from "@/context/auth_provider";
 
-interface FaqItem {
-  _id: string;
-  question: string;
-  answer: string;
-  type: string;
-  createdAt: string;
-  updatedAt: string;
-}
-function capitalizeFirstLetter(val) {
-    return String(val).charAt(0).toUpperCase() + String(val).slice(1);
-}
 function FaqPage() {
-  const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [faqs, setFaqs] = useState<any[]>([]);
+  const [error, setError] = useState("");
+
   useEffect(() => {
-    const fetchFaqs = async () => {
+    const fetchData = async () => {
       try {
         const response = await fetch(`${API_URL}/_/faqs`);
-        const data: FaqItem[] = await response.json();
+        if (!response.ok) throw new Error("Failed to fetch FAQs");
+        const data = await response.json();
         setFaqs(data);
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching FAQ data:", error);
+        setError(
+          "We couldn't load FAQs at the moment. Please try again later."
+        );
       }
     };
-    fetchFaqs();
+    fetchData();
   }, []);
-  // Group faqs by type
-  const groupedFaqs = useMemo(() => {
-    return faqs.reduce((acc: Record<string, FaqItem[]>, faq) => {
-      if (!acc[faq.type]) {
-        acc[faq.type] = [];
-      }
-      acc[faq.type].push(faq);
-      return acc;
-    }, {} as Record<string, FaqItem[]>);
-  }, [faqs]);
   console.log(faqs);
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,29 +85,31 @@ function FaqPage() {
               />
             </div>
 
-            {/* {error && <div className="text-red-600 mt-4 text-sm">{error}</div>} */}
+            {error && <div className="text-red-600 mt-4 text-sm">{error}</div>}
           </div>
         </div>
       </div>
+
       {/* FAQ Content */}
       <div className="pb-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          {Object.entries(groupedFaqs).map(([type, questions]) => (
-            <div key={type} className="mb-12">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">{capitalizeFirstLetter(type)} Questions</h3>
+          {faqs.map((faq) => (
+            <div key={faq.type} className="mb-12">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">{faq.type}</h3>
               <Card className="shadow-lg border-0">
                 <CardContent className="p-0">
                   <Accordion type="single" collapsible className="w-full">
-                    {questions.map((questionItem) => (
+                    {faq.questions.map((faq) => (
                       <AccordionItem
-                        key={questionItem._id || questionItem.question}
-                        value={questionItem.question}
+                        key={`${type}-${index}`}
+                        value={`${type}-${index}`}
+                        className="border-gray-200 last:border-b-0"
                       >
-                        <AccordionTrigger className="p-4">
-                          {questionItem.question}
+                        <AccordionTrigger className="px-6 py-4 text-left hover:bg-gray-50 text-lg font-medium text-gray-900">
+                          {item.question}
                         </AccordionTrigger>
-                        <AccordionContent className="p-4">
-                          {questionItem.answer}
+                        <AccordionContent className="px-6 pb-4 text-gray-600 leading-relaxed">
+                          {item.answer}
                         </AccordionContent>
                       </AccordionItem>
                     ))}
@@ -130,9 +118,60 @@ function FaqPage() {
               </Card>
             </div>
           ))}
+
+          {!faqs && (
+            <div className="text-center py-12">
+              <HelpCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                No results found
+              </h3>
+              <p className="text-gray-600">
+                Try adjusting your search terms or browse our categories above.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Still Need Help Section */}
+      <div className="bg-white py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="shadow-xl border-0 bg-gradient-to-r from-blue-50 to-purple-50">
+            <CardContent className="text-center py-12">
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                Still Need Help?
+              </h3>
+              <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                If you couldn't find the answer you were looking for, our
+                support team is ready to assist you.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link to="/contact">
+                  <Button
+                    size="lg"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+                  >
+                    <Mail className="mr-2 h-5 w-5" />
+                    Contact Support
+                  </Button>
+                </Link>
+                <Link to="/">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="bg-white hover:bg-gray-50 px-8 py-3"
+                  >
+                    <Phone className="mr-2 h-5 w-5" />
+                    Go Back to Home
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
   );
 }
+
 export default FaqPage;
