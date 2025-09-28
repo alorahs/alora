@@ -1,10 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 import { Button } from "../components/ui/button"
 import { Card, CardContent } from "../components/ui/card"
 import { Img } from "react-image"
+import { BookingForm } from "./booking_form";
+import { useAuth, API_URL } from "../context/auth_provider";
+import { useToast } from "../hooks/use-toast";
+import { Heart } from "lucide-react";
 
 const XIcon = () => (
   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -18,7 +22,7 @@ const StarIcon = ({ className }: { className?: string }) => (
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}
-      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
     />
   </svg>
 )
@@ -80,25 +84,30 @@ const MailIcon = () => (
 )
 
 interface Professional {
-  id: number
-  name: string
-  category: string
-  rating: number
-  reviewCount: number
-  hourlyRate: number
-  bio: string
-  skills: string[]
-  profileImageURL: string
-  workGalleryURLs: string[]
-  availability: string
-  location: string
+  id: string;
+  name: string;
+  category: string;
+  rating: number;
+  reviewCount: number;
+  hourlyRate: number;
+  bio: string;
+  skills: string[];
+  profileImageURL: string;
+  workGalleryURLs: string[];
+  availability: string;
+  location: string;
+  experience?: string;
+  verified?: boolean;
+  emergencyService?: boolean;
+  responseTime?: string;
+  serviceAreas?: string[];
+  certifications?: string[];
 }
 
 interface ProfessionalProfileModalProps {
   professional: Professional | null
   isOpen: boolean
   onClose: () => void
-  onBookNow: () => void
 }
 
 const sampleReviews = [
@@ -129,11 +138,116 @@ export default function ProfessionalProfileModal({
   professional,
   isOpen,
   onClose,
-  onBookNow,
 }: ProfessionalProfileModalProps) {
   const [activeTab, setActiveTab] = useState("about")
+  const [showBookingForm, setShowBookingForm] = useState(false)
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (isOpen && professional && user) {
+      checkFavoriteStatus();
+    }
+  }, [isOpen, professional, user]);
+
+  const checkFavoriteStatus = async () => {
+    try {
+      const response = await fetch(`${API_URL}/favorite/${professional?.id}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIsFavorited(data.isFavorited);
+      }
+    } catch (error) {
+      console.error('Error checking favorite status:', error);
+    }
+  };
+
+  const toggleFavorite = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to save favorites.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!professional) return;
+
+    setFavoriteLoading(true);
+    try {
+      const url = `${API_URL}/favorite${isFavorited ? `/${professional.id}` : ''}`;
+      const method = isFavorited ? 'DELETE' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: isFavorited ? undefined : JSON.stringify({ professionalId: professional.id }),
+      });
+
+      if (response.ok) {
+        setIsFavorited(!isFavorited);
+        toast({
+          title: isFavorited ? "Removed from favorites" : "Added to favorites",
+          description: isFavorited 
+            ? "Professional removed from your favorites list." 
+            : "Professional added to your favorites list.",
+        });
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Operation failed');
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
 
   if (!isOpen || !professional) return null
+
+  const handleBookNow = () => {
+    setShowBookingForm(true);
+  };
+
+  const handleCloseBooking = () => {
+    setShowBookingForm(false);
+  };
+
+  if (showBookingForm) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Book Service with {professional.name}</h2>
+            <Button variant="ghost" size="sm" onClick={handleCloseBooking}>
+              <XIcon />
+            </Button>
+          </div>
+          <div className="p-6">
+            <BookingForm professional={professional} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -141,9 +255,22 @@ export default function ProfessionalProfileModal({
         {/* Header */}
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">Professional Profile</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <XIcon />
-          </Button>
+          <div className="flex items-center gap-2">
+            {user && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={toggleFavorite}
+                disabled={favoriteLoading}
+                className={isFavorited ? "text-red-500 hover:text-red-600" : ""}
+              >
+                <Heart className={`h-5 w-5 ${isFavorited ? "fill-current" : ""}`} />
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <XIcon />
+            </Button>
+          </div>
         </div>
 
         {/* Content */}
@@ -189,6 +316,11 @@ export default function ProfessionalProfileModal({
                 </div>
 
                 <div className="flex gap-3">
+                  <Button variant="outline" className="flex items-center bg-transparent" asChild>
+                    <a href={`/professional/${professional.id}/reviews`}>
+                      See all reviews
+                    </a>
+                  </Button>
                   <Button variant="outline" className="flex items-center bg-transparent">
                     <PhoneIcon />
                     <span className="ml-2">Call</span>
@@ -197,7 +329,7 @@ export default function ProfessionalProfileModal({
                     <MailIcon />
                     <span className="ml-2">Message</span>
                   </Button>
-                  <Button onClick={onBookNow} className="bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={handleBookNow} className="bg-blue-600 hover:bg-blue-700">
                     <CalendarIcon />
                     <span className="ml-2">Book Now</span>
                   </Button>
@@ -310,6 +442,13 @@ export default function ProfessionalProfileModal({
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+              <div className="mt-4 text-center">
+                <Button variant="outline" asChild>
+                  <a href={`/professional/${professional.id}/reviews`}>
+                    See all {professional.reviewCount} reviews
+                  </a>
+                </Button>
               </div>
             </div>
           )}

@@ -64,11 +64,9 @@ export default function SignupPage() {
     try {
       const response = await signup({ fullName, password, phone, username, email, role })
       if (response && Array.isArray((response as any).errors) && (response as any).errors.length > 0) {
-        console.log("Signup failed:", (response as any).errors)
         setError("Signup failed: " + (response as any).errors[0].msg)
       } else {
-        console.log("Signup successful:", response)
-        navigate("/signup-success")
+        navigate("/auth/signup-success")
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")

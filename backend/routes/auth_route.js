@@ -115,14 +115,6 @@ router.post('/login', [
       return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
     }
 
-    if (!user.emailVerified) {
-      const verifyEmailToken = jwt.sign({ id: user._id }, process.env.EMAIL_VERIFICATION_TOKEN_SECRET, { expiresIn: '15m' });
-      user.verifyEmailToken = verifyEmailToken;
-      user.verifyEmailExpires = new Date(Date.now() + 15 * 60 * 1000);
-      await user.save();
-      await sendVerificationEmail(user.email, user.verifyEmailToken, user.fullName);
-    }
-
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 

@@ -18,7 +18,7 @@ export default function SignupSuccessPage() {
         }
       } else {
         await new Promise((r) => setTimeout(r, 2000));
-        navigate("/login");
+        navigate("/auth/login");
       }
     };
     handleNavigation();

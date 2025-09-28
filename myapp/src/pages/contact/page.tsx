@@ -1,12 +1,5 @@
 import { API_URL } from "@/context/auth_provider";
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,8 +9,7 @@ import { MapPin, Phone, Mail } from "lucide-react";
 
 function ContactPage() {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    fullName: "",
     email: "",
     subject: "",
     message: "",
@@ -30,8 +22,7 @@ function ContactPage() {
 
     // Validation
     if (
-      !formData.firstName ||
-      !formData.lastName ||
+      !formData.fullName ||
       !formData.email ||
       !formData.subject ||
       !formData.message
@@ -72,7 +63,7 @@ function ContactPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          fullName: formData.firstName + " " + formData.lastName,
+          fullName: formData.fullName,
           email: formData.email,
           subject: formData.subject,
           message: formData.message,
@@ -93,8 +84,7 @@ function ContactPage() {
 
       // Success
       setFormData({
-        firstName: "",
-        lastName: "",
+        fullName: "",
         email: "",
         subject: "",
         message: "",
@@ -175,19 +165,19 @@ function ContactPage() {
                   <div className="space-y-4">
                     <div>
                       <Label
-                        htmlFor="firstName"
+                        htmlFor="fullName"
                         className="block text-sm font-medium text-gray-700 mb-1"
                       >
                         Name
                       </Label>
                       <Input
-                        id="firstName"
+                        id="fullName"
                         type="text"
-                        value={formData.firstName}
+                        value={formData.fullName}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            firstName: e.target.value,
+                            fullName: e.target.value,
                           })
                         }
                         placeholder="Your full name"

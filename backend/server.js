@@ -6,6 +6,16 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
+// Import models to ensure they're registered with Mongoose
+import './models/user.js';
+import './models/faq.js';
+import './models/feedback.js';
+import './models/reach_us.js';
+import './models/review.js';
+import './models/refresh_token.js';
+import './models/booking.js';
+import './models/favorite.js';
+
 import connectDB from './config/db.js';
 import apiRouter from './routes/api_route.js';
 

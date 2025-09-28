@@ -23,6 +23,7 @@ import { User, Settings, LogOut, Menu } from "lucide-react";
 import { useIsMobile } from "../hooks/use-mobile";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/auth_provider";
+import { NotificationDropdown } from "./notification_dropdown";
 
 const navigationItems = [
   { href: "/", label: "Home" },
@@ -30,11 +31,9 @@ const navigationItems = [
   { href: "/about", label: "About Us" },
   { href: "/contact", label: "Contact" },
   { href: "/feedback", label: "Feedback" },
-];
-
-const authenticatedItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/projects", label: "Projects" },
+  { href: "/professionals", label: "Professionals" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/help", label: "Help" },
 ];
 
 export function Header() {
@@ -50,12 +49,6 @@ export function Header() {
   const handleNavigation = (href: string) => {
     setIsMobileMenuOpen(false);
     // Close mobile menu when navigating
-  };
-
-  const handleLogout = () => {
-    // Add actual logout logic here
-    console.log("Logging out...");
-    window.location.href = "/logout";
   };
 
   return (
@@ -87,16 +80,6 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-          {isAuthenticated &&
-            authenticatedItems.map((item) => (
-              <Link
-                key={item.href}
-                to={item.href}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
-              >
-                {item.label}
-              </Link>
-            ))}
         </nav>
 
         {/* Right Side - Auth & Mobile Menu */}
@@ -108,18 +91,18 @@ export function Header() {
                 asChild
                 className="hidden sm:inline-flex rounded-full px-4 py-2 text-sm text-muted-foreground hover:text-foreground/100 font-medium hover:bg-muted/80 transition-all duration-200"
               >
-                <Link to="/login">Sign In</Link>
+                <Link to="/auth/login">Sign In</Link>
               </Button>
               <Button
                 asChild
                 className="rounded-full px-5 py-2 text-sm font-medium bg-gradient-to-r from-primary to-primary/90 shadow-lg hover:opacity-90 transition-all duration-200"
               >
-                <Link to="/signup">Get Started</Link>
+                <Link to="/auth/signup">Get Started</Link>
               </Button>
             </div>
           ) : (
-            <>
-              {/* User Dropdown */}
+            <div className="flex items-center space-x-2">
+              <NotificationDropdown />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -185,15 +168,15 @@ export function Header() {
                   <DropdownMenuSeparator className="bg-border/50" />
 
                   <DropdownMenuItem
-                    onClick={handleLogout}
                     className="rounded-lg mx-2 my-1 mb-2 hover:bg-destructive/10 hover:text-destructive transition-all duration-200 cursor-pointer flex items-center"
-                  >
-                    <LogOut className="mr-3 h-4 w-4" />
-                    <span>Log out</span>
+                  ><Link to="/auth/logout" className="flex items-center">
+                      <LogOut className="mr-3 h-4 w-4" />
+                      <span>Log out</span>
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </>
+            </div>
           )}
 
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -229,23 +212,6 @@ export function Header() {
                       <Link to={item.href}>{item.label}</Link>
                     </Button>
                   ))}
-
-                  {isAuthenticated && (
-                    <>
-                      <div className="border-t border-border my-4" />
-                      {authenticatedItems.map((item) => (
-                        <Button
-                          key={item.href}
-                          variant="ghost"
-                          asChild
-                          className="w-full justify-start text-base font-medium h-12 rounded-lg hover:bg-muted/50"
-                          onClick={() => handleNavigation(item.href)}
-                        >
-                          <Link to={item.href}>{item.label}</Link>
-                        </Button>
-                      ))}
-                    </>
-                  )}
                 </div>
 
                 {/* Auth Buttons for Mobile */}
@@ -257,14 +223,14 @@ export function Header() {
                       className="w-full h-12 rounded-lg bg-transparent"
                       onClick={() => handleNavigation("/login")}
                     >
-                      <Link to="/login">Sign In</Link>
+                      <Link to="/auth/login">Sign In</Link>
                     </Button>
                     <Button
                       asChild
                       className="w-full h-12 rounded-lg bg-gradient-to-r from-primary to-primary/90 shadow-lg hover:opacity-80 transition-all duration-200"
                       onClick={() => handleNavigation("/signup")}
                     >
-                      <Link to="/signup">Get Started</Link>
+                      <Link to="/auth/signup">Get Started</Link>
                     </Button>
                   </div>
                 )}
@@ -324,12 +290,13 @@ export function Header() {
                       variant="ghost"
                       onClick={() => {
                         setIsMobileMenuOpen(false);
-                        handleLogout();
                       }}
                       className="w-full justify-start h-12 rounded-lg hover:bg-destructive/10 hover:text-destructive text-destructive"
                     >
-                      <LogOut className="mr-3 h-4 w-4" />
-                      Log out
+                      <Link to="/auth/logout" className="flex items-center">
+                        <LogOut className="mr-3 h-4 w-4" />
+                        Log out
+                      </Link>
                     </Button>
                   </div>
                 )}

@@ -34,7 +34,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (user) {
       if (user.emailVerified === false) {
-        navigate("/signup-success");
+        navigate("/auth/signup-success");
       } else {
         navigate("/");
       }
@@ -54,7 +54,7 @@ export default function LoginPage() {
         setError(response.errors[0].msg)
       } else {
         if (user.emailVerified === false) {
-          navigate("/signup-success");
+          navigate("/auth/signup-success");
         } else {
           navigate("/");
         }
