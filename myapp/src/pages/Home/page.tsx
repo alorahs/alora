@@ -29,21 +29,21 @@ import { useNavigate } from "react-router";
 // Services data
 const services = [
   {
-    title: "Plumbing Repair",
+    title: "Plumber",
     description:
       "Expert solutions for leaks, clogs, and pipe issues. Ensuring smooth water flow throughout your home.",
     icon: Wrench,
     color: "blue",
   },
   {
-    title: "Tech Support",
+    title: "Techical",
     description:
       "On-demand assistance for software, hardware, and network problems. Get immediate help for all your tech issues.",
     icon: Monitor,
     color: "green",
   },
   {
-    title: "Electrical Services",
+    title: "Electrician",
     description:
       "Safe installation, repair, and maintenance of home electrical systems and appliances. Licensed electricians available.",
     icon: Zap,
@@ -116,12 +116,12 @@ const services = [
 
 // Categories
 export const categories = [
-  { name: "All Services", active: true, icon: "🏠" },
-  { name: "Home Repair", active: false, icon: "🔧" },
-  { name: "Tech Support", active: false, icon: "💻" },
-  { name: "Cleaning", active: false, icon: "🧹" },
-  { name: "Electrical", active: false, icon: "⚡" },
-  { name: "Plumbing", active: false, icon: "🚿" },
+  { name: "All Services", icon: "🏠" },
+  { name: "Home Repair", icon: "🔧" },
+  { name: "Tech Support", icon: "💻" },
+  { name: "Cleaning", icon: "🧹" },
+  { name: "Electrical", icon: "⚡" },
+  { name: "Plumbing", icon: "🚿" },
 ];
 
 // Steps
@@ -163,9 +163,12 @@ const testimonials = [
 function HomePage() {
   const navigate = useNavigate();
   const detectUserLocation = useGeolocation();
-
+  const [activeCategory, setActiveCategory] = useState("All Services");
   const [searchQuery, setSearchQuery] = useState("");
-  const [coordinates, setCoordinates] = useState<{ lat: number; lon: number } | null>(null);
+  const [coordinates, setCoordinates] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
   const [locationName, setLocationName] = useState("");
 
   // Reverse Geocoding: Coords -> Address
@@ -257,7 +260,7 @@ function HomePage() {
             </div>
 
             {/* Right Search Form */}
-            <div className="bg-white rounded-2xl p-8 shadow-2xl border border-gray-100 max-w-md ml-auto">
+            <div className="bg-white rounded-2xl p-20 shadow-2xl border border-gray-100 max-w-md ml-auto">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
                 Find Services Near You
               </h2>
@@ -310,15 +313,6 @@ function HomePage() {
                   Search Services
                 </Button>
               </div>
-
-              {/* Debug Info (optional) */}
-              {coordinates && (
-                <p className="mt-4 text-sm text-gray-500">
-                  📍 Lat: {coordinates.lat}, Lon: {coordinates.lon}
-                  <br />
-                  📌 {locationName}
-                </p>
-              )}
             </div>
           </div>
         </div>
@@ -338,12 +332,15 @@ function HomePage() {
             {categories.map((category) => (
               <Button
                 key={category.name}
-                variant={category.active ? "default" : "outline"}
+                variant={activeCategory ? "default" : "outline"}
                 className={`rounded-full px-6 py-2 ${
-                  category.active
+                  activeCategory === category.name
                     ? "bg-blue-600 text-white"
                     : "bg-white text-gray-600 hover:bg-blue-50"
                 }`}
+                onClick={() => {
+                  setActiveCategory(category.name);
+                }}
               >
                 {category.name}
               </Button>
@@ -352,43 +349,73 @@ function HomePage() {
 
           {/* Services Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service) => {
-              const IconComponent = service.icon;
-              return (
-                <Card
-                  key={service.title}
-                  className="group cursor-pointer border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div
-                        className={`p-3 rounded-lg bg-${service.color}-100 flex-shrink-0`}
-                      >
-                        <IconComponent
-                          className={`text-${service.color}-600`}
-                          size={24}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                          {service.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-4">
-                          {service.description}
-                        </p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-600 hover:text-blue-700 p-0 h-auto font-medium"
+            {services
+              .filter((service) => {
+                if (activeCategory === "All Services") return true;
+                if (activeCategory === "Home Repair") {
+                  return [
+                    "Plumber",
+                    "Electrician",
+                    "Appliance Repair",
+                    "Fixture Installation",
+                  ].includes(service.title);
+                }
+                if (activeCategory === "Tech Support") {
+                  return ["Techical", "Network Setup"].includes(service.title);
+                }
+                if (activeCategory === "Cleaning") {
+                  return ["Deep Cleaning", "Window Cleaning"].includes(
+                    service.title
+                  );
+                }
+                if (activeCategory === "Electrical") {
+                  return ["Electrician", "Fixture Installation"].includes(
+                    service.title
+                  );
+                }
+                if (activeCategory === "Plumbing") {
+                  return service.title === "Plumber";
+                } else {
+                  return service.title === activeCategory;
+                }
+              })
+              .map((service) => {
+                const IconComponent = service.icon;
+                return (
+                  <Card
+                    key={service.title}
+                    onClick={() =>
+                      navigate(
+                        `/professionals/category/${encodeURIComponent(
+                          service.title
+                        ).toLowerCase()}`
+                      )
+                    }
+                    className="group cursor-pointer border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white"
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`p-3 rounded-lg bg-${service.color}-100 flex-shrink-0`}
                         >
-                          Connect with a Pro →
-                        </Button>
+                          <IconComponent
+                            className={`text-${service.color}-600`}
+                            size={24}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                            {service.title}
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-4">
+                            {service.description}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    </CardContent>
+                  </Card>
+                );
+              })}
           </div>
         </div>
       </section>
@@ -482,8 +509,8 @@ function HomePage() {
             Ready to Transform Your Home?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Experience the convenience and quality of Alora's professional
-            home services. Get started today!
+            Experience the convenience and quality of Alora's professional home
+            services. Get started today!
           </p>
           <Button
             size="lg"
