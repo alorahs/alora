@@ -3,30 +3,111 @@ import { Input } from "../../components/ui/input";
 import { Card, CardContent } from "../../components/ui/card";
 import { StarIcon } from "lucide-react";
 import { Img } from "react-image";
-import { AdvancedSearchFilters } from "../../components/advanced-search-filters"
+import { AdvancedSearchFilters } from "../../components/advanced-search-filters";
 import { useNavigate } from "react-router-dom";
 
-function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfessionals, searchQuery, setSearchQuery, priceFilter, setPriceFilter, ratingFilter, setRatingFilter, availabilityFilter, setAvailabilityFilter, clearAllFilters, showMobileFilters, setShowMobileFilters, setSelectedProfessional }:
-  { categories: { name: string; icon: string }[]; selectedCategory: string | null; setSelectedCategory: (category: string | null) => void; sortedProfessionals: any[]; searchQuery: string; setSearchQuery: (query: string) => void; priceFilter: string | null; setPriceFilter: (filter: string | null) => void; ratingFilter: string | null; setRatingFilter: (filter: string | null) => void; availabilityFilter: string | null; setAvailabilityFilter: (filter: string | null) => void; clearAllFilters: () => void; showMobileFilters: boolean; setShowMobileFilters: (show: boolean) => void; setSelectedProfessional: (professional: any) => void; }) {
+function Layout({
+  categories,
+  selectedCategory,
+  setSelectedCategory,
+  sortedProfessionals,
+  searchQuery,
+  setSearchQuery,
+  priceFilter,
+  setPriceFilter,
+  ratingFilter,
+  setRatingFilter,
+  availabilityFilter,
+  setAvailabilityFilter,
+  clearAllFilters,
+  showMobileFilters,
+  setShowMobileFilters,
+  setSelectedProfessional,
+}: {
+  categories: { name: string; icon: string }[];
+  selectedCategory: string | null;
+  setSelectedCategory: (category: string | null) => void;
+  sortedProfessionals: any[];
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  priceFilter: string | null;
+  setPriceFilter: (filter: string | null) => void;
+  ratingFilter: string | null;
+  setRatingFilter: (filter: string | null) => void;
+  availabilityFilter: string | null;
+  setAvailabilityFilter: (filter: string | null) => void;
+  clearAllFilters: () => void;
+  showMobileFilters: boolean;
+  setShowMobileFilters: (show: boolean) => void;
+  setSelectedProfessional: (professional: any) => void;
+}) {
   const navigate = useNavigate();
-
+  
   return (
     <section className="py-6 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6 sm:mb-8">
+          {/* Category Filter Section */}
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Filter by Category
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={!selectedCategory ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(null)}
+                className={`rounded-full ${
+                  !selectedCategory
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-600 hover:bg-blue-50"
+                }`}
+              >
+                All Categories
+              </Button>
+              {categories.map((category) => (
+                <Button
+                  key={category.name}
+                  variant={
+                    selectedCategory === category.name ? "default" : "outline"
+                  }
+                  size="sm"
+                  onClick={() => setSelectedCategory(category.name)}
+                  className={`rounded-full flex items-center gap-2 ${
+                    selectedCategory === category.name
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-600 hover:bg-blue-50"
+                  }`}
+                >
+                  <span>{category.icon}</span>
+                  {category.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                {selectedCategory ? `${selectedCategory} Professionals` : "All Professionals"}
+                {selectedCategory
+                  ? `${selectedCategory} Professionals`
+                  : "All Professionals"}
               </h1>
-              <p className="text-gray-600">{sortedProfessionals.length} professionals available</p>
+              <p className="text-gray-600">
+                {sortedProfessionals.length} professionals available
+              </p>
             </div>
 
             <div className="flex gap-3">
               <div className="flex-1 sm:flex-none sm:w-64">
                 <div className="relative">
                   <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -48,7 +129,12 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
                 onClick={() => setShowMobileFilters(!showMobileFilters)}
                 className="lg:hidden flex items-center"
               >
-                <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="h-4 w-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -94,8 +180,17 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
                   >
                     Clear All
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setShowMobileFilters(false)}>
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowMobileFilters(false)}
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -110,7 +205,9 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Price Filter */}
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">Price Range</h4>
+                  <h4 className="font-medium text-gray-900 mb-3">
+                    Price Range
+                  </h4>
                   <div className="space-y-2">
                     <label className="flex items-center">
                       <input
@@ -162,7 +259,8 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
                         className="mr-2"
                       />
                       <span className="text-sm text-gray-700 flex items-center">
-                        4.0+ <StarIcon className="h-3 w-3 text-yellow-400 ml-1" />
+                        4.0+{" "}
+                        <StarIcon className="h-3 w-3 text-yellow-400 ml-1" />
                       </span>
                     </label>
                     <label className="flex items-center">
@@ -175,7 +273,8 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
                         className="mr-2"
                       />
                       <span className="text-sm text-gray-700 flex items-center">
-                        4.5+ <StarIcon className="h-3 w-3 text-yellow-400 ml-1" />
+                        4.5+{" "}
+                        <StarIcon className="h-3 w-3 text-yellow-400 ml-1" />
                       </span>
                     </label>
                     <label className="flex items-center">
@@ -188,7 +287,8 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
                         className="mr-2"
                       />
                       <span className="text-sm text-gray-700 flex items-center">
-                        4.8+ <StarIcon className="h-3 w-3 text-yellow-400 ml-1" />
+                        4.8+{" "}
+                        <StarIcon className="h-3 w-3 text-yellow-400 ml-1" />
                       </span>
                     </label>
                   </div>
@@ -241,7 +341,12 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
             {sortedProfessionals.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-gray-400 mb-4">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -250,8 +355,12 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No professionals found</h3>
-                <p className="text-gray-600 mb-4">Try adjusting your filters or search terms</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No professionals found
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Try adjusting your filters or search terms
+                </p>
                 <Button onClick={clearAllFilters} variant="outline">
                   Clear All Filters
                 </Button>
@@ -274,8 +383,12 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
                           className="rounded-full mr-4 flex-shrink-0"
                         />
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-lg text-gray-900 truncate">{pro.name}</h3>
-                          <p className="text-blue-600 font-medium">{pro.category}</p>
+                          <h3 className="font-semibold text-lg text-gray-900 truncate">
+                            {pro.name}
+                          </h3>
+                          <p className="text-blue-600 font-medium">
+                            {pro.category}
+                          </p>
                           <p className="text-sm text-gray-500 flex items-center mt-1">
                             <svg
                               className="h-3 w-3 mr-1 flex-shrink-0"
@@ -304,24 +417,34 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
                           <StarIcon className="h-4 w-4 text-yellow-400" />
-                          <span className="ml-1 font-semibold">{pro.rating}</span>
-                          <span className="ml-1 text-gray-600 text-sm">({pro.reviewCount} reviews)</span>
+                          <span className="ml-1 font-semibold">
+                            {pro.rating}
+                          </span>
+                          <span className="ml-1 text-gray-600 text-sm">
+                            ({pro.reviewCount} reviews)
+                          </span>
                         </div>
-                        <span className="text-sm text-green-600 font-medium">{pro.availability}</span>
+                        <span className="text-sm text-green-600 font-medium">
+                          {pro.availability}
+                        </span>
                       </div>
 
-                      <p className="text-gray-600 mb-4 text-sm line-clamp-2">{pro.bio}</p>
+                      <p className="text-gray-600 mb-4 text-sm line-clamp-2">
+                        {pro.bio}
+                      </p>
 
                       <div className="mb-4">
                         <div className="flex flex-wrap gap-1">
-                          {pro.skills.slice(0, 3).map((skill: string, index: number) => (
-                            <span
-                              key={index}
-                              className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full"
-                            >
-                              {skill}
-                            </span>
-                          ))}
+                          {pro.skills
+                            .slice(0, 3)
+                            .map((skill: string, index: number) => (
+                              <span
+                                key={index}
+                                className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full"
+                              >
+                                {skill}
+                              </span>
+                            ))}
                           {pro.skills.length > 3 && (
                             <span className="inline-block text-gray-500 text-xs px-2 py-1">
                               +{pro.skills.length - 3} more
@@ -331,11 +454,12 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
                       </div>
 
                       <div className="flex justify-between items-center">
-                        <span className="text-lg font-semibold text-gray-900">From ₹{pro.hourlyRate}/visit</span>
+                        <span className="text-lg font-semibold text-gray-900">
+                          From ₹{pro.hourlyRate}/visit
+                        </span>
                         <Button
                           onClick={() => navigate(`/professionals/${pro.id}`)}
                           className="bg-blue-600 hover:bg-blue-700"
-
                         >
                           View Profile
                         </Button>
@@ -349,7 +473,7 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 export default Layout;

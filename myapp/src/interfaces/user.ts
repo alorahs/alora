@@ -32,4 +32,5 @@ export interface User {
   category?: string
   reviews?: { userId: string; comment: string; rating: number; date: string }[];
   hourlyRate?: number
+  verified: string
 }

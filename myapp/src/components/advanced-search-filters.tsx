@@ -1,26 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "../components/ui/button"
-import { Input } from "../components/ui/input"
-import { Label } from "../components/ui/label"
-import { Slider } from "../components/ui/slider"
-import { Badge } from "../components/ui/badge"
-import { MapPin, Clock, Calendar, Star } from "lucide-react"
+import { useEffect, useState } from "react";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Slider } from "../components/ui/slider";
+import { Badge } from "../components/ui/badge";
+import { MapPin, Clock, Calendar, Star } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 interface FilterProps {
-  searchQuery: string
-  setSearchQuery: (query: string) => void
-  selectedCategory: string
-  setSelectedCategory: (category: string) => void
-  priceFilter: string
-  setPriceFilter: (price: string) => void
-  ratingFilter: string
-  setRatingFilter: (rating: string) => void
-  availabilityFilter: string
-  setAvailabilityFilter: (availability: string) => void
-  onClearAll: () => void
-  categories: Array<{ name: string; icon: string }>
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  selectedCategory: string;
+  setSelectedCategory: (category: string) => void;
+  priceFilter: string;
+  setPriceFilter: (price: string) => void;
+  ratingFilter: string;
+  setRatingFilter: (rating: string) => void;
+  availabilityFilter: string;
+  setAvailabilityFilter: (availability: string) => void;
+  onClearAll: () => void;
+  categories: Array<{ name: string; icon: string }>;
 }
 
 export function AdvancedSearchFilters({
@@ -37,11 +38,11 @@ export function AdvancedSearchFilters({
   onClearAll,
   categories,
 }: FilterProps) {
-  const [locationFilter, setLocationFilter] = useState("")
-  const [priceRange, setPriceRange] = useState([0, 1000])
-  const [durationFilter, setDurationFilter] = useState("")
-  const [experienceFilter, setExperienceFilter] = useState("")
-  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [locationFilter, setLocationFilter] = useState("");
+  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [durationFilter, setDurationFilter] = useState("");
+  const [experienceFilter, setExperienceFilter] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const activeFiltersCount = [
     selectedCategory,
@@ -51,15 +52,25 @@ export function AdvancedSearchFilters({
     locationFilter,
     durationFilter,
     experienceFilter,
-  ].filter(Boolean).length
+  ].filter(Boolean).length;
 
   const clearAdvancedFilters = () => {
-    setLocationFilter("")
-    setPriceRange([0, 1000])
-    setDurationFilter("")
-    setExperienceFilter("")
-    onClearAll()
+    setLocationFilter("");
+    setPriceRange([0, 1000]);
+    setDurationFilter("");
+    setExperienceFilter("");
+    onClearAll();
+  };
+  {
+    /*router */
   }
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+  const locationFromParams = searchParams.get("location");
+  if (locationFromParams) {
+    setLocationFilter(locationFromParams);
+  }
+}, [searchParams]);
 
   return (
     <div className="bg-white border rounded-lg p-6 sticky top-24">
@@ -72,19 +83,32 @@ export function AdvancedSearchFilters({
             </Badge>
           )}
         </div>
-        <Button variant="ghost" size="sm" onClick={clearAdvancedFilters} className="text-blue-600 hover:text-blue-700">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearAdvancedFilters}
+          className="text-blue-600 hover:text-blue-700"
+        >
           Clear All
         </Button>
       </div>
 
       {/* Search Input */}
       <div className="mb-6">
-        <Label htmlFor="search" className="text-sm font-medium text-gray-700 mb-2 block">
+        <Label
+          htmlFor="search"
+          className="text-sm font-medium text-gray-700 mb-2 block"
+        >
           Search
         </Label>
         <div className="relative">
           <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -105,7 +129,7 @@ export function AdvancedSearchFilters({
 
       {/* Location Filter */}
       <div className="mb-6">
-        <Label className="text-sm font-medium text-gray-700 mb-2 block flex items-center">
+        <Label className="text-sm font-medium text-gray-700 mb-2  flex items-center">
           <MapPin className="h-4 w-4 mr-1" />
           Location
         </Label>
@@ -121,7 +145,14 @@ export function AdvancedSearchFilters({
         <Label className="text-sm font-medium text-gray-700 mb-3 block">
           Price Range: ₹{priceRange[0]} - ₹{priceRange[1]}
         </Label>
-        <Slider value={priceRange} onValueChange={setPriceRange} max={1000} min={0} step={50} className="mb-2" />
+        <Slider
+          value={priceRange}
+          onValueChange={setPriceRange}
+          max={1000}
+          min={0}
+          step={50}
+          className="mb-2"
+        />
         <div className="flex justify-between text-xs text-gray-500">
           <span>₹0</span>
           <span>₹1000+</span>
@@ -130,7 +161,9 @@ export function AdvancedSearchFilters({
 
       {/* Quick Price Filters */}
       <div className="mb-6">
-        <Label className="text-sm font-medium text-gray-700 mb-3 block">Quick Price</Label>
+        <Label className="text-sm font-medium text-gray-700 mb-3 block">
+          Quick Price
+        </Label>
         <div className="grid grid-cols-2 gap-2">
           {[
             { label: "Budget", value: "low", range: "Under ₹300" },
@@ -156,7 +189,7 @@ export function AdvancedSearchFilters({
 
       {/* Rating Filter */}
       <div className="mb-6">
-        <Label className="text-sm font-medium text-gray-700 mb-3 block flex items-center">
+        <Label className="text-sm font-medium text-gray-700 mb-3  flex items-center">
           <Star className="h-4 w-4 mr-1" />
           Minimum Rating
         </Label>
@@ -176,7 +209,8 @@ export function AdvancedSearchFilters({
                 className="mr-2 text-blue-600"
               />
               <span className="text-sm text-gray-700 flex items-center">
-                {option.label} <Star className="h-3 w-3 text-yellow-400 ml-1 fill-current" />
+                {option.label}{" "}
+                <Star className="h-3 w-3 text-yellow-400 ml-1 fill-current" />
               </span>
             </label>
           ))}
@@ -185,7 +219,7 @@ export function AdvancedSearchFilters({
 
       {/* Availability Filter */}
       <div className="mb-6">
-        <Label className="text-sm font-medium text-gray-700 mb-3 block flex items-center">
+        <Label className="text-sm font-medium text-gray-700 mb-3  flex items-center">
           <Calendar className="h-4 w-4 mr-1" />
           Availability
         </Label>
@@ -219,12 +253,19 @@ export function AdvancedSearchFilters({
       >
         {showAdvanced ? "Hide" : "Show"} Advanced Filters
         <svg
-          className={`h-4 w-4 ml-2 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+          className={`h-4 w-4 ml-2 transition-transform ${
+            showAdvanced ? "rotate-180" : ""
+          }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </Button>
 
@@ -233,7 +274,7 @@ export function AdvancedSearchFilters({
         <div className="space-y-6 border-t pt-6">
           {/* Service Duration */}
           <div>
-            <Label className="text-sm font-medium text-gray-700 mb-3 block flex items-center">
+            <Label className="text-sm font-medium text-gray-700 mb-3  flex items-center">
               <Clock className="h-4 w-4 mr-1" />
               Service Duration
             </Label>
@@ -242,11 +283,19 @@ export function AdvancedSearchFilters({
                 { label: "Quick", value: "quick", desc: "< 1 hour" },
                 { label: "Standard", value: "standard", desc: "1-3 hours" },
                 { label: "Extended", value: "extended", desc: "3+ hours" },
-                { label: "Multi-day", value: "multiday", desc: "Multiple days" },
+                {
+                  label: "Multi-day",
+                  value: "multiday",
+                  desc: "Multiple days",
+                },
               ].map((option) => (
                 <button
                   key={option.value}
-                  onClick={() => setDurationFilter(option.value === durationFilter ? "" : option.value)}
+                  onClick={() =>
+                    setDurationFilter(
+                      option.value === durationFilter ? "" : option.value
+                    )
+                  }
                   className={`p-2 text-xs rounded-md border transition-colors ${
                     durationFilter === option.value
                       ? "bg-blue-50 border-blue-200 text-blue-700"
@@ -262,7 +311,9 @@ export function AdvancedSearchFilters({
 
           {/* Experience Level */}
           <div>
-            <Label className="text-sm font-medium text-gray-700 mb-3 block">Experience Level</Label>
+            <Label className="text-sm font-medium text-gray-700 mb-3 block">
+              Experience Level
+            </Label>
             <div className="space-y-2">
               {[
                 { label: "Entry Level (1-2 years)", value: "entry" },
@@ -288,14 +339,22 @@ export function AdvancedSearchFilters({
 
       {/* Service Categories */}
       <div className="border-t pt-6">
-        <Label className="text-sm font-medium text-gray-700 mb-3 block">Categories</Label>
+        <Label className="text-sm font-medium text-gray-700 mb-3 block">
+          Categories
+        </Label>
         <div className="space-y-2">
           {categories.map((category) => (
             <button
               key={category.name}
-              onClick={() => setSelectedCategory(selectedCategory === category.name ? "" : category.name)}
+              onClick={() =>
+                setSelectedCategory(
+                  selectedCategory === category.name ? "" : category.name
+                )
+              }
               className={`w-full text-left text-sm px-3 py-2 rounded-md transition-colors flex items-center ${
-                selectedCategory === category.name ? "bg-blue-100 text-blue-700" : "text-gray-700 hover:bg-gray-100"
+                selectedCategory === category.name
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-gray-700 hover:bg-gray-100"
               }`}
             >
               <span className="mr-2">{category.icon}</span>
@@ -305,5 +364,5 @@ export function AdvancedSearchFilters({
         </div>
       </div>
     </div>
-  )
+  );
 }

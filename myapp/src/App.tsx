@@ -41,7 +41,6 @@ function App() {
           <Route path="/help" element={<HelpPage />} />
           <Route path="/services" element={<ServicePage />} />
           <Route path="/feedback" element={<FeedbackPage />} />
-          <Route path="/professionals" element={<ProfessionalPage />} />
           <Route
             path="/professionals/:id"
             element={<ProfessionalProfileModal />}

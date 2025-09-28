@@ -178,9 +178,9 @@ function HomePage() {
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
       );
       const data = await res.json();
-      if (data?.display_name) {
-        setLocationName(data.display_name);
-        setSearchQuery(data.display_name); // autofill input
+      if (data?.address.city_district) {
+        setLocationName(data.address.city_district + ", " + data.address.state);
+        setSearchQuery(data.address.city_district + ", " + data.address.state); // autofill input
       }
     } catch (error) {
       console.error("Error fetching address:", error);
@@ -189,6 +189,7 @@ function HomePage() {
 
   // Geocoding: Address -> Coords
   const fetchCoordsFromAddress = async (address: string) => {
+    
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
@@ -216,29 +217,75 @@ function HomePage() {
       );
     }
   }, [detectUserLocation.Coordinates]);
+  const onClickToServiceButton = (serviceTitle: string) => {
+    navigate(
+      `/professionals?category=${encodeURIComponent(
+        serviceTitle
+      ).toLowerCase()}&location=${encodeURIComponent(
+        locationName
+      )}`
+    );
 
+  };
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center overflow-hidden">
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        {/* Auto-sliding background images */}
+        <div className="absolute inset-0 overflow-hidden z-0">
+          <div className="slider-track flex w-max h-full animate-slideImages">
+            {/* Original image set */}
+            {[1, 2, 3, 4].map((img) => (
+              <img
+                key={img.toString()}
+                src={`/${img}-image.jpg`}
+                alt={`Slide ${img}`}
+                className="w-screen h-full object-cover flex-shrink-0"
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Optional dark overlay */}
+        <div className="absolute inset-0 bg-black/10 z-10" />
+
+        <style>{`
+             @keyframes slideImages {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-100%); }
+    }
+
+    .animate-slideImages {
+      animation: slideImages 60s linear infinite;
+    }
+  `}</style>
+
+        {/* Background overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/70"></div>
+        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Content */}
-            <div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            <div className="text-center lg:text-left">
+              <h1
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 lg:mb-6 leading-tight"
+                style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
+              >
                 Connect with Local
                 <span className="block">Home Service</span>
                 <span className="block">Experts Instantly</span>
               </h1>
-              <p className="text-lg text-gray-600 mb-8 max-w-lg">
+              <p
+                className="text-base sm:text-lg text-white mb-6 lg:mb-8 max-w-lg mx-auto lg:mx-0"
+                style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.7)" }}
+              >
                 From urgent repairs to routine maintenance, Alora connects you
                 directly with certified professionals. Get immediate support
                 with a single call.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 lg:gap-4 justify-center lg:justify-start">
                 <Button
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 px-8 py-4 text-lg font-semibold rounded-lg flex items-center justify-center"
+                  className="bg-blue-600 hover:bg-blue-700 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-lg flex items-center justify-center w-full sm:w-auto"
                   onClick={() => {
                     navigate("/professionals");
                   }}
@@ -247,9 +294,9 @@ function HomePage() {
                   Call an Expert
                 </Button>
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="lg"
-                  className="border-blue-200 text-blue-600 hover:bg-blue-50 px-8 py-4 text-lg font-semibold rounded-lg"
+                  className="border-white bg-green-700 text-white hover:bg-green-600 hover:text-gray-900 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-lg w-full sm:w-auto"
                   onClick={() => {
                     navigate("/professionals");
                   }}
@@ -260,8 +307,8 @@ function HomePage() {
             </div>
 
             {/* Right Search Form */}
-            <div className="bg-white rounded-2xl p-20 shadow-2xl border border-gray-100 max-w-md ml-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+            <div className="bg-white rounded-2xl p-6 sm:p-8 lg:p-10 shadow-2xl border border-gray-100 w-full max-w-md mx-auto lg:ml-auto lg:mr-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
                 Find Services Near You
               </h2>
 
@@ -274,7 +321,7 @@ function HomePage() {
                   <Input
                     type="text"
                     placeholder="Enter your location"
-                    className="pl-12 py-4 text-lg border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    className="pl-12 py-3 sm:py-4 text-base sm:text-lg border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -283,7 +330,7 @@ function HomePage() {
                 {/* Detect Location Button */}
                 <Button
                   variant="ghost"
-                  className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 py-3 rounded-lg flex items-center justify-center"
+                  className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 py-2 sm:py-3 rounded-lg flex items-center justify-center text-sm sm:text-base"
                   onClick={() => {
                     if (detectUserLocation.Coordinates) {
                       setCoordinates(detectUserLocation.Coordinates);
@@ -301,7 +348,7 @@ function HomePage() {
                 {/* Search Button */}
                 <Button
                   size="lg"
-                  className="w-full bg-blue-600 hover:bg-blue-700 py-4 text-lg font-semibold rounded-lg flex items-center justify-center"
+                  className="w-full bg-blue-600 hover:bg-blue-700 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-lg flex items-center justify-center"
                   onClick={() => {
                     if (searchQuery) {
                       fetchCoordsFromAddress(searchQuery);
@@ -319,36 +366,39 @@ function HomePage() {
       </section>
 
       {/* Services Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
               Our Comprehensive Services
             </h2>
           </div>
 
           {/* Categories */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8 sm:mb-12">
             {categories.map((category) => (
               <Button
                 key={category.name}
-                variant={activeCategory ? "default" : "outline"}
-                className={`rounded-full px-6 py-2 ${
+                variant={
+                  activeCategory === category.name ? "default" : "outline"
+                }
+                className={`rounded-full px-4 sm:px-6 py-2 text-sm sm:text-base ${
                   activeCategory === category.name
                     ? "bg-blue-600 text-white"
-                    : "bg-white text-gray-600 hover:bg-blue-50"
+                    : "bg-white text-gray-600 hover:bg-blue-500"
                 }`}
                 onClick={() => {
                   setActiveCategory(category.name);
                 }}
               >
+                <span className="hidden sm:inline">{category.icon} </span>
                 {category.name}
               </Button>
             ))}
           </div>
 
           {/* Services Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {services
               .filter((service) => {
                 if (activeCategory === "All Services") return true;
@@ -375,8 +425,6 @@ function HomePage() {
                 }
                 if (activeCategory === "Plumbing") {
                   return service.title === "Plumber";
-                } else {
-                  return service.title === activeCategory;
                 }
               })
               .map((service) => {
@@ -384,30 +432,24 @@ function HomePage() {
                 return (
                   <Card
                     key={service.title}
-                    onClick={() =>
-                      navigate(
-                        `/professionals?category=${encodeURIComponent(
-                          service.title
-                        ).toLowerCase()}`
-                      )
-                    }
-                    className="group cursor-pointer border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white"
+                    onClick={() => onClickToServiceButton(service.title)}
+                    className="group cursor-pointer border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white h-full"
                   >
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
+                    <CardContent className="p-4 sm:p-6 h-full flex flex-col">
+                      <div className="flex items-start gap-3 sm:gap-4 flex-1">
                         <div
-                          className={`p-3 rounded-lg bg-${service.color}-100 flex-shrink-0`}
+                          className={`p-2 sm:p-3 rounded-lg bg-${service.color}-100 flex-shrink-0`}
                         >
                           <IconComponent
                             className={`text-${service.color}-600`}
-                            size={24}
+                            size={20}
                           />
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors text-sm sm:text-base">
                             {service.title}
                           </h3>
-                          <p className="text-sm text-gray-600 mb-4">
+                          <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                             {service.description}
                           </p>
                         </div>
@@ -421,43 +463,39 @@ function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20">
+      <section className="py-12 sm:py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
               How Alora Works
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
             {howItWorksSteps.map((step, index) => (
               <div key={step.step} className="text-center">
                 <div className="relative mb-6">
-                  <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto text-lg font-bold">
+                  <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center mx-auto text-lg font-bold mb-4">
                     {step.step}
                   </div>
-                  <div className="mt-4">
+                  <div className="flex justify-center">
                     {index === 0 && (
-                      <ClipboardCheck
-                        className="mx-auto text-gray-400"
-                        size={32}
-                      />
+                      <ClipboardCheck className="text-gray-400" size={28} />
                     )}
                     {index === 1 && (
-                      <Users className="mx-auto text-gray-400" size={32} />
+                      <Users className="text-gray-400" size={28} />
                     )}
                     {index === 2 && (
-                      <MessageCircle
-                        className="mx-auto text-gray-400"
-                        size={32}
-                      />
+                      <MessageCircle className="text-gray-400" size={28} />
                     )}
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">
                   {step.title}
                 </h3>
-                <p className="text-gray-600">{step.description}</p>
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed max-w-sm mx-auto">
+                  {step.description}
+                </p>
               </div>
             ))}
           </div>
@@ -465,31 +503,31 @@ function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section className="bg-gray-50 py-20">
+      <section className="bg-gray-50 py-12 sm:py-16 lg:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
               What Our Customers Say
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
             {testimonials.map((testimonial) => (
               <Card
                 key={testimonial.name}
                 className="border-0 shadow-lg bg-white"
               >
-                <CardContent className="p-8">
+                <CardContent className="p-6 sm:p-8">
                   <div className="flex mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
                       <Star
                         key={i}
                         className="text-yellow-400 fill-current"
-                        size={20}
+                        size={18}
                       />
                     ))}
                   </div>
-                  <p className="text-gray-700 mb-4 italic">
+                  <p className="text-sm sm:text-base text-gray-700 mb-4 italic leading-relaxed">
                     "{testimonial.text}"
                   </p>
                   <p className="font-semibold text-gray-900">
@@ -503,18 +541,18 @@ function HomePage() {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-gradient-to-r from-blue-600 to-blue-700 py-20">
+      <section className="bg-gradient-to-r from-blue-600 to-blue-700 py-12 sm:py-16 lg:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-6">
             Ready to Transform Your Home?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-base sm:text-lg lg:text-xl text-blue-100 mb-6 sm:mb-8 leading-relaxed max-w-2xl mx-auto">
             Experience the convenience and quality of Alora's professional home
             services. Get started today!
           </p>
           <Button
             size="lg"
-            className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 text-lg font-semibold rounded-lg"
+            className="bg-green-500 hover:bg-green-600 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-lg"
             onClick={() => {
               navigate("/professionals");
             }}

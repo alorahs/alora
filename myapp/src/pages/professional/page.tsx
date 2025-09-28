@@ -4,6 +4,7 @@ import ProfessionalProfileModal from "@/components/professional-profile-modal";
 import { categories } from "../Home/page";
 import { API_URL } from "@/context/auth_provider";
 import { User } from "../../interfaces/user";
+import { useParams } from "react-router-dom";
 
 export function ProfessionalPage() {
   const [professionals, setProfessionals] = useState<User[]>([]);
@@ -20,7 +21,9 @@ export function ProfessionalPage() {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [Location, setLocation] = useState("");
+  const { locationName } = useParams();
+  console.log(decodeURIComponent(locationName));
   // Calculate average rating for a professional
   const calculateAverageRating = (ratings: number[]): number => {
     if (!ratings || ratings.length === 0) return 0;
@@ -98,7 +101,34 @@ export function ProfessionalPage() {
 
       const matchesCategory =
         !selectedCategory ||
-        (pro.category && pro.category === selectedCategory);
+        (() => {
+          if (selectedCategory === "Home Repair") {
+            return [
+              "Plumber",
+              "Electrician",
+              "Appliance Repair",
+              "Fixture Installation",
+            ].includes(pro.category || "");
+          }
+          if (selectedCategory === "Tech Support") {
+            return ["Technical", "Network Setup"].includes(pro.category || "");
+          }
+          if (selectedCategory === "Cleaning") {
+            return ["Deep Cleaning", "Window Cleaning"].includes(
+              pro.category || ""
+            );
+          }
+          if (selectedCategory === "Electrical") {
+            return ["Electrician", "Fixture Installation"].includes(
+              pro.category || ""
+            );
+          }
+          if (selectedCategory === "Plumbing") {
+            return pro.category === "Plumber";
+          }
+          // Default: show professional if category matches
+          return pro.category === selectedCategory;
+        })();
 
       let matchesPrice = true;
       if (pro.hourlyRate) {
@@ -118,8 +148,6 @@ export function ProfessionalPage() {
       // For now, we'll simplify availability filtering
       if (availabilityFilter === "today")
         matchesAvailability = pro.availability !== undefined;
-      else if (availabilityFilter === "emergency")
-        matchesAvailability = pro.emergencyService === true;
 
       return (
         matchesSearch &&
@@ -215,20 +243,14 @@ export function ProfessionalPage() {
         availabilityFilter={availabilityFilter}
         setAvailabilityFilter={setAvailabilityFilter}
         clearAllFilters={clearAllFilters}
-        setSelectedProfessional={(prof: FrontendProfessional | null) =>
+        setSelectedProfessional={(prof: User | null) =>
           setSelectedProfessional(prof)
         }
         showMobileFilters={showMobileFilters}
         setShowMobileFilters={setShowMobileFilters}
       />
 
-      {selectedProfessional && (
-        <ProfessionalProfileModal
-          professional={selectedProfessional}
-          isOpen={!!selectedProfessional}
-          onClose={() => setSelectedProfessional(null)}
-        />
-      )}
+      {selectedProfessional && <ProfessionalProfileModal />}
     </>
   );
 }
