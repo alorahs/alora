@@ -386,7 +386,7 @@ function HomePage() {
                     key={service.title}
                     onClick={() =>
                       navigate(
-                        `/professionals/category/${encodeURIComponent(
+                        `/professionals?category=${encodeURIComponent(
                           service.title
                         ).toLowerCase()}`
                       )

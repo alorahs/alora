@@ -97,6 +97,8 @@ export function ProfessionalPage() {
 
   // Fetch professionals from backend
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const category = params.get("category");
     const fetchProfessionals = async () => {
       try {
         setLoading(true);
@@ -116,74 +118,10 @@ export function ProfessionalPage() {
           throw new Error('Failed to fetch professionals');
         }
       } catch (err) {
-        console.error("Error fetching professionals:", err);
         setError("Failed to load professionals. Please try again later.");
-        // Fallback to mock data
-        const mockProfessionals: BackendProfessional[] = [
-          {
-            _id: "1",
-            fullName: "Rajesh Kumar",
-            category: "Plumber",
-            ratings: [5, 4, 5, 5, 4],
-            hourlyRate: 399,
-            bio: "Expert plumber with 10+ years of experience in residential and commercial plumbing. Specialized in emergency repairs and modern plumbing solutions.",
-            skills: [
-              "Pipe Installation",
-              "Leak Repair",
-              "Bathroom Fitting",
-              "Water Heater Service",
-              "Emergency Repairs",
-              "Drain Cleaning",
-            ],
-            profilePicture: "/professional-plumber.png",
-            workGallery: [
-              "/plumbing-work-bathroom.jpg",
-              "/pipe-installation.png",
-              "/water-heater-repair.jpg",
-            ],
-            availability: [{ day: "Monday", timeSlots: ["09:00-17:00"] }],
-            address: { city: "Mumbai", state: "Maharashtra" },
-            experience: "10+ years",
-            serviceAreas: ["Mumbai", "Navi Mumbai", "Thane"],
-            certifications: ["Licensed Plumber", "Gas Fitting Certified"],
-            responseTime: "Within 30 minutes",
-            emergencyService: true,
-            verified: true,
-          },
-          {
-            _id: "2",
-            fullName: "Priya Sharma",
-            category: "Electrician",
-            ratings: [5, 5, 4, 5, 5],
-            hourlyRate: 450,
-            bio: "Licensed electrician specializing in home wiring, smart home installations, and electrical repairs. Expert in modern electrical systems and safety compliance.",
-            skills: [
-              "Home Wiring",
-              "Smart Home Setup",
-              "Electrical Repairs",
-              "Panel Upgrades",
-              "LED Installation",
-              "Safety Inspections",
-            ],
-            profilePicture: "/professional-electrician-woman.png",
-            workGallery: [
-              "/electrical-wiring-work.jpg",
-              "/smart-home-installation.png",
-              "/electrical-panel.jpg",
-            ],
-            availability: [{ day: "Tuesday", timeSlots: ["09:00-17:00"] }],
-            address: { city: "Delhi", state: "NCR" },
-            experience: "8+ years",
-            serviceAreas: ["Delhi", "Gurgaon", "Noida", "Faridabad"],
-            certifications: ["Licensed Electrician", "Smart Home Certified"],
-            responseTime: "Within 1 hour",
-            emergencyService: true,
-            verified: true,
-          }
-        ];
-        setProfessionals(mockProfessionals);
       } finally {
         setLoading(false);
+        category && setSelectedCategory(category);
       }
     };
     
