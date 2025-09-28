@@ -6,7 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Clock, MapPin, User } from "lucide-react";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  MapPin,
+  User as UserIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -15,17 +20,9 @@ import {
 } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, API_URL } from "@/context/auth_provider";
+import type { User } from "../interfaces/user";
 
-interface Professional {
-  id: number | string; // Accept both number and string IDs
-  name: string;
-  category: string;
-  rating: number;
-  hourlyRate: number;
-  location: string;
-}
-
-export function BookingForm({ professional }: { professional: Professional }) {
+export function BookingForm({ professional }: { professional: User }) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -35,8 +32,15 @@ export function BookingForm({ professional }: { professional: Professional }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const timeSlots = [
-    "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
-    "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM"
+    "09:00 AM",
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "01:00 PM",
+    "02:00 PM",
+    "03:00 PM",
+    "04:00 PM",
+    "05:00 PM",
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,7 +94,7 @@ export function BookingForm({ professional }: { professional: Professional }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          professionalId: professional.id,
+          professionalId: professional._id,
           service: professional.category,
           date: date.toISOString(),
           time,
@@ -98,9 +102,9 @@ export function BookingForm({ professional }: { professional: Professional }) {
             street,
             city,
             state,
-            zip
+            zip,
           },
-          notes
+          notes,
         }),
       });
 
@@ -112,7 +116,7 @@ export function BookingForm({ professional }: { professional: Professional }) {
 
       toast({
         title: "Booking Request Sent",
-        description: `Your booking request with ${professional.name} has been sent. You will receive a confirmation shortly.`,
+        description: `Your booking request with ${professional.fullName} has been sent. You will receive a confirmation shortly.`,
       });
 
       // Reset form
@@ -122,7 +126,8 @@ export function BookingForm({ professional }: { professional: Professional }) {
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to send booking request. Please try again.",
+        description:
+          error.message || "Failed to send booking request. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -146,11 +151,18 @@ export function BookingForm({ professional }: { professional: Professional }) {
           <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
             <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16" />
             <div>
-              <h3 className="font-semibold">{professional.name}</h3>
+              <h3 className="font-semibold">{professional.fullName}</h3>
               <p className="text-sm text-gray-600">{professional.category}</p>
               <div className="flex items-center mt-1">
                 <span className="text-yellow-500">★</span>
-                <span className="ml-1 text-sm">{professional.rating}</span>
+                <span className="ml-1 text-sm">
+                  {professional.ratings
+                    ? (
+                        professional.ratings.reduce((a, b) => a + b, 0) /
+                        professional.ratings.length
+                      ).toFixed(1)
+                    : "0"}
+                </span>
               </div>
             </div>
           </div>
@@ -225,7 +237,7 @@ export function BookingForm({ professional }: { professional: Professional }) {
           {/* Special Instructions */}
           <div className="space-y-2">
             <Label htmlFor="notes" className="flex items-center">
-              <User className="mr-2 h-4 w-4" />
+              <User as UserIcon className="mr-2 h-4 w-4" />
               Special Instructions (Optional)
             </Label>
             <Textarea

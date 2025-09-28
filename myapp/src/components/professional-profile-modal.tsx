@@ -1,247 +1,155 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-
-import { Button } from "../components/ui/button"
-import { Card, CardContent } from "../components/ui/card"
-import { Img } from "react-image"
+import { useState, useEffect } from "react";
+import { Button } from "../components/ui/button";
+import { Img } from "react-image";
 import { BookingForm } from "./booking_form";
 import { useAuth, API_URL } from "../context/auth_provider";
 import { useToast } from "../hooks/use-toast";
-import { Heart } from "lucide-react";
+import {
+  Heart,
+  Star,
+  Phone,
+  Mail,
+  Calendar,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Menu,
+  X,
+} from "lucide-react";
+import { User } from "../interfaces/user";
+import { useParams } from "react-router-dom";
 
+// Close Icon
 const XIcon = () => (
-  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-  </svg>
-)
-
-const StarIcon = ({ className }: { className?: string }) => (
-  <svg className={className} fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
+  <svg
+    className="h-5 w-5"
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}
-      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+      d="M6 18L18 6M6 6l12 12"
     />
   </svg>
-)
+);
 
-const MapPinIcon = () => (
-  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-    />
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-  </svg>
-)
-
-const CalendarIcon = () => (
-  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-    />
-  </svg>
-)
-
-const ClockIcon = () => (
-  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-    />
-  </svg>
-)
-
-const PhoneIcon = () => (
-  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-    />
-  </svg>
-)
-
-const MailIcon = () => (
-  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-    />
-  </svg>
-)
-
-interface Professional {
-  id: string;
-  name: string;
-  category: string;
-  rating: number;
-  reviewCount: number;
-  hourlyRate: number;
-  bio: string;
-  skills: string[];
-  profileImageURL: string;
-  workGalleryURLs: string[];
-  availability: string;
-  location: string;
-  experience?: string;
-  verified?: boolean;
-  emergencyService?: boolean;
-  responseTime?: string;
-  serviceAreas?: string[];
-  certifications?: string[];
-}
-
-interface ProfessionalProfileModalProps {
-  professional: Professional | null
-  isOpen: boolean
-  onClose: () => void
-}
-
+// Sample fallback data
 const sampleReviews = [
   {
     id: 1,
-    name: "Sarah Johnson",
+    name: "Sarah Chen",
     rating: 5,
-    comment: "Excellent work! Very professional and completed the job on time.",
-    date: "2 weeks ago",
+    comment:
+      "Alex did an outstanding job with our bathroom remodel. Professional, timely, and the quality of work exceeded our expectations. Highly recommend!",
+    date: "May 15, 2024",
+    avatar: "/placeholder.svg",
   },
   {
     id: 2,
-    name: "Michael Chen",
-    rating: 5,
-    comment: "Highly recommend! Great attention to detail and fair pricing.",
-    date: "1 month ago",
-  },
-  {
-    id: 3,
-    name: "Priya Patel",
+    name: "Mark T. (Homeowner)",
     rating: 4,
-    comment: "Good service overall. Would hire again for future projects.",
-    date: "2 months ago",
+    comment:
+      "Needed a tricky electrical repair. Alex was knowledgeable and fixed it quickly. A bit pricey but worth it for the peace of mind.",
+    date: "April 28, 2024",
+    avatar: "/placeholder.svg",
   },
-]
+];
 
-export default function ProfessionalProfileModal({
-  professional,
-  isOpen,
-  onClose,
-}: ProfessionalProfileModalProps) {
-  const [activeTab, setActiveTab] = useState("about")
-  const [showBookingForm, setShowBookingForm] = useState(false)
+const availabilitySchedule = [
+  { day: "Monday", slots: "9:00 AM - 5:00 PM" },
+  { day: "Tuesday", slots: "9:00 AM - 5:00 PM" },
+  { day: "Wednesday", slots: "9:00 AM - 1:00 PM" },
+  { day: "Thursday", slots: "9:00 AM - 5:00 PM" },
+  { day: "Friday", slots: "9:00 AM - 3:00 PM" },
+  { day: "Saturday", slots: "Unavailable" },
+  { day: "Sunday", slots: "Unavailable" },
+];
+
+const workGallery = [
+  { id: 1, title: "Modern Bathroom Renovation", image: "/placeholder.svg" },
+  {
+    id: 2,
+    title: "Custom Kitchen Cabinet Installation",
+    image: "/placeholder.svg",
+  },
+  { id: 3, title: "Outdoor Deck Repair & Staining", image: "/placeholder.svg" },
+];
+
+const keySkills = [
+  "Electrical Troubleshooting",
+  "Plumbing Repair",
+  "Carpentry & Woodwork",
+  "Drywall Installation",
+];
+
+export default function ProfessionalProfileModal() {
+  const [professional, setProfessional] = useState<User | null>(null);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [showBookingForm, setShowBookingForm] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { id } = useParams();
 
+  // Fetch professional if not passed via props
   useEffect(() => {
-    if (isOpen && professional && user) {
-      checkFavoriteStatus();
-    }
-  }, [isOpen, professional, user]);
-
-  const checkFavoriteStatus = async () => {
-    try {
-      const response = await fetch(`${API_URL}/favorite/${professional?.id}`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (response.ok) {
+    const fetchProfessional = async () => {
+      if (!id) return;
+      try {
+        const response = user
+          ? await fetch(`${API_URL}/user/${id}`, { credentials: "include" })
+          : await fetch(`${API_URL}/_/users/${id}`);
+        if (!response.ok) {
+          const data = await response.json();
+          toast({
+            title: "Error",
+            description: data.message || "Failed to load professional.",
+            variant: "destructive",
+          });
+          return;
+        }
         const data = await response.json();
-        setIsFavorited(data.isFavorited);
-      }
-    } catch (error) {
-      console.error('Error checking favorite status:', error);
-    }
-  };
-
-  const toggleFavorite = async () => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to save favorites.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!professional) return;
-
-    setFavoriteLoading(true);
-    try {
-      const url = `${API_URL}/favorite${isFavorited ? `/${professional.id}` : ''}`;
-      const method = isFavorited ? 'DELETE' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: isFavorited ? undefined : JSON.stringify({ professionalId: professional.id }),
-      });
-
-      if (response.ok) {
-        setIsFavorited(!isFavorited);
+        console.log("Fetched professional:", data);
+        setProfessional({ ...data });
+      } catch (error) {
         toast({
-          title: isFavorited ? "Removed from favorites" : "Added to favorites",
-          description: isFavorited 
-            ? "Professional removed from your favorites list." 
-            : "Professional added to your favorites list.",
+          title: "Error",
+          description: "Failed to load professional.",
+          variant: "destructive",
         });
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Operation failed');
       }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update favorites. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setFavoriteLoading(false);
-    }
-  };
+    };
+    fetchProfessional();
+  }, [id, toast]);
 
-  if (!isOpen || !professional) return null
+  if (!professional) return null;
 
-  const handleBookNow = () => {
-    setShowBookingForm(true);
-  };
+  // Booking Handlers
+  const handleBookNow = () => setShowBookingForm(true);
+  const handleCloseBooking = () => setShowBookingForm(false);
 
-  const handleCloseBooking = () => {
-    setShowBookingForm(false);
-  };
-
+  // Booking Modal
   if (showBookingForm) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">Book Service with {professional.name}</h2>
+          <div className="sticky top-0 bg-white border-b px-4 sm:px-6 py-4 flex items-center justify-between">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
+              Book Service with {professional.fullName}
+            </h2>
             <Button variant="ghost" size="sm" onClick={handleCloseBooking}>
               <XIcon />
             </Button>
           </div>
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <BookingForm professional={professional} />
           </div>
         </div>
@@ -249,168 +157,169 @@ export default function ProfessionalProfileModal({
     );
   }
 
+  const tabs = [
+    { id: "overview", label: "Overview" },
+    { id: "gallery", label: "Gallery" },
+    { id: "reviews", label: "Reviews" },
+    { id: "contact", label: "Contact" },
+    { id: "settings", label: "Settings" },
+  ];
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Professional Profile</h2>
-          <div className="flex items-center gap-2">
-            {user && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={toggleFavorite}
-                disabled={favoriteLoading}
-                className={isFavorited ? "text-red-500 hover:text-red-600" : ""}
-              >
-                <Heart className={`h-5 w-5 ${isFavorited ? "fill-current" : ""}`} />
-              </Button>
+    <div className="bg-gray-50 min-h-screen">
+      {/* Mobile Header */}
+      <div className="lg:hidden bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-gray-900">
+          {professional.fullName}
+        </h1>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
             )}
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <XIcon />
-            </Button>
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile Tab Navigation */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden bg-white border-b shadow-sm">
+          <div className="px-4 py-2">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? "text-blue-600 bg-blue-50"
+                    : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
+        </div>
+      )}
+
+      <div className="flex">
+        {/* Desktop Sidebar Navigation */}
+        <div className="hidden lg:block bg-white shadow-sm border-r h-screen sticky top-0 z-10 w-64 flex-shrink-0">
+          <div className="flex flex-col">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-6 py-4 text-sm font-medium text-left transition-all duration-300 relative ${
+                  activeTab === tab.id
+                    ? "text-blue-600 bg-blue-50 border-r-2 border-blue-600"
+                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          
         </div>
 
         {/* Content */}
-        <div className="p-6">
-          {/* Professional Info Header */}
-          <div className="flex flex-col md:flex-row gap-6 mb-8">
-            <div className="flex-shrink-0">
-              <Img
-                src={professional.profileImageURL || "/placeholder.svg"}
-                alt={professional.name}
-                width={120}
-                height={120}
-                className="rounded-full"
-              />
-            </div>
-
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{professional.name}</h1>
-              <p className="text-xl text-blue-600 font-semibold mb-3">{professional.category}</p>
-
-              <div className="flex flex-wrap items-center gap-4 mb-4">
-                <div className="flex items-center">
-                  <StarIcon className="h-5 w-5 text-yellow-400" />
-                  <span className="ml-1 font-semibold text-lg">{professional.rating}</span>
-                  <span className="ml-1 text-gray-600">({professional.reviewCount} reviews)</span>
-                </div>
-
-                <div className="flex items-center text-gray-600">
-                  <MapPinIcon />
-                  <span className="ml-1">{professional.location}</span>
-                </div>
-
-                <div className="flex items-center text-green-600 font-medium">
-                  <ClockIcon />
-                  <span className="ml-1">{professional.availability}</span>
+        <div className="flex-1 overflow-y-auto">
+          {activeTab === "overview" && (
+            <div className="p-4 sm:p-6 max-w-4xl mx-auto">
+              {/* Professional Header */}
+              <div className="bg-white rounded-lg p-4 sm:p-6 mb-6">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
+                  <Img
+                    src={professional.profilePicture || "/placeholder.svg"}
+                    alt={professional.fullName}
+                    width={80}
+                    height={80}
+                    className="rounded-full w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28"
+                  />
+                  <div className="text-center sm:text-left">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+                      {professional.fullName}
+                    </h1>
+                    <p className="text-gray-600 mb-2">
+                      @{professional.username || "pro_user"}
+                    </p>
+                    <p className="text-lg font-semibold text-blue-600 mb-3">
+                      {professional.role || "Professional"}
+                    </p>
+                    <div className="inline-block bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      {professional.category || "General Services"}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-2xl font-bold text-gray-900">₹{professional.hourlyRate}</span>
-                  <span className="text-gray-600 ml-1">/visit</span>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button variant="outline" className="flex items-center bg-transparent" asChild>
-                    <a href={`/professional/${professional.id}/reviews`}>
-                      See all reviews
-                    </a>
-                  </Button>
-                  <Button variant="outline" className="flex items-center bg-transparent">
-                    <PhoneIcon />
-                    <span className="ml-2">Call</span>
-                  </Button>
-                  <Button variant="outline" className="flex items-center bg-transparent">
-                    <MailIcon />
-                    <span className="ml-2">Message</span>
-                  </Button>
-                  <Button onClick={handleBookNow} className="bg-blue-600 hover:bg-blue-700">
-                    <CalendarIcon />
-                    <span className="ml-2">Book Now</span>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="border-b mb-6">
-            <nav className="flex space-x-8">
-              <button
-                onClick={() => setActiveTab("about")}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "about"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                About
-              </button>
-              <button
-                onClick={() => setActiveTab("gallery")}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "gallery"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Work Gallery
-              </button>
-              <button
-                onClick={() => setActiveTab("reviews")}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "reviews"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Reviews
-              </button>
-            </nav>
-          </div>
-
-          {/* Tab Content */}
-          {activeTab === "about" && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">About Me</h3>
-                <p className="text-gray-700 leading-relaxed">{professional.bio}</p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Skills & Expertise</h3>
-                <div className="flex flex-wrap gap-2">
-                  {professional.skills.map((skill, index) => (
-                    <span key={index} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+              {/* Key Skills */}
+              <div className="bg-white rounded-lg p-4 sm:p-6 mb-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  Key Skills
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {keySkills.map((skill, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm text-center"
+                    >
                       {skill}
-                    </span>
+                    </div>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Service Areas</h3>
-                <p className="text-gray-700">Available in {professional.location} and surrounding areas</p>
+              {/* Availability Schedule */}
+              <div className="bg-white rounded-lg p-4 sm:p-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  Availability Schedule
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[300px]">
+                    <tbody>
+                      {availabilitySchedule.map((schedule, index) => (
+                        <tr key={index} className="border-b">
+                          <td className="py-2 px-2 sm:px-4 text-sm font-medium text-gray-900">
+                            {schedule.day}
+                          </td>
+                          <td className="py-2 px-2 sm:px-4 text-sm text-gray-700">
+                            {schedule.slots}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
 
           {activeTab === "gallery" && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Previous Work</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {professional.workGalleryURLs.map((imageUrl, index) => (
-                  <div key={index} className="aspect-square relative rounded-lg overflow-hidden">
-                    <Img
-                      src={imageUrl || "/placeholder.svg"}
-                      alt={`Work sample ${index + 1}`}
-                      className="object-cover hover:scale-105 transition-transform duration-300"
-                    />
+            <div className="p-4 sm:p-6 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {workGallery.map((work) => (
+                  <div key={work.id} className="group">
+                    <div className="aspect-square relative rounded-lg overflow-hidden mb-3">
+                      <Img
+                        src={work.image}
+                        alt={work.title}
+                        className="object-cover hover:scale-105 transition-transform duration-300 w-full h-full"
+                      />
+                    </div>
+                    <h3 className="text-sm font-medium text-gray-900">
+                      {work.title}
+                    </h3>
                   </div>
                 ))}
               </div>
@@ -418,36 +327,93 @@ export default function ProfessionalProfileModal({
           )}
 
           {activeTab === "reviews" && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer Reviews</h3>
-              <div className="space-y-4">
-                {sampleReviews.map((review) => (
-                  <Card key={review.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h4 className="font-medium text-gray-900">{review.name}</h4>
-                          <div className="flex items-center mt-1">
-                            {[...Array(5)].map((_, i) => (
-                              <StarIcon
-                                key={i}
-                                className={`h-4 w-4 ${i < review.rating ? "text-yellow-400" : "text-gray-300"}`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <span className="text-sm text-gray-500">{review.date}</span>
-                      </div>
-                      <p className="text-gray-700">{review.comment}</p>
-                    </CardContent>
-                  </Card>
-                ))}
+            <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6">
+              {sampleReviews.map((review) => (
+                <div key={review.id} className="flex gap-3 sm:gap-4">
+                  <Img
+                    src={review.avatar || "/placeholder.svg"}
+                    alt={review.name}
+                    width={40}
+                    height={40}
+                    className="rounded-full w-10 h-10 flex-shrink-0"
+                  />
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">{review.name}</h4>
+                    <div className="flex items-center mb-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-4 w-4 ${
+                            i < review.rating
+                              ? "text-yellow-400 fill-current"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-gray-700 text-sm mb-1">
+                      {review.comment}
+                    </p>
+                    <span className="text-xs text-gray-500">{review.date}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === "contact" && (
+            <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-4">
+              <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
+                <Phone className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                <span className="text-sm sm:text-base break-all">
+                  {professional.phone || "+1 (555) 123-4567"}
+                </span>
               </div>
-              <div className="mt-4 text-center">
-                <Button variant="outline" asChild>
-                  <a href={`/professional/${professional.id}/reviews`}>
-                    See all {professional.reviewCount} reviews
-                  </a>
+              <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg">
+                <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                <span className="text-sm sm:text-base break-all">
+                  {professional.email || "example@email.com"}
+                </span>
+              </div>
+              <Button
+                onClick={handleBookNow}
+                className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+              >
+                <Calendar className="h-4 w-4 mr-2" /> Book Now
+              </Button>
+            </div>
+          )}
+
+          {activeTab === "settings" && (
+            <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-3 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h3 className="font-medium text-gray-900">Notifications</h3>
+                  <p className="text-sm text-gray-600">
+                    Manage your notification preferences
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  Configure
+                </Button>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-3 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <h3 className="font-medium text-gray-900">Privacy</h3>
+                  <p className="text-sm text-gray-600">
+                    Control your privacy settings
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  Manage
                 </Button>
               </div>
             </div>
@@ -455,5 +421,5 @@ export default function ProfessionalProfileModal({
         </div>
       </div>
     </div>
-  )
+  );
 }

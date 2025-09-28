@@ -3,64 +3,21 @@ import Layout from "./layout";
 import ProfessionalProfileModal from "@/components/professional-profile-modal";
 import { categories } from "../Home/page";
 import { API_URL } from "@/context/auth_provider";
-
-// Define the backend Professional interface
-interface BackendProfessional {
-  _id: string;
-  fullName: string;
-  category: string;
-  ratings: number[];
-  hourlyRate?: number;
-  bio?: string;
-  skills?: string[];
-  profilePicture?: string;
-  workGallery?: string[];
-  availability?: { day: string; timeSlots: string[] }[];
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    zip?: string;
-  };
-  experience?: string;
-  serviceAreas?: string[];
-  certifications?: string[];
-  responseTime?: string;
-  emergencyService?: boolean;
-  verified?: boolean;
-}
-
-// Define the frontend Professional interface (matches the existing component)
-interface FrontendProfessional {
-  id: string;
-  name: string;
-  category: string;
-  rating: number;
-  reviewCount: number;
-  hourlyRate: number;
-  bio: string;
-  skills: string[];
-  profileImageURL: string;
-  workGalleryURLs: string[];
-  availability: string;
-  location: string;
-  experience: string;
-  verified: boolean;
-  emergencyService: boolean;
-  responseTime: string;
-  serviceAreas: string[];
-  certifications: string[];
-}
+import { User } from "../../interfaces/user";
 
 export function ProfessionalPage() {
-  const [professionals, setProfessionals] = useState<BackendProfessional[]>([]);
+  const [professionals, setProfessionals] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [priceFilter, setPriceFilter] = useState<string | null>(null);
   const [ratingFilter, setRatingFilter] = useState<string | null>(null);
-  const [availabilityFilter, setAvailabilityFilter] = useState<string | null>(null);
+  const [availabilityFilter, setAvailabilityFilter] = useState<string | null>(
+    null
+  );
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [selectedProfessional, setSelectedProfessional] = useState<FrontendProfessional | null>(null);
+  const [selectedProfessional, setSelectedProfessional] = useState<User | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,27 +28,21 @@ export function ProfessionalPage() {
     return sum / ratings.length;
   };
 
-  // Convert backend professional to frontend professional
-  const convertToFrontendProfessional = (pro: BackendProfessional): FrontendProfessional => {
+  // Convert User to display format for layout
+  const convertToDisplayProfessional = (pro: User) => {
     return {
+      ...pro,
       id: pro._id,
       name: pro.fullName,
-      category: pro.category || "",
-      rating: calculateAverageRating(pro.ratings || []),
+      rating: pro.ratings
+        ? pro.ratings.reduce((a, b) => a + b, 0) / pro.ratings.length
+        : 0,
       reviewCount: pro.ratings?.length || 0,
-      hourlyRate: pro.hourlyRate || 0,
-      bio: pro.bio || "",
-      skills: pro.skills || [],
       profileImageURL: pro.profilePicture || "/placeholder.svg",
       workGalleryURLs: pro.workGallery || [],
-      availability: pro.availability ? "Available" : "Not Available",
-      location: pro.address ? `${pro.address.city || ""}, ${pro.address.state || ""}` : "Location not specified",
-      experience: pro.experience || "",
-      verified: pro.verified || false,
-      emergencyService: pro.emergencyService || false,
-      responseTime: pro.responseTime || "",
-      serviceAreas: pro.serviceAreas || [],
-      certifications: pro.certifications || [],
+      location: pro.address
+        ? `${pro.address.city || ""}, ${pro.address.state || ""}`
+        : "Location not specified",
     };
   };
 
@@ -103,19 +54,19 @@ export function ProfessionalPage() {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await fetch(`${API_URL}/_/users`, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setProfessionals(data);
         } else {
-          throw new Error('Failed to fetch professionals');
+          throw new Error("Failed to fetch professionals");
         }
       } catch (err) {
         setError("Failed to load professionals. Please try again later.");
@@ -124,66 +75,73 @@ export function ProfessionalPage() {
         category && setSelectedCategory(category);
       }
     };
-    
+
     fetchProfessionals();
   }, []);
 
   // Filter professionals based on search and filters
-  const filteredProfessionals = professionals.filter((pro) => {
-    const matchesSearch =
-      searchQuery.trim() === "" ||
-      pro.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (pro.category && pro.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (pro.address?.city && pro.address.city.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (pro.bio && pro.bio.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (pro.skills && pro.skills.some((skill) =>
-        skill.toLowerCase().includes(searchQuery.toLowerCase())
-      ));
+  const filteredProfessionals = professionals
+    .filter((pro) => {
+      const matchesSearch =
+        searchQuery.trim() === "" ||
+        pro.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (pro.category &&
+          pro.category.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (pro.address?.city &&
+          pro.address.city.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (pro.bio &&
+          pro.bio.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (pro.skills &&
+          pro.skills.some((skill) =>
+            skill.toLowerCase().includes(searchQuery.toLowerCase())
+          ));
 
-    const matchesCategory =
-      !selectedCategory || (pro.category && pro.category === selectedCategory);
+      const matchesCategory =
+        !selectedCategory ||
+        (pro.category && pro.category === selectedCategory);
 
-    let matchesPrice = true;
-    if (pro.hourlyRate) {
-      if (priceFilter === "low") matchesPrice = pro.hourlyRate < 300;
-      else if (priceFilter === "medium")
-        matchesPrice = pro.hourlyRate >= 300 && pro.hourlyRate <= 400;
-      else if (priceFilter === "high") matchesPrice = pro.hourlyRate > 400;
-    }
+      let matchesPrice = true;
+      if (pro.hourlyRate) {
+        if (priceFilter === "low") matchesPrice = pro.hourlyRate < 300;
+        else if (priceFilter === "medium")
+          matchesPrice = pro.hourlyRate >= 300 && pro.hourlyRate <= 400;
+        else if (priceFilter === "high") matchesPrice = pro.hourlyRate > 400;
+      }
 
-    let matchesRating = true;
-    const avgRating = calculateAverageRating(pro.ratings || []);
-    if (ratingFilter === "4+") matchesRating = avgRating >= 4.0;
-    else if (ratingFilter === "4.5+") matchesRating = avgRating >= 4.5;
-    else if (ratingFilter === "4.8+") matchesRating = avgRating >= 4.8;
+      let matchesRating = true;
+      const avgRating = calculateAverageRating(pro.ratings || []);
+      if (ratingFilter === "4+") matchesRating = avgRating >= 4.0;
+      else if (ratingFilter === "4.5+") matchesRating = avgRating >= 4.5;
+      else if (ratingFilter === "4.8+") matchesRating = avgRating >= 4.8;
 
-    let matchesAvailability = true;
-    // For now, we'll simplify availability filtering
-    if (availabilityFilter === "today")
-      matchesAvailability = pro.availability !== undefined;
-    else if (availabilityFilter === "emergency")
-      matchesAvailability = pro.emergencyService === true;
+      let matchesAvailability = true;
+      // For now, we'll simplify availability filtering
+      if (availabilityFilter === "today")
+        matchesAvailability = pro.availability !== undefined;
+      else if (availabilityFilter === "emergency")
+        matchesAvailability = pro.emergencyService === true;
 
-    return (
-      matchesSearch &&
-      matchesCategory &&
-      matchesPrice &&
-      matchesRating &&
-      matchesAvailability
-    );
-  }).sort((a, b) => {
-    // Sort by verified status first, then by average rating
-    const aVerified = a.verified ? 1 : 0;
-    const bVerified = b.verified ? 1 : 0;
-    
-    if (aVerified !== bVerified) {
-      return bVerified - aVerified; // Verified professionals first
-    }
-    
-    const aAvgRating = calculateAverageRating(a.ratings || []);
-    const bAvgRating = calculateAverageRating(b.ratings || []);
-    return bAvgRating - aAvgRating; // Higher rated professionals first
-  });
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesPrice &&
+        matchesRating &&
+        matchesAvailability
+      );
+    })
+    .sort((a, b) => {
+      // Sort by verified status first, then by average rating
+      const aVerified = a.verified ? 1 : 0;
+      const bVerified = b.verified ? 1 : 0;
+
+      if (aVerified !== bVerified) {
+        return bVerified - aVerified; // Verified professionals first
+      }
+
+      const aAvgRating = calculateAverageRating(a.ratings || []);
+      const bAvgRating = calculateAverageRating(b.ratings || []);
+      return bAvgRating - aAvgRating; // Higher rated professionals first
+    });
 
   const clearAllFilters = () => {
     setSearchQuery("");
@@ -209,11 +167,24 @@ export function ProfessionalPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center p-6 bg-white rounded-lg shadow-md max-w-md">
           <div className="text-red-500 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 mx-auto"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Professionals</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Error Loading Professionals
+          </h3>
           <p className="text-gray-600 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
@@ -232,7 +203,9 @@ export function ProfessionalPage() {
         categories={categories}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
-        sortedProfessionals={filteredProfessionals.map(convertToFrontendProfessional)}
+        sortedProfessionals={filteredProfessionals.map(
+          convertToDisplayProfessional
+        )}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         priceFilter={priceFilter}
@@ -242,7 +215,9 @@ export function ProfessionalPage() {
         availabilityFilter={availabilityFilter}
         setAvailabilityFilter={setAvailabilityFilter}
         clearAllFilters={clearAllFilters}
-        setSelectedProfessional={(prof: FrontendProfessional | null) => setSelectedProfessional(prof)}
+        setSelectedProfessional={(prof: FrontendProfessional | null) =>
+          setSelectedProfessional(prof)
+        }
         showMobileFilters={showMobileFilters}
         setShowMobileFilters={setShowMobileFilters}
       />

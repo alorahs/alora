@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
     street: String,
     city: String,
     state: String,
-    zip: String
+    pincode: String
   },
   bio: { type: String },
   skills: [{ type: String }],
@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
     instagram: { type: String }
   },
   isActive: { type: Boolean, default: true },
-  category: { type: String, enum: ['plumbing', 'electrical', 'cleaning', 'carpentry', 'painting', 'other'] },
+  category: { type: String, enum: ['','plumbing', 'electrical', 'cleaning', 'carpentry', 'painting', 'other'] },
   ratings: [{ type: Number, min: 0, max: 5 }],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
   workGallery: [{ type: String }],

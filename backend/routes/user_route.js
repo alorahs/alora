@@ -50,6 +50,8 @@ router.put("/", verifyAccessToken, async (req, res) => {
     delete updates.verifyEmailExpires;
     delete updates.verifyPhoneToken;
     delete updates.verifyPhoneExpires;
+
+    console.log('Updates:', updates);
     
     const user = await User.findByIdAndUpdate(
       userId,

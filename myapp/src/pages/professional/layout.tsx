@@ -4,10 +4,11 @@ import { Card, CardContent } from "../../components/ui/card";
 import { StarIcon } from "lucide-react";
 import { Img } from "react-image";
 import { AdvancedSearchFilters } from "../../components/advanced-search-filters"
+import { useNavigate } from "react-router-dom";
 
 function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfessionals, searchQuery, setSearchQuery, priceFilter, setPriceFilter, ratingFilter, setRatingFilter, availabilityFilter, setAvailabilityFilter, clearAllFilters, showMobileFilters, setShowMobileFilters, setSelectedProfessional }:
   { categories: { name: string; icon: string }[]; selectedCategory: string | null; setSelectedCategory: (category: string | null) => void; sortedProfessionals: any[]; searchQuery: string; setSearchQuery: (query: string) => void; priceFilter: string | null; setPriceFilter: (filter: string | null) => void; ratingFilter: string | null; setRatingFilter: (filter: string | null) => void; availabilityFilter: string | null; setAvailabilityFilter: (filter: string | null) => void; clearAllFilters: () => void; showMobileFilters: boolean; setShowMobileFilters: (show: boolean) => void; setSelectedProfessional: (professional: any) => void; }) {
-
+  const navigate = useNavigate();
 
   return (
     <section className="py-6 sm:py-8">
@@ -332,8 +333,9 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-semibold text-gray-900">From ₹{pro.hourlyRate}/visit</span>
                         <Button
-                          onClick={() => setSelectedProfessional(pro)}
+                          onClick={() => navigate(`/professionals/${pro.id}`)}
                           className="bg-blue-600 hover:bg-blue-700"
+
                         >
                           View Profile
                         </Button>

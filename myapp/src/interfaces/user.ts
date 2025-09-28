@@ -23,7 +23,7 @@ export interface User {
     street?: string;
     city?: string;
     state?: string;
-    zip?: string;
+    pincode?: string;
   };
   emailVerified?: boolean;
   phoneVerified?: boolean;

@@ -15,6 +15,7 @@ import './models/review.js';
 import './models/refresh_token.js';
 import './models/booking.js';
 import './models/favorite.js';
+import './models/file.js';
 
 import connectDB from './config/db.js';
 import apiRouter from './routes/api_route.js';
@@ -33,7 +34,6 @@ app.use(cors({
     optionsSuccessStatus: 204,
     maxAge: 86400, // cache preflight response for 1 day
 }));
-
 
 // API Routes - keep before frontend static serving
 app.use('/api', apiRouter);

@@ -21,6 +21,7 @@ import FeedbackPage from "./pages/feedback/page";
 import EmailVerify from "./pages/auth/email_verify";
 import { useAuth } from "./context/auth_provider";
 import { ProfessionalPage } from "./pages/professional/page";
+import ProfessionalProfileModal from "./components/professional-profile-modal";
 
 function App() {
   const { user } = useAuth();
@@ -41,13 +42,17 @@ function App() {
           <Route path="/services" element={<ServicePage />} />
           <Route path="/feedback" element={<FeedbackPage />} />
           <Route path="/professionals" element={<ProfessionalPage />} />
+          <Route
+            path="/professionals/:id"
+            element={<ProfessionalProfileModal />}
+          />
 
           {/* Auth Pages */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/signup-success" element={<SignupSuccessPage />} />
-          {user && <Route path="/logout" element={<LogoutPage />} />}
-          <Route path="/verification/email" element={<EmailVerify />} />
+          <Route path="/auth/login" element={<LoginPage />} />
+          <Route path="/auth/signup" element={<SignupPage />} />
+          <Route path="/auth/signup-success" element={<SignupSuccessPage />} />
+          {user && <Route path="/auth/logout" element={<LogoutPage />} />}
+          <Route path="/auth/verification/email" element={<EmailVerify />} />
 
           {user && <Route path="/profile" element={<ProfilePage />} />}
 

@@ -16,6 +16,20 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    console.log(id);
+    const user = await User.findById(id).select("-password -phone -email -resetPasswordToken -resetPasswordExpires -verifyEmailToken -verifyEmailExpires -verifyPhoneToken -verifyPhoneExpires");
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 router.post('/verify-email', [
   body('token').exists().withMessage('Verification token is required')
 ], async (req, res) => {
