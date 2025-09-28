@@ -3,32 +3,10 @@ import { Input } from "../../components/ui/input";
 import { Card, CardContent } from "../../components/ui/card";
 import { StarIcon } from "lucide-react";
 import { Img } from "react-image";
-import { AdvancedSearchFilters } from "../../components/advanced-search-filters";
-
-// Define the Professional interface to match what's passed from the parent
-interface Professional {
-  id: string;
-  name: string;
-  category: string;
-  rating: number;
-  reviewCount: number;
-  hourlyRate: number;
-  bio: string;
-  skills: string[];
-  profileImageURL: string;
-  workGalleryURLs: string[];
-  availability: string;
-  location: string;
-  experience?: string;
-  verified?: boolean;
-  emergencyService?: boolean;
-  responseTime?: string;
-  serviceAreas?: string[];
-  certifications?: string[];
-}
+import { AdvancedSearchFilters } from "../../components/advanced-search-filters"
 
 function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfessionals, searchQuery, setSearchQuery, priceFilter, setPriceFilter, ratingFilter, setRatingFilter, availabilityFilter, setAvailabilityFilter, clearAllFilters, showMobileFilters, setShowMobileFilters, setSelectedProfessional }:
-  { categories: { name: string; icon: string }[]; selectedCategory: string | null; setSelectedCategory: (category: string | null) => void; sortedProfessionals: Professional[]; searchQuery: string; setSearchQuery: (query: string) => void; priceFilter: string | null; setPriceFilter: (filter: string | null) => void; ratingFilter: string | null; setRatingFilter: (filter: string | null) => void; availabilityFilter: string | null; setAvailabilityFilter: (filter: string | null) => void; clearAllFilters: () => void; showMobileFilters: boolean; setShowMobileFilters: (show: boolean) => void; setSelectedProfessional: (professional: Professional) => void; }) {
+  { categories: { name: string; icon: string }[]; selectedCategory: string | null; setSelectedCategory: (category: string | null) => void; sortedProfessionals: any[]; searchQuery: string; setSearchQuery: (query: string) => void; priceFilter: string | null; setPriceFilter: (filter: string | null) => void; ratingFilter: string | null; setRatingFilter: (filter: string | null) => void; availabilityFilter: string | null; setAvailabilityFilter: (filter: string | null) => void; clearAllFilters: () => void; showMobileFilters: boolean; setShowMobileFilters: (show: boolean) => void; setSelectedProfessional: (professional: any) => void; }) {
 
 
   return (
@@ -258,103 +236,107 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
             </div>
           )}
 
-          {/* Professional Listings */}
           <div className="flex-1">
             {sortedProfessionals.length === 0 ? (
               <div className="text-center py-12">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No professionals found</h3>
-                <p className="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria.</p>
-                <div className="mt-6">
-                  <Button onClick={clearAllFilters}>Clear all filters</Button>
+                <div className="text-gray-400 mb-4">
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
                 </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No professionals found</h3>
+                <p className="text-gray-600 mb-4">Try adjusting your filters or search terms</p>
+                <Button onClick={clearAllFilters} variant="outline">
+                  Clear All Filters
+                </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sortedProfessionals.map((professional) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                {sortedProfessionals.map((pro, index) => (
                   <Card
-                    key={professional.id}
-                    className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => setSelectedProfessional(professional)}
+                    key={pro.id}
+                    className="hover:shadow-xl transition-all duration-300 hover:-translate-y-2 transform animate-fade-in-up"
+                    style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <CardContent className="p-0">
-                      <div className="relative">
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex items-start mb-4">
                         <Img
-                          src={professional.profileImageURL || "/placeholder.svg"}
-                          alt={professional.name}
-                          className="w-full h-48 object-cover"
+                          src={pro.profileImageURL || "/placeholder.svg"}
+                          alt={pro.name}
+                          width={60}
+                          height={60}
+                          className="rounded-full mr-4 flex-shrink-0"
                         />
-                        {professional.verified && (
-                          <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
-                            <svg className="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-lg text-gray-900 truncate">{pro.name}</h3>
+                          <p className="text-blue-600 font-medium">{pro.category}</p>
+                          <p className="text-sm text-gray-500 flex items-center mt-1">
+                            <svg
+                              className="h-3 w-3 mr-1 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
                               <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                               />
                             </svg>
-                            Verified
-                          </div>
-                        )}
+                            <span className="truncate">{pro.location}</span>
+                          </p>
+                        </div>
                       </div>
 
-                      <div className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{professional.name}</h3>
-                            <p className="text-sm text-blue-600">{professional.category}</p>
-                          </div>
-                          <div className="flex items-center bg-blue-50 px-2 py-1 rounded">
-                            <StarIcon className="h-4 w-4 text-yellow-400 fill-current" />
-                            <span className="text-sm font-medium ml-1">{professional.rating}</span>
-                          </div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <StarIcon className="h-4 w-4 text-yellow-400" />
+                          <span className="ml-1 font-semibold">{pro.rating}</span>
+                          <span className="ml-1 text-gray-600 text-sm">({pro.reviewCount} reviews)</span>
                         </div>
+                        <span className="text-sm text-green-600 font-medium">{pro.availability}</span>
+                      </div>
 
-                        <div className="mt-3 flex items-center text-sm text-gray-500">
-                          <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                          </svg>
-                          <span>{professional.location}</span>
-                        </div>
+                      <p className="text-gray-600 mb-4 text-sm line-clamp-2">{pro.bio}</p>
 
-                        <div className="mt-3 flex items-center justify-between">
-                          <div>
-                            <span className="text-lg font-bold text-gray-900">₹{professional.hourlyRate}</span>
-                            <span className="text-gray-600 text-sm">/visit</span>
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedProfessional(professional);
-                            }}>
-                              View Profile
-                            </Button>
-                            <Button size="sm" asChild onClick={(e) => e.stopPropagation()}>
-                              <a href={`/professional/${professional.id}/reviews`}>
-                                Reviews ({professional.reviewCount})
-                              </a>
-                            </Button>
-                          </div>
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-1">
+                          {pro.skills.slice(0, 3).map((skill: string, index: number) => (
+                            <span
+                              key={index}
+                              className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                          {pro.skills.length > 3 && (
+                            <span className="inline-block text-gray-500 text-xs px-2 py-1">
+                              +{pro.skills.length - 3} more
+                            </span>
+                          )}
                         </div>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-semibold text-gray-900">From ₹{pro.hourlyRate}/visit</span>
+                        <Button
+                          onClick={() => setSelectedProfessional(pro)}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          View Profile
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -365,7 +347,7 @@ function Layout({ categories, selectedCategory, setSelectedCategory, sortedProfe
         </div>
       </div>
     </section>
-  );
+  )
 }
 
 export default Layout;
