@@ -17,13 +17,21 @@ router.get('/', async (req, res) => {
 
 // Create a new service
 router.post('/', verifyAccessToken, isAdmin, async (req, res) => {
-  const { title, description, icon, color } = req.body;
-  if (!title || !description || !icon || !color) {
-    return res.status(400).json({ message: 'All fields are required' });
+  console.log('Received request to create a new service', req.body);
+  const { title, description, category, icon, color } = req.body;
+  if (!title || !description || !icon) {
+    return res.status(400).json({ message: 'Title, description, and icon are required' });
   }
 
   try {
-    const newService = new Service({ title, description, icon, color });
+    const serviceData = {
+      title,
+      description,
+      category,
+      icon,
+      color: color || '#3B82F6' // Default blue color if not provided
+    };
+    const newService = new Service(serviceData);
     await newService.save();
     res.status(201).json(newService);
   } catch (error) {
@@ -67,11 +75,11 @@ router.delete('/:id', verifyAccessToken, isAdmin, async (req, res) => {
 //put update service by ID
 router.put('/:id', verifyAccessToken, isAdmin, async (req, res) => {
   const { id } = req.params;
-  const { title, description, icon, color } = req.body;
+  const { title, description, category, icon, color } = req.body;
   try {
     const updatedService = await Service.findByIdAndUpdate(
       id,
-      { title, description, icon, color },
+      { title, description, category, icon, color },
       { new: true }
     );
     if (!updatedService) {

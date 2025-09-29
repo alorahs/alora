@@ -156,6 +156,18 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
 
+                  {user.role === "admin" && (
+                    <DropdownMenuItem
+                      asChild
+                      className="rounded-lg mx-2 my-1 hover:bg-muted/50 transition-all duration-200 cursor-pointer"
+                    >
+                      <Link to="/admin" className="flex items-center">
+                        <Settings className="mr-3 h-4 w-4" />
+                        <span>Admin Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+
                   <DropdownMenuItem
                     asChild
                     className="rounded-lg mx-2 my-1 hover:bg-muted/50 transition-all duration-200 cursor-pointer"
@@ -168,9 +180,8 @@ export function Header() {
 
                   <DropdownMenuSeparator className="bg-border/50" />
 
-                  <DropdownMenuItem
-                    className="rounded-lg mx-2 my-1 mb-2 hover:bg-destructive/10 hover:text-destructive transition-all duration-200 cursor-pointer flex items-center"
-                  ><Link to="/auth/logout" className="flex items-center">
+                  <DropdownMenuItem className="rounded-lg mx-2 my-1 mb-2 hover:bg-destructive/10 hover:text-destructive transition-all duration-200 cursor-pointer flex items-center">
+                    <Link to="/auth/logout" className="flex items-center">
                       <LogOut className="mr-3 h-4 w-4" />
                       <span>Log out</span>
                     </Link>
@@ -274,6 +285,20 @@ export function Header() {
                         Profile
                       </Link>
                     </Button>
+
+                    {user.role === "admin" && (
+                      <Button
+                        variant="ghost"
+                        asChild
+                        className="w-full justify-start h-12 rounded-lg hover:bg-muted/50"
+                        onClick={() => handleNavigation("/admin")}
+                      >
+                        <Link to="/admin" className="flex items-center">
+                          <Settings className="mr-3 h-4 w-4" />
+                          Admin Dashboard
+                        </Link>
+                      </Button>
+                    )}
 
                     <Button
                       variant="ghost"

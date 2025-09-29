@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Img } from "react-image";
-import { BookingForm } from "./booking_form";
 import { useAuth, API_URL } from "../context/auth_provider";
 import { useToast } from "../hooks/use-toast";
 import {
@@ -20,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { User } from "../interfaces/user";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 // Close Icon
 const XIcon = () => (
@@ -91,13 +90,13 @@ const keySkills = [
 export default function ProfessionalProfileModal() {
   const [professional, setProfessional] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
-  const [showBookingForm, setShowBookingForm] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   const { id } = useParams();
+  const navigate = useNavigate();
 
   // Fetch professional if not passed via props
   useEffect(() => {
@@ -130,32 +129,12 @@ export default function ProfessionalProfileModal() {
     fetchProfessional();
   }, [id, toast]);
 
+  // Booking Handler
+  const handleBookNow = () => {
+    navigate(`/booking/${professional._id}`);
+  };
+
   if (!professional) return null;
-
-  // Booking Handlers
-  const handleBookNow = () => setShowBookingForm(true);
-  const handleCloseBooking = () => setShowBookingForm(false);
-
-  // Booking Modal
-  if (showBookingForm) {
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white border-b px-4 sm:px-6 py-4 flex items-center justify-between">
-            <h2 className="text-lg sm:text-2xl font-bold text-gray-900">
-              Book Service with {professional.fullName}
-            </h2>
-            <Button variant="ghost" size="sm" onClick={handleCloseBooking}>
-              <XIcon />
-            </Button>
-          </div>
-          <div className="p-4 sm:p-6">
-            <BookingForm professional={professional} />
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const tabs = [
     { id: "overview", label: "Overview" },
@@ -229,7 +208,6 @@ export default function ProfessionalProfileModal() {
               </button>
             ))}
           </div>
-          
         </div>
 
         {/* Content */}
@@ -256,8 +234,25 @@ export default function ProfessionalProfileModal() {
                     <p className="text-lg font-semibold text-blue-600 mb-3">
                       {professional.role || "Professional"}
                     </p>
-                    <div className="inline-block bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                    {professional.hourlyRate && (
+                      <p className="text-lg font-bold text-green-600 mb-3">
+                        ₹{professional.hourlyRate}/hr
+                      </p>
+                    )}
+                    <div className="inline-block bg-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium mb-4">
                       {professional.category || "General Services"}
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        onClick={handleBookNow}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Calendar className="h-4 w-4 mr-2" /> Book Now
+                      </Button>
+                      <Button variant="outline" size="default">
+                        <Heart className="h-4 w-4 mr-2" />
+                        Add to Favorites
+                      </Button>
                     </div>
                   </div>
                 </div>

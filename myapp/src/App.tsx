@@ -22,6 +22,8 @@ import EmailVerify from "./pages/auth/email_verify";
 import { useAuth } from "./context/auth_provider";
 import { ProfessionalPage } from "./pages/professional/page";
 import ProfessionalProfileModal from "./components/professional-profile-modal";
+import BookingPage from "./pages/booking/page";
+import AdminDashboard from "./pages/admin/dashboard";
 
 function App() {
   const { user } = useAuth();
@@ -45,6 +47,7 @@ function App() {
             path="/professionals/:id"
             element={<ProfessionalProfileModal />}
           />
+          <Route path="/booking/:id" element={<BookingPage />} />
 
           {/* Auth Pages */}
           <Route path="/auth/login" element={<LoginPage />} />
@@ -54,6 +57,9 @@ function App() {
           <Route path="/auth/verification/email" element={<EmailVerify />} />
 
           {user && <Route path="/profile" element={<ProfilePage />} />}
+          {user && user.role === "admin" && (
+            <Route path="/admin" element={<AdminDashboard />} />
+          )}
 
           {/* Catch-all 404 */}
           <Route path="*" element={<NotFound />} />
