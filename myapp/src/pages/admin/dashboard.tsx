@@ -215,10 +215,10 @@ export default function AdminDashboard() {
   const [isEditFAQOpen, setIsEditFAQOpen] = useState(false);
   const [isViewReachUsOpen, setIsViewReachUsOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
-  
+
   // Filter states for reach us
-  const [reachUsFilter, setReachUsFilter] = useState<string>('all');
-  const [reachUsSearchTerm, setReachUsSearchTerm] = useState<string>('');
+  const [reachUsFilter, setReachUsFilter] = useState<string>("all");
+  const [reachUsSearchTerm, setReachUsSearchTerm] = useState<string>("");
 
   // Form states
   const [formData, setFormData] = useState<any>({});
@@ -597,25 +597,29 @@ export default function AdminDashboard() {
   };
 
   // Filter reach us messages
-  const filteredReachUsMessages = reachUsMessages.filter(message => {
-    const matchesSearch = 
-      message.fullName.toLowerCase().includes(reachUsSearchTerm.toLowerCase()) ||
+  const filteredReachUsMessages = reachUsMessages.filter((message) => {
+    const matchesSearch =
+      message.fullName
+        .toLowerCase()
+        .includes(reachUsSearchTerm.toLowerCase()) ||
       message.email.toLowerCase().includes(reachUsSearchTerm.toLowerCase()) ||
       message.subject.toLowerCase().includes(reachUsSearchTerm.toLowerCase()) ||
       message.message.toLowerCase().includes(reachUsSearchTerm.toLowerCase());
-    
-    if (reachUsFilter === 'all') return matchesSearch;
-    
+
+    if (reachUsFilter === "all") return matchesSearch;
+
     const messageDate = new Date(message.createdAt);
     const now = new Date();
-    
+
     switch (reachUsFilter) {
-      case 'today':
-        return matchesSearch && messageDate.toDateString() === now.toDateString();
-      case 'week':
+      case "today":
+        return (
+          matchesSearch && messageDate.toDateString() === now.toDateString()
+        );
+      case "week":
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         return matchesSearch && messageDate >= weekAgo;
-      case 'month':
+      case "month":
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         return matchesSearch && messageDate >= monthAgo;
       default:
@@ -730,7 +734,9 @@ export default function AdminDashboard() {
                   <Mail className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{reachUsMessages.length}</div>
+                  <div className="text-2xl font-bold">
+                    {reachUsMessages.length}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Contact messages
                   </p>
@@ -1286,7 +1292,10 @@ export default function AdminDashboard() {
                     onChange={(e) => setReachUsSearchTerm(e.target.value)}
                     className="w-64"
                   />
-                  <Select value={reachUsFilter} onValueChange={setReachUsFilter}>
+                  <Select
+                    value={reachUsFilter}
+                    onValueChange={setReachUsFilter}
+                  >
                     <SelectTrigger className="w-40">
                       <SelectValue />
                     </SelectTrigger>
@@ -1304,37 +1313,51 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      Total Messages
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{reachUsMessages.length}</div>
+                    <div className="text-2xl font-bold">
+                      {reachUsMessages.length}
+                    </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium">Today</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {reachUsMessages.filter(msg => 
-                        new Date(msg.createdAt).toDateString() === new Date().toDateString()
-                      ).length}
+                      {
+                        reachUsMessages.filter(
+                          (msg) =>
+                            new Date(msg.createdAt).toDateString() ===
+                            new Date().toDateString()
+                        ).length
+                      }
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">This Week</CardTitle>
+                    <CardTitle className="text-sm font-medium">
+                      This Week
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {reachUsMessages.filter(msg => {
-                        const msgDate = new Date(msg.createdAt);
-                        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-                        return msgDate >= weekAgo;
-                      }).length}
+                      {
+                        reachUsMessages.filter((msg) => {
+                          const msgDate = new Date(msg.createdAt);
+                          const weekAgo = new Date(
+                            Date.now() - 7 * 24 * 60 * 60 * 1000
+                          );
+                          return msgDate >= weekAgo;
+                        }).length
+                      }
                     </div>
                   </CardContent>
                 </Card>
@@ -1347,12 +1370,14 @@ export default function AdminDashboard() {
                     <div className="text-center py-12">
                       <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        {reachUsSearchTerm || reachUsFilter !== 'all' ? 'No messages found' : 'No messages yet'}
+                        {reachUsSearchTerm || reachUsFilter !== "all"
+                          ? "No messages found"
+                          : "No messages yet"}
                       </h3>
                       <p className="text-gray-600">
-                        {reachUsSearchTerm || reachUsFilter !== 'all' 
-                          ? 'Try adjusting your search or filter criteria.'
-                          : 'Contact messages from users will appear here.'}
+                        {reachUsSearchTerm || reachUsFilter !== "all"
+                          ? "Try adjusting your search or filter criteria."
+                          : "Contact messages from users will appear here."}
                       </p>
                     </div>
                   ) : (
@@ -1380,11 +1405,15 @@ export default function AdminDashboard() {
                               <div className="flex items-center space-x-1">
                                 <Calendar className="h-3 w-3 text-muted-foreground" />
                                 <span className="text-sm">
-                                  {new Date(message.createdAt).toLocaleDateString()}
+                                  {new Date(
+                                    message.createdAt
+                                  ).toLocaleDateString()}
                                 </span>
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                {new Date(message.createdAt).toLocaleTimeString()}
+                                {new Date(
+                                  message.createdAt
+                                ).toLocaleTimeString()}
                               </div>
                             </TableCell>
                             <TableCell>
@@ -1402,7 +1431,9 @@ export default function AdminDashboard() {
                                 <Button
                                   size="sm"
                                   variant="destructive"
-                                  onClick={() => deleteReachUsMessage(message._id)}
+                                  onClick={() =>
+                                    deleteReachUsMessage(message._id)
+                                  }
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -1506,40 +1537,53 @@ export default function AdminDashboard() {
               <div className="space-y-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Full Name</Label>
+                    <Label className="text-sm font-medium text-gray-700">
+                      Full Name
+                    </Label>
                     <p className="text-sm mt-1">{selectedItem.fullName}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-700">Email</Label>
+                    <Label className="text-sm font-medium text-gray-700">
+                      Email
+                    </Label>
                     <p className="text-sm mt-1">{selectedItem.email}</p>
                   </div>
                 </div>
-                
+
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Subject</Label>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Subject
+                  </Label>
                   <p className="text-sm mt-1">{selectedItem.subject}</p>
                 </div>
-                
+
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Message</Label>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Message
+                  </Label>
                   <div className="mt-1 p-3 bg-gray-50 rounded-md border text-sm whitespace-pre-wrap">
                     {selectedItem.message}
                   </div>
                 </div>
-                
+
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">Received</Label>
+                  <Label className="text-sm font-medium text-gray-700">
+                    Received
+                  </Label>
                   <p className="text-sm mt-1">
                     {new Date(selectedItem.createdAt).toLocaleString()}
                   </p>
                 </div>
-                
+
                 {/* Quick Actions */}
                 <div className="flex space-x-2 pt-4 border-t">
                   <Button
                     variant="outline"
                     onClick={() => {
-                      window.open(`mailto:${selectedItem.email}?subject=Re: ${selectedItem.subject}`, '_blank');
+                      window.open(
+                        `mailto:${selectedItem.email}?subject=Re: ${selectedItem.subject}`,
+                        "_blank"
+                      );
                     }}
                   >
                     <Mail className="h-4 w-4 mr-2" />
@@ -1559,7 +1603,10 @@ export default function AdminDashboard() {
               </div>
             )}
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsViewReachUsOpen(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsViewReachUsOpen(false)}
+              >
                 Close
               </Button>
             </DialogFooter>
@@ -1775,10 +1822,7 @@ export default function AdminDashboard() {
                 <Label className="text-right">Preview</Label>
                 <div className="col-span-3">
                   <div className="flex items-center space-x-3 p-3 border rounded">
-                    <div
-                      className="w-8 h-8 rounded flex items-center justify-center"
-                      
-                    >
+                    <div className="w-8 h-8 rounded flex items-center justify-center">
                       <span className="text-white">{formData.icon || "?"}</span>
                     </div>
                     <div>
