@@ -3,6 +3,7 @@ import Booking from '../models/booking.js';
 import User from '../models/user.js';
 import { body, validationResult } from 'express-validator';
 import verifyAccessToken from '../middleware/authentication.js';
+import { createNotification } from './notification_route.js';
 
 const router = express.Router();
 
@@ -47,6 +48,11 @@ router.post('/', verifyAccessToken, [
     await savedBooking.populate('user', 'fullName email');
     await savedBooking.populate('professional', 'fullName email category');
     
+    // Send notification to professional
+    const notificationTitle = 'New Booking Request';
+    const notificationMessage = `You have a new booking request from ${savedBooking.user.fullName} for ${savedBooking.service} on ${new Date(savedBooking.date).toLocaleDateString()} at ${savedBooking.time}.`;
+    await createNotification(professionalId, notificationTitle, notificationMessage, 'info');
+    
     res.status(201).json({ message: 'Booking created successfully', booking: savedBooking });
   } catch (error) {
     console.error('Error creating booking:', error);
@@ -80,7 +86,10 @@ router.get('/:id', verifyAccessToken, async (req, res) => {
     }
     
     // Check if user is authorized to view this booking
-    if (booking.user.toString() !== req.user._id.toString()) {
+    // Users can view their own bookings, professionals can view bookings assigned to them, and admins can view all bookings
+    if (booking.user._id.toString() !== req.user._id.toString() && 
+        booking.professional._id.toString() !== req.user._id.toString() && 
+        req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized to view this booking' });
     }
     
@@ -125,12 +134,32 @@ router.put('/:id/status', verifyAccessToken, [
       return res.status(403).json({ message: 'Not authorized to update this booking' });
     }
     
+    const previousStatus = booking.status;
     booking.status = status;
     const updatedBooking = await booking.save();
     
     // Populate user and professional details
     await updatedBooking.populate('user', 'fullName email');
     await updatedBooking.populate('professional', 'fullName email category');
+    
+    // Send notification to user about status change
+    let notificationTitle = '';
+    let notificationMessage = '';
+    
+    if (status === 'confirmed' && previousStatus !== 'confirmed') {
+      notificationTitle = 'Booking Confirmed';
+      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.service} has been confirmed.`;
+    } else if (status === 'completed' && previousStatus !== 'completed') {
+      notificationTitle = 'Booking Completed';
+      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.service} has been marked as completed.`;
+    } else if (status === 'cancelled' && previousStatus !== 'cancelled') {
+      notificationTitle = 'Booking Cancelled';
+      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.service} has been cancelled.`;
+    }
+    
+    if (notificationTitle && notificationMessage) {
+      await createNotification(updatedBooking.user._id, notificationTitle, notificationMessage, 'info');
+    }
     
     res.status(200).json({ message: 'Booking status updated', booking: updatedBooking });
   } catch (error) {

@@ -9,11 +9,23 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotifications } from "@/context/notification_context";
-import { Bell, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react";
+import {
+  Bell,
+  CheckCircle,
+  AlertCircle,
+  Info,
+  AlertTriangle,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 export function NotificationDropdown() {
-  const { notifications, markAsRead, markAllAsRead, unreadCount, fetchNotifications } = useNotifications();
+  const {
+    notifications,
+    markAsRead,
+    markAllAsRead,
+    unreadCount,
+    fetchNotifications,
+  } = useNotifications();
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -44,10 +56,10 @@ export function NotificationDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="relative" 
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
           aria-label="Notifications"
           onClick={fetchNotifications}
         >
@@ -88,12 +100,20 @@ export function NotificationDropdown() {
                     {getIcon(notification.type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium ${getColor(notification.type)}`}>
+                    <p
+                      className={`text-sm font-medium ${getColor(
+                        notification.type
+                      )}`}
+                    >
                       {notification.title}
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">{notification.message}</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {notification.message}
+                    </p>
                     <p className="text-xs text-gray-400 mt-2">
-                      {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(notification.timestamp), {
+                        addSuffix: true,
+                      })}
                     </p>
                   </div>
                 </div>

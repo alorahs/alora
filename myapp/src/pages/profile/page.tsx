@@ -26,6 +26,12 @@ import {
   FileText,
   Upload,
   Settings,
+  Heart,
+  Star,
+  Phone,
+  Mail,
+  Calendar,
+  Clock,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -38,6 +44,37 @@ interface UserProfile {
   bio?: string;
   skills?: string[];
   hourlyRate?: number;
+}
+
+interface Favorite {
+  _id: string;
+  professional: {
+    _id: string;
+    fullName: string;
+    email: string;
+    phone: string;
+    category: string;
+    rating: number;
+    profilePicture?: string;
+    hourlyRate?: number;
+  };
+  createdAt: string;
+}
+
+interface Booking {
+  _id: string;
+  service: string;
+  professional: {
+    _id: string;
+    fullName: string;
+    category: string;
+  };
+  date: string;
+  time: string;
+  status: "pending" | "confirmed" | "completed" | "cancelled";
+  rating?: number;
+  review?: string;
+  createdAt: string;
 }
 
 export default function ProfilePage() {
@@ -59,6 +96,10 @@ export default function ProfilePage() {
   const [pendingProfilePictureFile, setPendingProfilePictureFile] =
     useState<File | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string>("");
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -74,6 +115,99 @@ export default function ProfilePage() {
       });
     }
   }, [user]);
+
+  // Fetch user's favorites
+  const fetchFavorites = async () => {
+    if (!user) return;
+
+    setFavoritesLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/favorite`, {
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFavorites(data);
+      } else {
+        throw new Error("Failed to fetch favorites");
+      }
+    } catch (error) {
+      console.error("Error fetching favorites:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load your favorites",
+        variant: "destructive",
+      });
+    } finally {
+      setFavoritesLoading(false);
+    }
+  };
+
+  // Fetch user's bookings
+  const fetchBookings = async () => {
+    if (!user) return;
+
+    setBookingsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/booking`, {
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setBookings(data);
+      } else {
+        throw new Error("Failed to fetch bookings");
+      }
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load your bookings",
+        variant: "destructive",
+      });
+    } finally {
+      setBookingsLoading(false);
+    }
+  };
+
+  // Fetch data when sections are active
+  useEffect(() => {
+    if (activeSection === "favorites" && user) {
+      fetchFavorites();
+    } else if (activeSection === "bookings" && user) {
+      fetchBookings();
+    }
+  }, [activeSection, user]);
+
+  // Remove from favorites
+  const handleRemoveFavorite = async (professionalId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/favorite/${professionalId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        setFavorites(
+          favorites.filter((fav) => fav.professional._id !== professionalId)
+        );
+        toast({
+          title: "Success",
+          description: "Removed from favorites",
+        });
+      } else {
+        throw new Error("Failed to remove from favorites");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove from favorites",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleInputChange = (field: keyof UserProfile, value: string) => {
     setProfileData((prev) => ({
@@ -160,6 +294,8 @@ export default function ProfilePage() {
           icon: User,
           active: true,
         },
+        { id: "bookings", label: "My Bookings", icon: Calendar },
+        { id: "favorites", label: "My Favorites", icon: Heart },
         { id: "payment-account", label: "Payment Account", icon: CreditCard },
         { id: "account-security", label: "Account Security", icon: Shield },
       ],
@@ -305,10 +441,13 @@ export default function ProfilePage() {
       setLoading(true);
 
       // Delete file from backend
-      const deleteResponse = await fetch(`${API_URL}/files/${profileData.profilePicture}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const deleteResponse = await fetch(
+        `${API_URL}/files/${profileData.profilePicture}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      );
 
       if (!deleteResponse.ok) {
         throw new Error("Failed to delete file");
@@ -710,6 +849,253 @@ export default function ProfilePage() {
     switch (activeSection) {
       case "personal-data":
         return renderPersonalDataSection();
+      case "favorites":
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                My Favorites
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Your favorite professionals for quick access.
+              </p>
+            </div>
+
+            {favoritesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading your favorites...</p>
+                </div>
+              </div>
+            ) : favorites.length === 0 ? (
+              <div className="text-center py-12">
+                <Heart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No favorites yet
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Start exploring professionals and add them to your favorites
+                  for quick access.
+                </p>
+                <Link to="/professionals">
+                  <Button>
+                    <User className="h-4 w-4 mr-2" />
+                    Browse Professionals
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {favorites.map((favorite) => (
+                  <Card
+                    key={favorite._id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-20 w-20">
+                            <AvatarImage
+                              src={
+                                favorite.professional.profilePicture
+                                  ? `${API_URL}/files/${favorite.professional.profilePicture}`
+                                  : undefined
+                              }
+                            />
+                            <AvatarFallback className="text-lg">
+                              {favorite.professional.fullName
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")
+                                .toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+
+                          <div>
+                            <h3 className="font-semibold text-gray-900">
+                              {favorite.professional.fullName}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              {favorite.professional.category}
+                            </p>
+                            {favorite.professional.rating && (
+                              <div className="flex items-center mt-1">
+                                <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                                <span className="text-sm text-gray-600 ml-1">
+                                  {favorite.professional.rating.toFixed(1)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            handleRemoveFavorite(favorite.professional._id)
+                          }
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        {favorite.professional.hourlyRate && (
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600">Hourly Rate:</span>
+                            <span className="font-semibold text-green-600">
+                              ₹{favorite.professional.hourlyRate}/hr
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Phone className="h-4 w-4 mr-2" />
+                          <span>{favorite.professional.phone}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Mail className="h-4 w-4 mr-2" />
+                          <span className="truncate">
+                            {favorite.professional.email}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex space-x-2">
+                        <Link
+                          to={`/professionals/${favorite.professional._id}`}
+                          className="flex-1"
+                        >
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View Profile
+                          </Button>
+                        </Link>
+                        <Link
+                          to={`/booking/${favorite.professional._id}`}
+                          className="flex-1"
+                        >
+                          <Button
+                            size="sm"
+                            className="w-full bg-blue-600 hover:bg-blue-700"
+                          >
+                            <Calendar className="h-4 w-4 mr-1" />
+                            Book Now
+                          </Button>
+                        </Link>
+                      </div>
+
+                      <div className="mt-3 pt-3 border-t border-gray-100">
+                        <p className="text-xs text-gray-500">
+                          Added on{" "}
+                          {new Date(favorite.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      case "bookings":
+        return (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                My Bookings
+              </h2>
+              <p className="text-gray-600 mb-6">
+                View and manage your service bookings.
+              </p>
+            </div>
+
+            {bookingsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading your bookings...</p>
+                </div>
+              </div>
+            ) : bookings.length === 0 ? (
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No bookings yet
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  You haven't made any bookings yet.
+                </p>
+                <Link to="/services">
+                  <Button>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Book a Service
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {bookings.map((booking) => (
+                  <Card key={booking._id}>
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div className="flex-1">
+                          <div className="flex flex-col md:flex-row md:items-center">
+                            <div className="flex items-center">
+                              <div className="ml-4">
+                                <h3 className="font-semibold text-gray-900">
+                                  {booking.professional.fullName}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  {booking.service}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 md:mt-0 md:ml-8">
+                              <div className="flex items-center text-sm text-gray-600">
+                                <Calendar className="h-4 w-4 mr-1" />
+                                <span>
+                                  {new Date(booking.date).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <div className="flex items-center text-sm text-gray-600 mt-1">
+                                <Clock className="h-4 w-4 mr-1" />
+                                <span>{booking.time}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-end">
+                          <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            {booking.status.charAt(0).toUpperCase() +
+                              booking.status.slice(1)}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-2"
+                            asChild
+                          >
+                            <Link to={`/profile/booking/${booking._id}`}>
+                              View Details
+                            </Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        );
       case "payment-account":
         return renderPlaceholderSection("Payment Account");
       case "account-security":

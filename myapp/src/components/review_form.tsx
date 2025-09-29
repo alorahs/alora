@@ -12,7 +12,11 @@ interface ReviewFormProps {
   onReviewSubmitted: () => void;
 }
 
-export function ReviewForm({ bookingId, professionalId, onReviewSubmitted }: ReviewFormProps) {
+export function ReviewForm({
+  bookingId,
+  professionalId,
+  onReviewSubmitted,
+}: ReviewFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [rating, setRating] = useState(0);
@@ -36,7 +40,7 @@ export function ReviewForm({ bookingId, professionalId, onReviewSubmitted }: Rev
 
     try {
       // Submit review to backend
-      const response = await fetch(`${API_URL}/booking/${bookingId}/review`, {
+      const response = await fetch(`${API_URL}/booking/${bookingId}/rating`, {
         method: "PUT",
         credentials: "include",
         headers: {
@@ -45,7 +49,6 @@ export function ReviewForm({ bookingId, professionalId, onReviewSubmitted }: Rev
         body: JSON.stringify({
           rating,
           review: comment,
-          professionalId,
         }),
       });
 
@@ -67,7 +70,8 @@ export function ReviewForm({ bookingId, professionalId, onReviewSubmitted }: Rev
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to submit review. Please try again.",
+        description:
+          error.message || "Failed to submit review. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -94,7 +98,11 @@ export function ReviewForm({ bookingId, professionalId, onReviewSubmitted }: Rev
                 className="text-gray-300 hover:text-yellow-400 focus:outline-none"
               >
                 <Star
-                  className={`h-8 w-8 ${star <= (hoverRating || rating) ? "text-yellow-400 fill-current" : "text-gray-300"}`}
+                  className={`h-8 w-8 ${
+                    star <= (hoverRating || rating)
+                      ? "text-yellow-400 fill-current"
+                      : "text-gray-300"
+                  }`}
                 />
               </button>
             ))}
@@ -102,7 +110,10 @@ export function ReviewForm({ bookingId, professionalId, onReviewSubmitted }: Rev
         </div>
 
         <div>
-          <Label htmlFor="comment" className="text-sm font-medium text-gray-700 mb-2 block">
+          <Label
+            htmlFor="comment"
+            className="text-sm font-medium text-gray-700 mb-2 block"
+          >
             Your Review
           </Label>
           <Textarea

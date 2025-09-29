@@ -15,7 +15,6 @@ import ProfilePage from "./pages/profile/page";
 import AboutPage from "./pages/about/page";
 import FaqPage from "./pages/faq/page";
 import ContactPage from "./pages/contact/page";
-import ReachUsPage from "./pages/reach-us/page";
 import HelpPage from "./pages/help/page";
 import ServicePage from "./pages/services/page";
 import FeedbackPage from "./pages/feedback/page";
@@ -24,7 +23,15 @@ import { useAuth } from "./context/auth_provider";
 import { ProfessionalPage } from "./pages/professional/page";
 import ProfessionalProfileModal from "./components/professional-profile-modal";
 import BookingPage from "./pages/booking/page";
-import AdminDashboard from "./pages/admin/dashboard";
+import BookingDetailsPage from "./pages/profile/booking";
+import AdminDashboard from "./pages/admin/dashboard_simple";
+import AdminFeedback from "./pages/admin/feedback";
+import AdminReachUs from "./pages/admin/reachus";
+import RatingStatsPage from "./pages/admin/RatingStatsPage";
+import BookingRatingsPage from "./pages/admin/BookingRatingsPage";
+import UserManagement from "./pages/admin/users";
+import ServiceManagement from "./pages/admin/services";
+import SettingsPage from "./pages/settings/page";
 
 function App() {
   const { user } = useAuth();
@@ -41,7 +48,6 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="faq" element={<FaqPage />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/reach-us" element={<ReachUsPage />} />
           <Route path="/help" element={<HelpPage />} />
           <Route path="/services" element={<ServicePage />} />
           <Route path="/feedback" element={<FeedbackPage />} />
@@ -59,8 +65,37 @@ function App() {
           <Route path="/auth/verification/email" element={<EmailVerify />} />
 
           {user && <Route path="/profile" element={<ProfilePage />} />}
+          {user && (
+            <Route
+              path="/profile/booking/:id"
+              element={<BookingDetailsPage />}
+            />
+          )}
+          {user && <Route path="/settings" element={<SettingsPage />} />}
+
           {user && user.role === "admin" && (
             <Route path="/admin" element={<AdminDashboard />} />
+          )}
+          {user && user.role === "admin" && (
+            <Route path="/admin/users" element={<UserManagement />} />
+          )}
+          {user && user.role === "admin" && (
+            <Route path="/admin/services" element={<ServiceManagement />} />
+          )}
+          {user && user.role === "admin" && (
+            <Route path="/admin/feedback" element={<AdminFeedback />} />
+          )}
+          {user && user.role === "admin" && (
+            <Route path="/admin/reachus" element={<AdminReachUs />} />
+          )}
+          {user && user.role === "admin" && (
+            <Route path="/admin/rating-stats" element={<RatingStatsPage />} />
+          )}
+          {user && user.role === "admin" && (
+            <Route
+              path="/admin/booking-ratings"
+              element={<BookingRatingsPage />}
+            />
           )}
 
           {/* Catch-all 404 */}

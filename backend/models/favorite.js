@@ -9,7 +9,8 @@ const favoriteSchema = new mongoose.Schema({
   professional: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    
   }
 }, {
   timestamps: true

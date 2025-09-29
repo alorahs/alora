@@ -129,6 +129,93 @@ export default function ProfessionalProfileModal() {
     fetchProfessional();
   }, [id, toast]);
 
+  // Check if professional is favorited
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!user || !professional?._id) return;
+      try {
+        const response = await fetch(
+          `${API_URL}/favorite/${professional._id}`,
+          {
+            credentials: "include",
+          }
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setIsFavorited(data.isFavorited);
+        }
+      } catch (error) {
+        console.error("Error checking favorite status:", error);
+      }
+    };
+    checkFavoriteStatus();
+  }, [user, professional?._id]);
+
+  // Toggle favorite status
+  const handleFavoriteToggle = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to add favorites.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!professional?._id) return;
+
+    setFavoriteLoading(true);
+    try {
+      if (isFavorited) {
+        // Remove from favorites
+        const response = await fetch(
+          `${API_URL}/favorite/${professional._id}`,
+          {
+            method: "DELETE",
+            credentials: "include",
+          }
+        );
+        if (response.ok) {
+          setIsFavorited(false);
+          toast({
+            title: "Success",
+            description: "Removed from favorites",
+          });
+        } else {
+          throw new Error("Failed to remove from favorites");
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch(`${API_URL}/favorite`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ professionalId: professional._id }),
+          credentials: "include",
+        });
+        if (response.ok) {
+          setIsFavorited(true);
+          toast({
+            title: "Success",
+            description: "Added to favorites",
+          });
+        } else {
+          const data = await response.json();
+          throw new Error(data.message || "Failed to add to favorites");
+        }
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update favorites",
+        variant: "destructive",
+      });
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
   // Booking Handler
   const handleBookNow = () => {
     navigate(`/booking/${professional._id}`);
@@ -249,9 +336,27 @@ export default function ProfessionalProfileModal() {
                       >
                         <Calendar className="h-4 w-4 mr-2" /> Book Now
                       </Button>
-                      <Button variant="outline" size="default">
-                        <Heart className="h-4 w-4 mr-2" />
-                        Add to Favorites
+                      <Button
+                        variant={isFavorited ? "default" : "outline"}
+                        size="default"
+                        onClick={handleFavoriteToggle}
+                        disabled={favoriteLoading}
+                        className={
+                          isFavorited
+                            ? "bg-red-500 hover:bg-red-600 text-white"
+                            : ""
+                        }
+                      >
+                        <Heart
+                          className={`h-4 w-4 mr-2 ${
+                            isFavorited ? "fill-current" : ""
+                          }`}
+                        />
+                        {favoriteLoading
+                          ? "Loading..."
+                          : isFavorited
+                          ? "Remove from Favorites"
+                          : "Add to Favorites"}
                       </Button>
                     </div>
                   </div>

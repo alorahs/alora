@@ -18,7 +18,16 @@ router.post('/', async (req, res) => {
     if (message && (message.length < 10 || message.length > 5000)) {
       return res.status(400).json({ error: 'Message must be between 10 and 5000 characters' });
     }
-    const feedback = new Feedback({ rating, subject, message });
+    
+    // Create feedback object
+    const feedbackData = { rating, subject, message };
+    
+    // If user is authenticated, associate feedback with user
+    if (req.user) {
+      feedbackData.user = req.user._id;
+    }
+    
+    const feedback = new Feedback(feedbackData);
     await feedback.save();
     res.status(201).json({ message: 'Feedback submitted successfully', feedback });
   } catch (error) {
@@ -30,7 +39,7 @@ router.post('/', async (req, res) => {
 // GET /feedback - Retrieve all feedback (admin only)
 router.get('/', verifyAccessToken, isAdmin, async (req, res) => {
   try {
-    const feedbacks = await Feedback.find().sort({ createdAt: -1 });
+    const feedbacks = await Feedback.find().sort({ createdAt: -1 }).populate('user', 'fullName username email');
     res.status(200).json(feedbacks);
   } catch (error) {
     console.error('Error retrieving feedback:', error);
@@ -41,7 +50,7 @@ router.get('/', verifyAccessToken, isAdmin, async (req, res) => {
 // Get a specific feedback by ID (admin only)
 router.get('/:id', verifyAccessToken, isAdmin, async (req, res) => {
   try {
-    const feedback = await Feedback.findById(req.params.id);
+    const feedback = await Feedback.findById(req.params.id).populate('user', 'fullName username email');
     
     if (!feedback) {
       return res.status(404).json({ message: 'Feedback not found' });
@@ -78,7 +87,7 @@ router.put('/:id', verifyAccessToken, isAdmin, async (req, res) => {
       req.params.id,
       { rating, subject, message },
       { new: true, runValidators: true }
-    );
+    ).populate('user', 'fullName username email');
     
     if (!feedback) {
       return res.status(404).json({ message: 'Feedback not found' });

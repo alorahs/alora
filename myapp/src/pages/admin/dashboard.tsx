@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   FileText,
@@ -45,6 +46,9 @@ import {
   Eye,
   Calendar,
   Filter,
+  BookOpen,
+  MessageCircle,
+  MailOpen,
 } from "lucide-react";
 
 interface User {
@@ -163,6 +167,11 @@ interface Feedback {
   subject: string;
   message: string;
   createdAt: string;
+  user?: {
+    fullName: string;
+    username: string;
+    email: string;
+  };
 }
 
 interface ReachUs {
@@ -171,6 +180,28 @@ interface ReachUs {
   email: string;
   subject: string;
   message: string;
+  createdAt: string;
+  user?: {
+    fullName: string;
+    username: string;
+    email: string;
+  };
+}
+
+interface Review {
+  _id: string;
+  reviewer: {
+    _id: string;
+    fullName: string;
+    username: string;
+  };
+  reviewee: {
+    _id: string;
+    fullName: string;
+    username: string;
+  };
+  rating: number;
+  comment: string;
   createdAt: string;
 }
 
@@ -195,6 +226,7 @@ const getIconEmoji = (iconName: string): string => {
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   // State for different sections
@@ -203,6 +235,8 @@ export default function AdminDashboard() {
   const [faqs, setFAQs] = useState<FAQ[]>([]);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [reachUsMessages, setReachUsMessages] = useState<ReachUs[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [stats, setStats] = useState<any>({});
 
   // Loading states
   const [loading, setLoading] = useState(false);
@@ -213,6 +247,9 @@ export default function AdminDashboard() {
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isEditServiceOpen, setIsEditServiceOpen] = useState(false);
   const [isEditFAQOpen, setIsEditFAQOpen] = useState(false);
+  const [isEditFeedbackOpen, setIsEditFeedbackOpen] = useState(false);
+  const [isEditReachUsOpen, setIsEditReachUsOpen] = useState(false);
+  const [isEditReviewOpen, setIsEditReviewOpen] = useState(false);
   const [isViewReachUsOpen, setIsViewReachUsOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
 
@@ -305,12 +342,44 @@ export default function AdminDashboard() {
     }
   };
 
+  // Add fetchReviews function
+  const fetchReviews = async () => {
+    try {
+      const response = await fetch(`${API_URL}/review`, {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setReviews(data);
+      }
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+    }
+  };
+
+  // Fetch admin stats
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`${API_URL}/admin/stats`, {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setStats(data.stats || data);
+      }
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchServices();
     fetchFAQs();
     fetchFeedback();
     fetchReachUsMessages();
+    fetchReviews();
+    fetchStats();
   }, []);
 
   // CRUD Operations for Users
@@ -567,7 +636,108 @@ export default function AdminDashboard() {
     }
   };
 
-  // Operations for Reach Us Messages
+  // CRUD Operations for Feedback
+  const updateFeedback = async (feedbackId: string, feedbackData: any) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/feedback/${feedbackId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(feedbackData),
+        credentials: "include",
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Feedback updated successfully",
+        });
+        fetchFeedback();
+        setIsEditFeedbackOpen(false);
+      } else {
+        throw new Error(result.error || "Failed to update feedback");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update feedback",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteFeedback = async (feedbackId: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/feedback/${feedbackId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Feedback deleted successfully",
+        });
+        fetchFeedback();
+      } else {
+        throw new Error(result.error || "Failed to delete feedback");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete feedback",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // CRUD Operations for Reach Us Messages
+  const updateReachUsMessage = async (messageId: string, messageData: any) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/reachus/${messageId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(messageData),
+        credentials: "include",
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Message updated successfully",
+        });
+        fetchReachUsMessages();
+        setIsEditReachUsOpen(false);
+      } else {
+        throw new Error(result.error || "Failed to update message");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update message",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const deleteReachUsMessage = async (messageId: string) => {
     try {
       setLoading(true);
@@ -576,6 +746,8 @@ export default function AdminDashboard() {
         credentials: "include",
       });
 
+      const result = await response.json();
+
       if (response.ok) {
         toast({
           title: "Success",
@@ -583,12 +755,78 @@ export default function AdminDashboard() {
         });
         fetchReachUsMessages();
       } else {
-        throw new Error("Failed to delete message");
+        throw new Error(result.error || "Failed to delete message");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete message",
+        description: error.message || "Failed to delete message",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // CRUD Operations for Reviews
+  const updateReview = async (reviewId: string, reviewData: any) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/review/${reviewId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reviewData),
+        credentials: "include",
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Review updated successfully",
+        });
+        fetchReviews();
+        setIsEditReviewOpen(false);
+      } else {
+        throw new Error(result.message || "Failed to update review");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update review",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteReview = async (reviewId: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/review/${reviewId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Review deleted successfully",
+        });
+        fetchReviews();
+      } else {
+        throw new Error(result.message || "Failed to delete review");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete review",
         variant: "destructive",
       });
     } finally {
@@ -633,10 +871,53 @@ export default function AdminDashboard() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
           <p className="text-gray-600">Manage your Alora platform</p>
+
+          {/* Navigation Buttons */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Button onClick={() => navigate("/admin/users")} variant="outline">
+              <Users className="h-4 w-4 mr-2" />
+              User Management
+            </Button>
+            <Button
+              onClick={() => navigate("/admin/services")}
+              variant="outline"
+            >
+              <Briefcase className="h-4 w-4 mr-2" />
+              Service Management
+            </Button>
+            <Button
+              onClick={() => navigate("/admin/feedback")}
+              variant="outline"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Feedback Management
+            </Button>
+            <Button
+              onClick={() => navigate("/admin/reachus")}
+              variant="outline"
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              Reach Us Messages
+            </Button>
+            <Button
+              onClick={() => navigate("/admin/rating-stats")}
+              variant="outline"
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Rating Statistics
+            </Button>
+            <Button
+              onClick={() => navigate("/admin/booking-ratings")}
+              variant="outline"
+            >
+              <Briefcase className="h-4 w-4 mr-2" />
+              Booking Ratings
+            </Button>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">
               <BarChart3 className="h-4 w-4 mr-2" />
               Overview
@@ -661,10 +942,14 @@ export default function AdminDashboard() {
               <Mail className="h-4 w-4 mr-2" />
               Reach Us
             </TabsTrigger>
+            <TabsTrigger value="reviews">
+              <Star className="h-4 w-4 mr-2" />
+              Reviews
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
@@ -742,6 +1027,124 @@ export default function AdminDashboard() {
                   </p>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Reviews</CardTitle>
+                  <Star className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{reviews.length}</div>
+                  <p className="text-xs text-muted-foreground">User reviews</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Rating Statistics */}
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-4">Rating Statistics</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Booking Ratings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Star className="h-5 w-5 text-yellow-500 mr-2" />
+                      Booking Ratings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-center">
+                      {stats?.ratings?.avgBooking
+                        ? stats.ratings.avgBooking.toFixed(2)
+                        : "0.00"}
+                      <span className="text-lg text-muted-foreground">/5</span>
+                    </div>
+                    <p className="text-center text-sm text-muted-foreground mt-1">
+                      Average Rating
+                    </p>
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground">
+                        Total Ratings:{" "}
+                        {stats?.ratings?.totalBookingRatings || 0}
+                      </p>
+                      {stats?.ratings?.bookingDistribution && (
+                        <div className="mt-2 space-y-1">
+                          {[5, 4, 3, 2, 1].map((star) => (
+                            <div key={star} className="flex items-center">
+                              <span className="text-sm w-4">{star}</span>
+                              <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 ml-1" />
+                              <div className="flex-1 ml-2">
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-yellow-500 h-2 rounded-full"
+                                    style={{
+                                      width: `${
+                                        stats.ratings.totalBookingRatings > 0
+                                          ? (stats.ratings.bookingDistribution[
+                                              star
+                                            ] /
+                                              stats.ratings
+                                                .totalBookingRatings) *
+                                            100
+                                          : 0
+                                      }%`,
+                                    }}
+                                  ></div>
+                                </div>
+                              </div>
+                              <span className="text-sm w-8 text-right">
+                                {stats.ratings.bookingDistribution[star] || 0}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Feedback Ratings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <MessageSquare className="h-5 w-5 text-blue-500 mr-2" />
+                      Feedback Ratings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-center">
+                      {stats?.ratings?.avgFeedback
+                        ? stats.ratings.avgFeedback.toFixed(2)
+                        : "0.00"}
+                      <span className="text-lg text-muted-foreground">/5</span>
+                    </div>
+                    <p className="text-center text-sm text-muted-foreground mt-1">
+                      Average Rating
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* Review Ratings */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <BookOpen className="h-5 w-5 text-green-500 mr-2" />
+                      Review Ratings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-center">
+                      {stats?.ratings?.avgReview
+                        ? stats.ratings.avgReview.toFixed(2)
+                        : "0.00"}
+                      <span className="text-lg text-muted-foreground">/5</span>
+                    </div>
+                    <p className="text-center text-sm text-muted-foreground mt-1">
+                      Average Rating
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
 
@@ -811,6 +1214,704 @@ export default function AdminDashboard() {
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => deleteUser(user._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="services" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Service Management</h3>
+                <div className="flex items-center space-x-4">
+                  <Select
+                    value={selectedCategory}
+                    onValueChange={setSelectedCategory}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_CATEGORIES.map((category) => (
+                        <SelectItem key={category.name} value={category.name}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={() => {
+                      setFormData({});
+                      setIsEditServiceOpen(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Service
+                  </Button>
+                </div>
+              </div>
+
+              <Card>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Icon</TableHead>
+                        <TableHead>Color</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {services
+                        .filter(
+                          (service) =>
+                            selectedCategory === "All Services" ||
+                            service.category === selectedCategory
+                        )
+                        .map((service) => (
+                          <TableRow key={service._id}>
+                            <TableCell className="font-medium">
+                              {service.title}
+                            </TableCell>
+                            <TableCell>{service.description}</TableCell>
+                            <TableCell>{getIconEmoji(service.icon)}</TableCell>
+                            <TableCell>
+                              <div
+                                className="w-4 h-4 rounded-full"
+                                style={{ backgroundColor: service.color }}
+                              ></div>
+                            </TableCell>
+                            <TableCell>{service.category || "N/A"}</TableCell>
+                            <TableCell>
+                              <div className="flex space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedItem(service);
+                                    setFormData(service);
+                                    setIsEditServiceOpen(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => deleteService(service._id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="faqs" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">FAQ Management</h3>
+                <Button
+                  onClick={() => {
+                    setFormData({});
+                    setIsEditFAQOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add FAQ
+                </Button>
+              </div>
+
+              <Card>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Question</TableHead>
+                        <TableHead>Answer</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {faqs.map((faq) => (
+                        <TableRow key={faq._id}>
+                          <TableCell className="font-medium">
+                            {faq.type}
+                          </TableCell>
+                          <TableCell>{faq.question}</TableCell>
+                          <TableCell>{faq.answer}</TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedItem(faq);
+                                  setFormData(faq);
+                                  setIsEditFAQOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => deleteFAQ(faq._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="feedback" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Feedback Management</h3>
+              </div>
+
+              <Card>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Rating</TableHead>
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Message</TableHead>
+                        <TableHead>User</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {feedback.map((fb) => (
+                        <TableRow key={fb._id}>
+                          <TableCell className="font-medium">
+                            {fb.rating}
+                          </TableCell>
+                          <TableCell>{fb.subject}</TableCell>
+                          <TableCell>{fb.message}</TableCell>
+                          <TableCell>
+                            {fb.user ? (
+                              <div className="flex items-center space-x-2">
+                                <span>{fb.user.fullName}</span>
+                                <span>({fb.user.username})</span>
+                              </div>
+                            ) : (
+                              "N/A"
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedItem(fb);
+                                  setFormData(fb);
+                                  setIsEditFeedbackOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => deleteFeedback(fb._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reachus" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Reach Us Messages</h3>
+                <div className="flex items-center space-x-4">
+                  <Select
+                    value={selectedCategory}
+                    onValueChange={setSelectedCategory}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filter by category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SERVICE_CATEGORIES.map((category) => (
+                        <SelectItem key={category.name} value={category.name}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={() => {
+                      setSelectedItem(null);
+                      setFormData({});
+                      setIsEditServiceOpen(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Service
+                  </Button>
+                </div>
+              </div>
+
+              {/* Category Overview Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                {SERVICE_CATEGORIES.filter(
+                  (cat) => cat.name !== "All Services"
+                ).map((category) => {
+                  const categoryServices = services.filter((service) => {
+                    // Check if service has a category field that matches
+                    if (
+                      service.category &&
+                      service.category === category.name
+                    ) {
+                      return true;
+                    }
+                    // Fallback: check if service title matches any predefined services in this category
+                    return category.services.some(
+                      (categoryService) =>
+                        service.title
+                          .toLowerCase()
+                          .includes(categoryService.toLowerCase()) ||
+                        categoryService
+                          .toLowerCase()
+                          .includes(service.title.toLowerCase())
+                    );
+                  });
+
+                  // Get dominant color from services in this category
+                  const categoryColors = categoryServices
+                    .map((s) => s.color)
+                    .filter(Boolean);
+                  const dominantColor = categoryColors[0] || "#6B7280";
+
+                  return (
+                    <Card
+                      key={category.name}
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setSelectedCategory(category.name)}
+                    >
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: dominantColor }}
+                            />
+                            <span className="text-sm font-medium">
+                              {category.name}
+                            </span>
+                          </div>
+                          <Badge variant="outline">
+                            {categoryServices.length} services
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-1">
+                          {categoryServices
+                            .slice(0, 3)
+                            .map((service, index) => (
+                              <div
+                                key={service._id || index}
+                                className="flex items-center text-xs text-muted-foreground"
+                              >
+                                <div
+                                  className="w-2 h-2 rounded-full mr-2"
+                                  style={{
+                                    backgroundColor: service.color || "#9CA3AF",
+                                  }}
+                                />
+                                <span>• {service.title}</span>
+                              </div>
+                            ))}
+                          {categoryServices.length > 3 && (
+                            <div className="text-xs text-muted-foreground">
+                              + {categoryServices.length - 3} more
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Color palette for this category */}
+                        {categoryColors.length > 0 && (
+                          <div className="flex space-x-1 mt-3 pt-3 border-t">
+                            {[...new Set(categoryColors)]
+                              .slice(0, 5)
+                              .map((color, index) => (
+                                <div
+                                  key={index}
+                                  className="w-4 h-4 rounded border"
+                                  style={{ backgroundColor: color }}
+                                  title={color}
+                                />
+                              ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {services
+                  .filter((service) => {
+                    if (selectedCategory === "All Services") return true;
+                    // Check if service has a category field that matches
+                    if (
+                      service.category &&
+                      service.category === selectedCategory
+                    ) {
+                      return true;
+                    }
+                    // Fallback: check if service title matches any predefined services in this category
+                    return SERVICE_CATEGORIES.some(
+                      (category) =>
+                        category.name === selectedCategory &&
+                        category.services.some(
+                          (categoryService) =>
+                            service.title
+                              .toLowerCase()
+                              .includes(categoryService.toLowerCase()) ||
+                            categoryService
+                              .toLowerCase()
+                              .includes(service.title.toLowerCase())
+                        )
+                    );
+                  })
+                  .map((service) => (
+                    <Card key={service._id}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: service.color }}
+                            />
+                            <span className="text-sm font-medium">
+                              {service.title}
+                            </span>
+                          </div>
+                          <Badge variant="outline">
+                            {service.category || "N/A"}
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-1">
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <div
+                              className="w-2 h-2 rounded-full mr-2"
+                              style={{
+                                backgroundColor: service.color || "#9CA3AF",
+                              }}
+                            />
+                            <span>• {service.title}</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {service.description}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="faqs" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">FAQ Management</h3>
+                <Button
+                  onClick={() => {
+                    setSelectedItem(null);
+                    setFormData({});
+                    setIsEditFAQOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add FAQ
+                </Button>
+              </div>
+
+              <Card>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Question</TableHead>
+                        <TableHead>Answer</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {faqs.map((faq) => (
+                        <TableRow key={faq._id}>
+                          <TableCell className="font-medium">
+                            {faq.question}
+                          </TableCell>
+                          <TableCell>{faq.answer}</TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedItem(faq);
+                                  setFormData(faq);
+                                  setIsEditFAQOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => deleteFAQ(faq._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="feedback" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Feedback Management</h3>
+              </div>
+
+              <Card>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>User</TableHead>
+                        <TableHead>Rating</TableHead>
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Message</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {feedback.map((fb) => (
+                        <TableRow key={fb._id}>
+                          <TableCell className="font-medium">
+                            {fb.user?.fullName || "N/A"}
+                          </TableCell>
+                          <TableCell>{fb.rating}</TableCell>
+                          <TableCell>{fb.subject}</TableCell>
+                          <TableCell>{fb.message}</TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedItem(fb);
+                                  setFormData(fb);
+                                  setIsEditFeedbackOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => deleteFeedback(fb._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reachus" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Reach Us Messages</h3>
+                <div className="flex items-center space-x-4">
+                  <Select
+                    value={reachUsFilter}
+                    onValueChange={setReachUsFilter}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filter by date" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="week">Last 7 Days</SelectItem>
+                      <SelectItem value="month">Last 30 Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="Search..."
+                    value={reachUsSearchTerm}
+                    onChange={(e) => setReachUsSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <Card>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Message</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredReachUsMessages.map((message) => (
+                        <TableRow key={message._id}>
+                          <TableCell className="font-medium">
+                            {message.fullName}
+                          </TableCell>
+                          <TableCell>{message.email}</TableCell>
+                          <TableCell>{message.subject}</TableCell>
+                          <TableCell>{message.message}</TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedItem(message);
+                                  setFormData(message);
+                                  setIsEditReachUsOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() =>
+                                  deleteReachUsMessage(message._id)
+                                }
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedItem(message);
+                                  setIsViewReachUsOpen(true);
+                                }}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reviews" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Review Management</h3>
+              </div>
+
+              <Card>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Reviewer</TableHead>
+                        <TableHead>Reviewee</TableHead>
+                        <TableHead>Rating</TableHead>
+                        <TableHead>Comment</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {reviews.map((review) => (
+                        <TableRow key={review._id}>
+                          <TableCell className="font-medium">
+                            {review.reviewer.fullName}
+                          </TableCell>
+                          <TableCell>{review.reviewee.fullName}</TableCell>
+                          <TableCell>{review.rating}</TableCell>
+                          <TableCell>{review.comment}</TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedItem(review);
+                                  setFormData(review);
+                                  setIsEditReviewOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => deleteReview(review._id)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -1189,95 +2290,91 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Feedback Management</h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {feedback.length === 0 ? (
-                  <div className="col-span-full text-center py-12">
-                    <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No feedback yet
-                    </h3>
-                    <p className="text-gray-600">
-                      Feedback from users will appear here.
-                    </p>
-                  </div>
-                ) : (
-                  feedback.map((item) => (
-                    <Card key={item._id}>
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
-                          <span>{item.subject || "No Subject"}</span>
-                          <div className="flex items-center">
-                            {Array.from({ length: item.rating }, (_, i) => (
-                              <Star
-                                key={i}
-                                className="h-4 w-4 fill-yellow-400 text-yellow-400"
-                              />
-                            ))}
-                          </div>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          {item.message}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {new Date(item.createdAt).toLocaleDateString()}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </div>
-
-              {/* Summary Stats */}
-              {feedback.length > 0 && (
-                <Card className="mt-6">
-                  <CardHeader>
-                    <CardTitle>Feedback Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-blue-600">
-                          {feedback.length}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          Total Feedback
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-green-600">
-                          {(
-                            feedback.reduce(
-                              (sum, item) => sum + item.rating,
-                              0
-                            ) / feedback.length
-                          ).toFixed(1)}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          Average Rating
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-yellow-600">
-                          {feedback.filter((item) => item.rating >= 4).length}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          Positive (4-5 stars)
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-red-600">
-                          {feedback.filter((item) => item.rating <= 2).length}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          Negative (1-2 stars)
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <Card>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>User</TableHead>
+                        <TableHead>Rating</TableHead>
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Message</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {feedback.map((item) => (
+                        <TableRow key={item._id}>
+                          <TableCell>
+                            {item.user ? (
+                              <div>
+                                <div className="font-medium">
+                                  {item.user.fullName ||
+                                    item.user.username ||
+                                    "Unknown User"}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  @{item.user.username}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-gray-500">Anonymous</div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              {[...Array(item.rating)].map((_, index) => (
+                                <Star
+                                  key={index}
+                                  className="h-4 w-4 text-yellow-400"
+                                />
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {item.subject}
+                          </TableCell>
+                          <TableCell className="max-w-xs truncate">
+                            {item.message}
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm text-gray-500">
+                              {new Date(item.createdAt).toLocaleDateString()}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedItem(item);
+                                  setFormData({
+                                    rating: item.rating,
+                                    subject: item.subject || "",
+                                    message: item.message || "",
+                                  });
+                                  setIsEditFeedbackOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => deleteFeedback(item._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -1309,61 +2406,6 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Messages Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Total Messages
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {reachUsMessages.length}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Today</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {
-                        reachUsMessages.filter(
-                          (msg) =>
-                            new Date(msg.createdAt).toDateString() ===
-                            new Date().toDateString()
-                        ).length
-                      }
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      This Week
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {
-                        reachUsMessages.filter((msg) => {
-                          const msgDate = new Date(msg.createdAt);
-                          const weekAgo = new Date(
-                            Date.now() - 7 * 24 * 60 * 60 * 1000
-                          );
-                          return msgDate >= weekAgo;
-                        }).length
-                      }
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Messages Table */}
               <Card>
                 <CardContent>
                   {filteredReachUsMessages.length === 0 ? (
@@ -1384,6 +2426,7 @@ export default function AdminDashboard() {
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead>User</TableHead>
                           <TableHead>Name</TableHead>
                           <TableHead>Email</TableHead>
                           <TableHead>Subject</TableHead>
@@ -1394,6 +2437,22 @@ export default function AdminDashboard() {
                       <TableBody>
                         {filteredReachUsMessages.map((message) => (
                           <TableRow key={message._id}>
+                            <TableCell>
+                              {message.user ? (
+                                <div>
+                                  <div className="font-medium">
+                                    {message.user.fullName ||
+                                      message.user.username ||
+                                      "Registered User"}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    @{message.user.username}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-gray-500">Guest</div>
+                              )}
+                            </TableCell>
                             <TableCell className="font-medium">
                               {message.fullName}
                             </TableCell>
@@ -1430,6 +2489,22 @@ export default function AdminDashboard() {
                                 </Button>
                                 <Button
                                   size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedItem(message);
+                                    setFormData({
+                                      fullName: message.fullName,
+                                      email: message.email,
+                                      subject: message.subject,
+                                      message: message.message,
+                                    });
+                                    setIsEditReachUsOpen(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
                                   variant="destructive"
                                   onClick={() =>
                                     deleteReachUsMessage(message._id)
@@ -1449,77 +2524,111 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
 
-          <TabsContent value="reachus" className="mt-6">
+          <TabsContent value="reviews" className="mt-6">
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Reach Us Messages</h3>
-                <div className="flex items-center space-x-4">
-                  <Select
-                    value={reachUsFilter}
-                    onValueChange={setReachUsFilter}
-                  >
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Filter by date" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="today">Today</SelectItem>
-                      <SelectItem value="week">Last 7 Days</SelectItem>
-                      <SelectItem value="month">Last 30 Days</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    placeholder="Search by name, email, subject, or message"
-                    value={reachUsSearchTerm}
-                    onChange={(e) => setReachUsSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
+              <h3 className="text-lg font-semibold">Review Management</h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredReachUsMessages.length === 0 ? (
-                  <div className="col-span-full text-center py-12">
-                    <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No messages found
-                    </h3>
-                    <p className="text-gray-600">
-                      Try adjusting your filters or search term.
-                    </p>
-                  </div>
-                ) : (
-                  filteredReachUsMessages.map((message) => (
-                    <Card key={message._id}>
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
-                          <span>{message.fullName}</span>
-                          <div className="flex items-center">
-                            <Eye
-                              className="h-4 w-4 mr-2 cursor-pointer"
-                              onClick={() => {
-                                setSelectedItem(message);
-                                setIsViewReachUsOpen(true);
-                              }}
-                            />
-                            <Trash2
-                              className="h-4 w-4 cursor-pointer"
-                              onClick={() => deleteReachUsMessage(message._id)}
-                            />
-                          </div>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground">
-                          {message.subject}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                          {new Date(message.createdAt).toLocaleDateString()}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </div>
+              <Card>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Reviewer</TableHead>
+                        <TableHead>Reviewee</TableHead>
+                        <TableHead>Rating</TableHead>
+                        <TableHead>Comment</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {reviews.map((review) => (
+                        <TableRow key={review._id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">
+                                {review.reviewer?.fullName ||
+                                  review.reviewer?.username ||
+                                  "Unknown User"}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {review.reviewer?.username &&
+                                  `@${review.reviewer.username}`}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">
+                                {review.reviewee?.fullName ||
+                                  review.reviewee?.username ||
+                                  "Unknown Professional"}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {review.reviewee?.username &&
+                                  `@${review.reviewee.username}`}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              {Array.from({ length: 5 }, (_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-4 w-4 ${
+                                    i < review.rating
+                                      ? "fill-yellow-400 text-yellow-400"
+                                      : "text-gray-300"
+                                  }`}
+                                />
+                              ))}
+                              <span className="ml-1">({review.rating}/5)</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-xs truncate">
+                            {review.comment}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-sm">
+                                {new Date(
+                                  review.createdAt
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedItem(review);
+                                  setFormData({
+                                    rating: review.rating,
+                                    comment: review.comment || "",
+                                  });
+                                  setIsEditReviewOpen(true);
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => deleteReview(review._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
         </Tabs>
@@ -1549,6 +2658,28 @@ export default function AdminDashboard() {
                     <p className="text-sm mt-1">{selectedItem.email}</p>
                   </div>
                 </div>
+
+                {selectedItem.user && (
+                  <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">
+                        Registered User
+                      </Label>
+                      <p className="text-sm mt-1">
+                        {selectedItem.user.fullName ||
+                          selectedItem.user.username}
+                      </p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">
+                        Username
+                      </Label>
+                      <p className="text-sm mt-1">
+                        @{selectedItem.user.username}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <Label className="text-sm font-medium text-gray-700">
@@ -1683,251 +2814,6 @@ export default function AdminDashboard() {
                 disabled={loading}
               >
                 {loading ? "Saving..." : "Save changes"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit Service Dialog */}
-        <Dialog open={isEditServiceOpen} onOpenChange={setIsEditServiceOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-xl">
-                {selectedItem ? "Edit Service" : "Create New Service"}
-              </DialogTitle>
-              <DialogDescription>
-                {selectedItem
-                  ? "Update service information, category, icon, and color"
-                  : "Create a new service with all details"}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-6 py-4">
-              {/* Service Title */}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right font-medium">
-                  Title *
-                </Label>
-                <Input
-                  id="title"
-                  value={formData.title || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  className="col-span-3"
-                  placeholder="e.g., Electrical Services"
-                  required
-                />
-              </div>
-
-              {/* Service Description */}
-              <div className="grid grid-cols-4 items-start gap-4">
-                <Label
-                  htmlFor="description"
-                  className="text-right font-medium pt-2"
-                >
-                  Description *
-                </Label>
-                <Textarea
-                  id="description"
-                  value={formData.description || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  className="col-span-3"
-                  placeholder="Describe the service in detail..."
-                  rows={3}
-                  required
-                />
-              </div>
-
-              {/* Service Category */}
-              <div className="grid grid-cols-4 items-center gap-4 ">
-                <Label htmlFor="category" className="text-right font-medium">
-                  Category
-                </Label>
-                <Select
-                  value={formData.category || ""}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, category: value })
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a category (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SERVICE_CATEGORIES.filter(
-                      (cat) => cat.name !== "All Services"
-                    ).map((category) => (
-                      <SelectItem key={category.name} value={category.name}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Service Icon */}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="icon" className="text-right">
-                  Icon *
-                </Label>
-                <div className="col-span-3 space-y-3">
-                  {/* Simple icon grid */}
-                  <div className="grid grid-cols-8 gap-2">
-                    {PREDEFINED_ICONS.slice(0, 16).map((icon) => (
-                      <div
-                        key={icon.value}
-                        className={`w-8 h-8 rounded border cursor-pointer flex items-center justify-center ${
-                          formData.icon === icon.value
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-300 hover:border-gray-400"
-                        }`}
-                        onClick={() =>
-                          setFormData({ ...formData, icon: icon.value })
-                        }
-                        title={icon.name}
-                      >
-                        {icon.value}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Simple custom input */}
-                </div>
-              </div>
-
-              {/* Service Color */}
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="color" className="text-right">
-                  Color
-                </Label>
-                <div className="col-span-3 space-y-3">
-                  {/* Simple custom color */}
-                  <div className="flex items-center space-x-2">
-                    <Input
-                      type="text"
-                      value={formData.color || ""}
-                      onChange={(e) =>
-                        setFormData({ ...formData, color: e.target.value })
-                      }
-                      placeholder="eg. black, blue, red, etc."
-                      className="flex-1 font-mono text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Service Preview */}
-              <div className="grid grid-cols-4 items-center gap-4 border-t pt-4">
-                <Label className="text-right">Preview</Label>
-                <div className="col-span-3">
-                  <div className="flex items-center space-x-3 p-3 border rounded">
-                    <div className="w-8 h-8 rounded flex items-center justify-center">
-                      <span className="text-white">{formData.icon || "?"}</span>
-                    </div>
-                    <div>
-                      <div className="font-medium">
-                        {formData.title || "Service Title"}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {formData.description || "Description..."}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsEditServiceOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() =>
-                  selectedItem
-                    ? updateService(selectedItem._id, formData)
-                    : createService(formData)
-                }
-                disabled={loading || !formData.title || !formData.description}
-              >
-                {loading ? "Saving..." : selectedItem ? "Update" : "Create"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Edit FAQ Dialog */}
-        <Dialog open={isEditFAQOpen} onOpenChange={setIsEditFAQOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {selectedItem ? "Edit FAQ" : "Create FAQ"}
-              </DialogTitle>
-              <DialogDescription>
-                {selectedItem ? "Update FAQ information" : "Create a new FAQ"}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="type" className="text-right">
-                  Type
-                </Label>
-                <Input
-                  id="type"
-                  value={formData.type || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, type: e.target.value })
-                  }
-                  className="col-span-3"
-                  placeholder="e.g., General, Technical"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="question" className="text-right">
-                  Question
-                </Label>
-                <Textarea
-                  id="question"
-                  value={formData.question || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, question: e.target.value })
-                  }
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="answer" className="text-right">
-                  Answer
-                </Label>
-                <Textarea
-                  id="answer"
-                  value={formData.answer || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, answer: e.target.value })
-                  }
-                  className="col-span-3"
-                  rows={4}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                type="submit"
-                onClick={() =>
-                  selectedItem
-                    ? updateFAQ(selectedItem._id, formData)
-                    : createFAQ(formData)
-                }
-                disabled={loading}
-              >
-                {loading
-                  ? "Saving..."
-                  : selectedItem
-                  ? "Save changes"
-                  : "Create FAQ"}
               </Button>
             </DialogFooter>
           </DialogContent>

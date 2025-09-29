@@ -152,7 +152,7 @@ export function BookingForm({ professional }: { professional: User }) {
 
       toast({
         title: "Booking Request Sent",
-        description: `Your booking request with ${professional.fullName} has been sent. You will receive a confirmation shortly.`,
+        description: `Your booking request with ${professional.fullName} has been sent successfully. They will receive a notification and respond to you soon.`,
       });
 
       // Reset form

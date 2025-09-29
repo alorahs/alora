@@ -28,11 +28,10 @@ import { NotificationDropdown } from "./notification_dropdown";
 const navigationItems = [
   { href: "/", label: "Home" },
   { href: "/professionals", label: "Professionals" },
-  { href: "/services", label: "Services" },
   { href: "/about", label: "About Us" },
   { href: "/contact", label: "Contact" },
-  { href: "/reach-us", label: "Reach Us" },
-  // { href: "/feedback", label: "Feedback" },
+  
+  { href: "/feedback", label: "Feedback" },
 
   // { href: "/faq", label: "FAQ" },
   // { href: "/help", label: "Help" },
@@ -68,7 +67,7 @@ export function Header() {
               className="h-full w-full object-contain"
             />
           </div>
-          <span className="font-semibold text-xl text-foreground">Alora</span>
+          {/* <span className="font-semibold text-xl text-foreground">Alora</span> */}
         </Link>
 
         {/* Desktop Navigation */}

@@ -4,6 +4,7 @@ import Review from "../models/review.js";
 import { body, validationResult } from "express-validator";
 import { isAdmin } from "../middleware/authorization.js";
 import verifyAccessToken from "../middleware/authentication.js";
+import bcrypt from "bcryptjs";
 
 const router = express.Router();
 
@@ -135,6 +136,140 @@ router.get("/:id/reviews", verifyAccessToken, async (req, res) => {
     res.status(200).json(reviews);
   } catch (error) {
     console.error('Error fetching user reviews:', error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Get user settings
+router.get("/settings", verifyAccessToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId).select('settings');
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Return default settings if none exist
+    const defaultSettings = {
+      emailNotifications: true,
+      pushNotifications: true,
+      smsNotifications: false,
+      marketingEmails: false,
+      bookingReminders: true,
+      reviewNotifications: true,
+      profileVisibility: 'public',
+      showEmail: false,
+      showPhone: false,
+      allowDirectMessages: true,
+      theme: 'system',
+      language: 'en',
+      timezone: 'Asia/Kolkata',
+      twoFactorEnabled: false,
+      sessionTimeout: 30,
+    };
+    
+    res.status(200).json({ 
+      settings: user.settings ? { ...defaultSettings, ...user.settings } : defaultSettings 
+    });
+  } catch (error) {
+    console.error('Error fetching user settings:', error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Update user settings
+router.put("/settings", verifyAccessToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { settings } = req.body;
+    
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: { settings } },
+      { new: true, runValidators: true }
+    ).select('settings');
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    res.status(200).json({ 
+      message: "Settings updated successfully", 
+      settings: user.settings 
+    });
+  } catch (error) {
+    console.error('Error updating user settings:', error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Change password
+router.put("/change-password", verifyAccessToken, [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters long')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    
+    const userId = req.user._id;
+    const { currentPassword, newPassword } = req.body;
+    
+    // Get user with password
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+    
+    // Hash new password
+    const saltRounds = 10;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+    
+    // Update password
+    await User.findByIdAndUpdate(userId, { password: hashedNewPassword });
+    
+    res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Delete account (soft delete or mark for deletion)
+router.delete("/delete-account", verifyAccessToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // Instead of immediately deleting, mark account for deletion
+    // This allows for a grace period where users can recover their account
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { 
+        isActive: false,
+        deletionRequestedAt: new Date(),
+        // You might want to anonymize some data here
+      },
+      { new: true }
+    );
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    res.status(200).json({ 
+      message: "Account deletion requested. Your account will be deleted in 30 days. Contact support to cancel this request." 
+    });
+  } catch (error) {
+    console.error('Error deleting account:', error);
     res.status(500).json({ error: "Server error" });
   }
 });

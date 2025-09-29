@@ -4,6 +4,7 @@ import { isAdmin } from '../middleware/authorization.js';
 import verifyAccessToken from '../middleware/authentication.js';
 
 const router = express.Router();
+
 // Get all services
 router.get('/', async (req, res) => {
   try {
@@ -29,7 +30,7 @@ router.post('/', verifyAccessToken, isAdmin, async (req, res) => {
       description,
       category,
       icon,
-      color: color || '#3B82F6' // Default blue color if not provided
+      color: color || 'blue' // Default blue color if not provided
     };
     const newService = new Service(serviceData);
     await newService.save();
@@ -72,7 +73,7 @@ router.delete('/:id', verifyAccessToken, isAdmin, async (req, res) => {
   }
 });
 
-//put update service by ID
+// Update service by ID
 router.put('/:id', verifyAccessToken, isAdmin, async (req, res) => {
   const { id } = req.params;
   const { title, description, category, icon, color } = req.body;

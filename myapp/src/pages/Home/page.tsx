@@ -117,7 +117,7 @@ function HomePage() {
     };
     fetchServices();
   }, []);
-  console.log(services);
+  
   // Reverse Geocoding: Coords -> Address
   const fetchAddressFromCoords = async (lat: number, lon: number) => {
     try {

@@ -9,7 +9,7 @@ const router = express.Router();
 router.post('/', verifyAccessToken, async (req, res) => {
   try {
     const { reviewer, reviewee, rating, comment } = req.body;
-    
+    console.log(req.body);
     // Validate required fields
     if (!reviewer || !reviewee || !rating) {
       return res.status(400).json({ error: 'Reviewer, reviewee, and rating are required' });
@@ -38,7 +38,15 @@ router.post('/', verifyAccessToken, async (req, res) => {
 // Get all reviews (public access)
 router.get('/', async (req, res) => {
   try {
-    const reviews = await Review.find().populate('reviewer reviewee', 'fullName username');
+    // If professionalId query param is provided, filter reviews for that professional
+    const { professionalId } = req.query;
+    
+    let query = {};
+    if (professionalId) {
+      query.reviewee = professionalId;
+    }
+    
+    const reviews = await Review.find(query).populate('reviewer reviewee', 'fullName username');
     res.status(200).json(reviews);
   } catch (error) {
     console.error('Error fetching reviews:', error);
@@ -63,7 +71,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Update a review (admin or review owner only)
-router.put('/:id', verifyAccessToken, async (req, res) => {
+router.put('/:id', verifyAccessToken, isAdmin, async (req, res) => {
   try {
     const { rating, comment } = req.body;
     
@@ -96,7 +104,7 @@ router.put('/:id', verifyAccessToken, async (req, res) => {
 });
 
 // Delete a review (admin or review owner only)
-router.delete('/:id', verifyAccessToken, async (req, res) => {
+router.delete('/:id', verifyAccessToken, isAdmin, async (req, res) => {
   try {
     // Check if user is admin or the reviewer
     const review = await Review.findById(req.params.id);

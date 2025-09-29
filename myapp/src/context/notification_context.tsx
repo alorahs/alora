@@ -12,16 +12,24 @@ interface Notification {
 
 interface NotificationContextType {
   notifications: Notification[];
-  addNotification: (notification: Omit<Notification, "id" | "timestamp" | "read">) => void;
+  addNotification: (
+    notification: Omit<Notification, "id" | "timestamp" | "read">
+  ) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   unreadCount: number;
   fetchNotifications: () => Promise<void>;
 }
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextType | undefined>(
+  undefined
+);
 
-export function NotificationProvider({ children }: { children: React.ReactNode }) {
+export function NotificationProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [notifications, setNotifications] = useState<Notification[]>(() => {
     const saved = localStorage.getItem("notifications");
     return saved ? JSON.parse(saved) : [];
@@ -34,23 +42,24 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const fetchNotifications = async () => {
     try {
       const response = await fetch(`${API_URL}/notification`, {
-        method: 'GET',
-        credentials: 'include',
+        method: "GET",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        // Convert timestamp strings to Date objects
+
+        // Convert createdAt strings to Date objects and map to timestamp
         const notificationsWithDates = data.map((notification: any) => ({
           ...notification,
-          timestamp: new Date(notification.timestamp),
+          timestamp: new Date(notification.createdAt),
         }));
         setNotifications(notificationsWithDates);
       } else {
-        console.error('Failed to fetch notifications');
+        console.error("Failed to fetch notifications");
         // Fallback to localStorage if API fails
         const saved = localStorage.getItem("notifications");
         if (saved) {
@@ -67,39 +76,45 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  const addNotification = (notification: Omit<Notification, "id" | "timestamp" | "read">) => {
+  const addNotification = (
+    notification: Omit<Notification, "id" | "timestamp" | "read">
+  ) => {
     const newNotification: Notification = {
       id: Math.random().toString(36).substr(2, 9),
       timestamp: new Date(),
       read: false,
       ...notification,
     };
-    setNotifications(prev => [newNotification, ...prev]);
+    setNotifications((prev) => [newNotification, ...prev]);
   };
 
   const markAsRead = async (id: string) => {
     try {
       // Update on backend
       await fetch(`${API_URL}/notification/${id}/read`, {
-        method: 'PUT',
-        credentials: 'include',
+        method: "PUT",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
-      
+
       // Update local state
-      setNotifications(prev =>
-        prev.map(notification =>
-          notification.id === id ? { ...notification, read: true } : notification
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.id === id
+            ? { ...notification, read: true }
+            : notification
         )
       );
     } catch (error) {
       console.error("Error marking notification as read:", error);
       // Update local state even if backend fails
-      setNotifications(prev =>
-        prev.map(notification =>
-          notification.id === id ? { ...notification, read: true } : notification
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.id === id
+            ? { ...notification, read: true }
+            : notification
         )
       );
     }
@@ -109,36 +124,43 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     try {
       // Update on backend
       await fetch(`${API_URL}/notification/read-all`, {
-        method: 'PUT',
-        credentials: 'include',
+        method: "PUT",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
-      
+
       // Update local state
-      setNotifications(prev =>
-        prev.map(notification => ({ ...notification, read: true }))
+      setNotifications((prev) =>
+        prev.map((notification) => ({ ...notification, read: true }))
       );
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
       // Update local state even if backend fails
-      setNotifications(prev =>
-        prev.map(notification => ({ ...notification, read: true }))
+      setNotifications((prev) =>
+        prev.map((notification) => ({ ...notification, read: true }))
       );
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // Fetch notifications when provider is mounted
   useEffect(() => {
     fetchNotifications();
   }, []);
-
+  console.log(notifications);
   return (
     <NotificationContext.Provider
-      value={{ notifications, addNotification, markAsRead, markAllAsRead, unreadCount, fetchNotifications }}
+      value={{
+        notifications,
+        addNotification,
+        markAsRead,
+        markAllAsRead,
+        unreadCount,
+        fetchNotifications,
+      }}
     >
       {children}
     </NotificationContext.Provider>
@@ -148,7 +170,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 export function useNotifications() {
   const context = useContext(NotificationContext);
   if (context === undefined) {
-    throw new Error("useNotifications must be used within a NotificationProvider");
+    throw new Error(
+      "useNotifications must be used within a NotificationProvider"
+    );
   }
   return context;
 }

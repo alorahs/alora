@@ -39,7 +39,32 @@ const userSchema = new mongoose.Schema({
   verifyEmailToken: { type: String },
   verifyEmailExpires: { type: Date },
   verifyPhoneToken: { type: String },
-  verifyPhoneExpires: { type: Date }
+  verifyPhoneExpires: { type: Date },
+  deletionRequestedAt: { type: Date },
+  settings: {
+    // Notification preferences
+    emailNotifications: { type: Boolean, default: true },
+    pushNotifications: { type: Boolean, default: true },
+    smsNotifications: { type: Boolean, default: false },
+    marketingEmails: { type: Boolean, default: false },
+    bookingReminders: { type: Boolean, default: true },
+    reviewNotifications: { type: Boolean, default: true },
+    
+    // Privacy settings
+    profileVisibility: { type: String, enum: ['public', 'private', 'professional-only'], default: 'public' },
+    showEmail: { type: Boolean, default: false },
+    showPhone: { type: Boolean, default: false },
+    allowDirectMessages: { type: Boolean, default: true },
+    
+    // App preferences
+    theme: { type: String, enum: ['light', 'dark', 'system'], default: 'system' },
+    language: { type: String, default: 'en' },
+    timezone: { type: String, default: 'Asia/Kolkata' },
+    
+    // Security settings
+    twoFactorEnabled: { type: Boolean, default: false },
+    sessionTimeout: { type: Number, default: 30 } // in minutes
+  }
 }, { timestamps: true });
 
 // Indexes

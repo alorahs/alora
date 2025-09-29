@@ -71,6 +71,32 @@ router.get('/stats', verifyAccessToken, isAdmin, async (req, res) => {
       { $group: { _id: null, avgRating: { $avg: "$rating" } } }
     ]);
 
+    // Calculate booking rating statistics
+    const bookingRatings = await Booking.aggregate([
+      { $match: { rating: { $exists: true } } },
+      { $group: { 
+        _id: null, 
+        avgRating: { $avg: "$rating" },
+        totalRatings: { $sum: 1 },
+        ratingDistribution: {
+          $push: "$rating"
+        }
+      }}
+    ]);
+
+    // Process rating distribution
+    let ratingDistribution = {};
+    if (bookingRatings.length > 0) {
+      const ratings = bookingRatings[0].ratingDistribution;
+      ratingDistribution = {
+        1: ratings.filter(r => r === 1).length,
+        2: ratings.filter(r => r === 2).length,
+        3: ratings.filter(r => r === 3).length,
+        4: ratings.filter(r => r === 4).length,
+        5: ratings.filter(r => r === 5).length
+      };
+    }
+
     res.status(200).json({
       stats: {
         users: {
@@ -97,7 +123,10 @@ router.get('/stats', verifyAccessToken, isAdmin, async (req, res) => {
         },
         ratings: {
           avgFeedback: avgFeedbackRating[0]?.avgRating || 0,
-          avgReview: avgReviewRating[0]?.avgRating || 0
+          avgReview: avgReviewRating[0]?.avgRating || 0,
+          avgBooking: bookingRatings[0]?.avgRating || 0,
+          totalBookingRatings: bookingRatings[0]?.totalRatings || 0,
+          bookingDistribution: ratingDistribution
         }
       },
       recentActivity: {
@@ -367,6 +396,7 @@ router.get('/bookings', verifyAccessToken, isAdmin, async (req, res) => {
       dateFrom, 
       dateTo, 
       service,
+      hasRating, // New filter for ratings
       sortBy = 'createdAt',
       sortOrder = 'desc'
     } = req.query;
@@ -379,6 +409,12 @@ router.get('/bookings', verifyAccessToken, isAdmin, async (req, res) => {
       query.date = {};
       if (dateFrom) query.date.$gte = new Date(dateFrom);
       if (dateTo) query.date.$lte = new Date(dateTo);
+    }
+    // Filter for bookings with or without ratings
+    if (hasRating === 'true') {
+      query.rating = { $exists: true };
+    } else if (hasRating === 'false') {
+      query.rating = { $exists: false };
     }
 
     const sort = {};
@@ -401,6 +437,52 @@ router.get('/bookings', verifyAccessToken, isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching bookings:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get booking ratings statistics
+router.get('/bookings/ratings', verifyAccessToken, isAdmin, async (req, res) => {
+  try {
+    // Get all bookings with ratings
+    const bookingsWithRatings = await Booking.find({ rating: { $exists: true } })
+      .populate('user', 'fullName email')
+      .populate('professional', 'fullName category');
+
+    // Calculate statistics
+    const totalRatings = bookingsWithRatings.length;
+    
+    if (totalRatings === 0) {
+      return res.status(200).json({
+        statistics: {
+          average: 0,
+          total: 0,
+          distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+        },
+        bookings: []
+      });
+    }
+
+    // Calculate average rating
+    const sumRatings = bookingsWithRatings.reduce((sum, booking) => sum + booking.rating, 0);
+    const averageRating = sumRatings / totalRatings;
+
+    // Calculate rating distribution
+    const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    bookingsWithRatings.forEach(booking => {
+      distribution[booking.rating]++;
+    });
+
+    res.status(200).json({
+      statistics: {
+        average: Math.round(averageRating * 100) / 100, // Round to 2 decimal places
+        total: totalRatings,
+        distribution
+      },
+      bookings: bookingsWithRatings
+    });
+  } catch (error) {
+    console.error('Error fetching booking ratings:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

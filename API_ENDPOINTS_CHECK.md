@@ -52,12 +52,11 @@
 ## Favorite Endpoints
 
 - ✅ `/favorite` - Implemented in:
-  - [dashboard.tsx](file:///c:/Users/Public/alora/myapp/src/pages/profile/dashboard.tsx) (GET - fetch user favorites)
-  - [favorites.tsx](file:///c:/Users/Public/alora/myapp/src/pages/profile/favorites.tsx) (GET - fetch user favorites)
-  - [professional-profile-modal.tsx](file:///c:/Users/Public/alora/myapp/src/components/professional-profile-modal.tsx) (POST - add favorite)
+  - [favorites.tsx](file:///d:/Project/alorahs/myapp/src/pages/profile/favorites.tsx) (GET - fetch user favorites)
+  - [professional-profile-modal.tsx](file:///d:/Project/alorahs/myapp/src/components/professional-profile-modal.tsx) (POST - add favorite)
 - ✅ `/favorite/{professionalId}` - Implemented in:
-  - [professional-profile-modal.tsx](file:///c:/Users/Public/alora/myapp/src/components/professional-profile-modal.tsx) (GET - check if favorited)
-  - [favorites.tsx](file:///c:/Users/Public/alora/myapp/src/pages/profile/favorites.tsx) (DELETE - remove favorite)
+  - [professional-profile-modal.tsx](file:///d:/Project/alorahs/myapp/src/components/professional-profile-modal.tsx) (GET - check if favorited, DELETE - remove favorite)
+  - [favorites.tsx](file:///d:/Project/alorahs/myapp/src/pages/profile/favorites.tsx) (DELETE - remove favorite)
 
 ## Notification Endpoints
 

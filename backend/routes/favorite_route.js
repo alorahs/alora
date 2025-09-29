@@ -49,7 +49,7 @@ router.post('/', verifyAccessToken, async (req, res) => {
 router.get('/', verifyAccessToken, async (req, res) => {
   try {
     const favorites = await Favorite.find({ user: req.user._id })
-      .populate('professional', 'fullName category rating profilePicture');
+      .populate('professional', 'fullName category rating profilePicture phone email');
     
     res.status(200).json(favorites);
   } catch (error) {

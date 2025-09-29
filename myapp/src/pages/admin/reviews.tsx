@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
-import { useAuth, API_URL } from "@/context/auth_provider";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Star, Calendar, MessageSquare, Edit, Trash2 } from "lucide-react";
+import { useAuth, API_URL } from "../../context/auth_provider";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Star, Calendar, User, Edit, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,18 +15,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+} from "../../components/ui/dialog";
+import { Label } from "../../components/ui/label";
+import { Textarea } from "../../components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+} from "../../components/ui/select";
+import { useToast } from "../../hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -30,123 +33,131 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "../../components/ui/table";
 
-interface Feedback {
+interface Review {
   _id: string;
-  rating: number;
-  subject: string;
-  message: string;
-  createdAt: string;
-  user?: {
+  reviewer: {
+    _id: string;
     fullName: string;
     username: string;
-    email: string;
   };
+  reviewee: {
+    _id: string;
+    fullName: string;
+    username: string;
+  };
+  rating: number;
+  comment: string;
+  createdAt: string;
 }
 
-export default function FeedbackList() {
+export default function ReviewManagement() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [feedback, setFeedback] = useState<Feedback[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(
-    null
-  );
+  const [selectedReview, setSelectedReview] = useState<Review | null>(null);
   const [formData, setFormData] = useState({
     rating: 0,
-    subject: "",
-    message: "",
+    comment: "",
   });
 
-  const fetchFeedback = async () => {
+  const fetchReviews = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/feedback`);
+      const response = await fetch(`${API_URL}/review`, {
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
-        setFeedback(data);
+        setReviews(data);
+      } else {
+        throw new Error("Failed to fetch reviews");
       }
     } catch (error) {
-      console.error("Error fetching feedback:", error);
+      console.error("Error fetching reviews:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchFeedback();
+    fetchReviews();
   }, []);
 
-  const updateFeedback = async (feedbackId: string, feedbackData: any) => {
+  const updateReview = async (reviewId: string, reviewData: any) => {
     try {
-      const response = await fetch(`${API_URL}/feedback/${feedbackId}`, {
+      const response = await fetch(`${API_URL}/review/${reviewId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(feedbackData),
+        body: JSON.stringify(reviewData),
         credentials: "include",
       });
+
+      const result = await response.json();
 
       if (response.ok) {
         toast({
           title: "Success",
-          description: "Feedback updated successfully",
+          description: "Review updated successfully",
         });
-        fetchFeedback();
+        fetchReviews();
         setIsEditDialogOpen(false);
       } else {
-        throw new Error("Failed to update feedback");
+        throw new Error(result.message || "Failed to update review");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update feedback",
+        description: error.message || "Failed to update review",
         variant: "destructive",
       });
     }
   };
 
-  const deleteFeedback = async (feedbackId: string) => {
+  const deleteReview = async (reviewId: string) => {
     try {
-      const response = await fetch(`${API_URL}/feedback/${feedbackId}`, {
+      const response = await fetch(`${API_URL}/review/${reviewId}`, {
         method: "DELETE",
         credentials: "include",
       });
 
+      const result = await response.json();
+
       if (response.ok) {
         toast({
           title: "Success",
-          description: "Feedback deleted successfully",
+          description: "Review deleted successfully",
         });
-        fetchFeedback();
+        fetchReviews();
       } else {
-        throw new Error("Failed to delete feedback");
+        throw new Error(result.message || "Failed to delete review");
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete feedback",
+        description: error.message || "Failed to delete review",
         variant: "destructive",
       });
     }
   };
 
-  const handleEditClick = (feedbackItem: Feedback) => {
-    setSelectedFeedback(feedbackItem);
+  const handleEditClick = (reviewItem: Review) => {
+    setSelectedReview(reviewItem);
     setFormData({
-      rating: feedbackItem.rating,
-      subject: feedbackItem.subject || "",
-      message: feedbackItem.message || "",
+      rating: reviewItem.rating,
+      comment: reviewItem.comment || "",
     });
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdate = () => {
-    if (selectedFeedback) {
-      updateFeedback(selectedFeedback._id, formData);
+  const handleUpdate = async () => {
+    if (selectedReview) {
+      await updateReview(selectedReview._id, formData);
     }
   };
 
@@ -183,7 +194,7 @@ export default function FeedbackList() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading feedback...</div>
+        <div className="text-center">Loading reviews...</div>
       </div>
     );
   }
@@ -193,9 +204,9 @@ export default function FeedbackList() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Feedback Management
+            Review Management
           </h1>
-          <p className="text-gray-600">View and manage user feedback</p>
+          <p className="text-gray-600">View and manage user reviews</p>
         </div>
 
         <Card>
@@ -203,69 +214,69 @@ export default function FeedbackList() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
+                  <TableHead>Reviewer</TableHead>
+                  <TableHead>Reviewee</TableHead>
                   <TableHead>Rating</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Message</TableHead>
+                  <TableHead>Comment</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {feedback.length === 0 ? (
+                {reviews.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8">
-                      <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        No feedback yet
+                        No reviews yet
                       </h3>
                       <p className="text-gray-600">
-                        Feedback from users will appear here.
+                        Reviews from users will appear here.
                       </p>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  feedback.map((item) => (
-                    <TableRow key={item._id}>
+                  reviews.map((review) => (
+                    <TableRow key={review._id}>
                       <TableCell>
-                        {item.user ? (
-                          <div>
-                            <div className="font-medium">
-                              {item.user.fullName ||
-                                item.user.username ||
-                                "Unknown User"}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {item.user.email}
-                            </div>
+                        <div>
+                          <div className="font-medium">
+                            {review.reviewer?.fullName ||
+                              review.reviewer?.username ||
+                              "Unknown User"}
                           </div>
-                        ) : (
-                          <div className="text-gray-500">Anonymous</div>
-                        )}
+                          <div className="text-sm text-gray-500">
+                            {review.reviewer?.username &&
+                              `@${review.reviewer.username}`}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">
+                            {review.reviewee?.fullName ||
+                              review.reviewee?.username ||
+                              "Unknown Professional"}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {review.reviewee?.username &&
+                              `@${review.reviewee.username}`}
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center">
-                          {renderStars(item.rating)}
+                          {renderStars(review.rating)}
                         </div>
                       </TableCell>
-                      <TableCell className="font-medium">
-                        {item.subject || "No Subject"}
-                      </TableCell>
                       <TableCell className="max-w-xs truncate">
-                        {item.message}
+                        {review.comment}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-3 w-3 text-muted-foreground" />
                           <span className="text-sm">
-                            {new Date(item.createdAt).toLocaleDateString(
-                              "en-US",
-                              {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                              }
-                            )}
+                            {new Date(review.createdAt).toLocaleDateString()}
                           </span>
                         </div>
                       </TableCell>
@@ -274,14 +285,14 @@ export default function FeedbackList() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleEditClick(item)}
+                            onClick={() => handleEditClick(review)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="destructive"
-                            onClick={() => deleteFeedback(item._id)}
+                            onClick={() => deleteReview(review._id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -296,31 +307,31 @@ export default function FeedbackList() {
         </Card>
 
         {/* Summary Stats */}
-        {feedback.length > 0 && (
+        {reviews.length > 0 && (
           <Card className="mt-8">
             <CardHeader>
-              <CardTitle>Feedback Summary</CardTitle>
+              <CardTitle>Review Summary</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {feedback.length}
+                    {reviews.length}
                   </div>
-                  <div className="text-sm text-gray-600">Total Feedback</div>
+                  <div className="text-sm text-gray-600">Total Reviews</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
                     {(
-                      feedback.reduce((sum, item) => sum + item.rating, 0) /
-                      feedback.length
+                      reviews.reduce((sum, item) => sum + item.rating, 0) /
+                      reviews.length
                     ).toFixed(1)}
                   </div>
                   <div className="text-sm text-gray-600">Average Rating</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-yellow-600">
-                    {feedback.filter((item) => item.rating >= 4).length}
+                    {reviews.filter((item) => item.rating >= 4).length}
                   </div>
                   <div className="text-sm text-gray-600">
                     Positive (4-5 stars)
@@ -328,7 +339,7 @@ export default function FeedbackList() {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-red-600">
-                    {feedback.filter((item) => item.rating <= 2).length}
+                    {reviews.filter((item) => item.rating <= 2).length}
                   </div>
                   <div className="text-sm text-gray-600">
                     Negative (1-2 stars)
@@ -339,12 +350,12 @@ export default function FeedbackList() {
           </Card>
         )}
 
-        {/* Edit Feedback Dialog */}
+        {/* Edit Review Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Feedback</DialogTitle>
-              <DialogDescription>Update feedback information</DialogDescription>
+              <DialogTitle>Edit Review</DialogTitle>
+              <DialogDescription>Update review information</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
@@ -361,7 +372,7 @@ export default function FeedbackList() {
                     <SelectValue placeholder="Select rating" />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5].map((rating) => (
+                    {[0, 1, 2, 3, 4, 5].map((rating) => (
                       <SelectItem key={rating} value={rating.toString()}>
                         {rating} Star{rating > 1 ? "s" : ""}
                       </SelectItem>
@@ -370,36 +381,28 @@ export default function FeedbackList() {
                 </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="subject" className="text-right">
-                  Subject
-                </Label>
-                <Input
-                  id="subject"
-                  value={formData.subject}
-                  onChange={(e) =>
-                    setFormData({ ...formData, subject: e.target.value })
-                  }
-                  className="col-span-3"
-                  placeholder="Feedback subject"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="message" className="text-right">
-                  Message
+                <Label htmlFor="comment" className="text-right">
+                  Comment
                 </Label>
                 <Textarea
-                  id="message"
-                  value={formData.message}
+                  id="comment"
+                  value={formData.comment}
                   onChange={(e) =>
-                    setFormData({ ...formData, message: e.target.value })
+                    setFormData({ ...formData, comment: e.target.value })
                   }
                   className="col-span-3"
                   rows={4}
-                  placeholder="Feedback message"
+                  placeholder="Review comment"
                 />
               </div>
             </div>
             <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+              >
+                Cancel
+              </Button>
               <Button onClick={handleUpdate}>Save changes</Button>
             </DialogFooter>
           </DialogContent>

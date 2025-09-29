@@ -16,6 +16,7 @@ import './models/refresh_token.js';
 import './models/booking.js';
 import './models/favorite.js';
 import './models/file.js';
+import './models/notification.js';
 
 import connectDB from './config/db.js';
 import apiRouter from './routes/api_route.js';
