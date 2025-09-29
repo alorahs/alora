@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -34,6 +34,7 @@ import {
 
 import Section9 from "./section9";
 import ProfessionalProfileModal from "../../components/professional-profile-modal";
+import { API_URL } from "@/context/auth_provider";
 
 // Enhanced professionals data with more comprehensive information for home services
 const professionals = [
@@ -228,94 +229,6 @@ const professionals = [
   },
 ];
 
-// Services data matching the design
-const services = [
-  {
-    title: "Plumbing Repair",
-    description:
-      "Expert solutions for leaks, clogs, and pipe issues. Ensuring smooth water flow throughout your home.",
-    icon: Wrench,
-    color: "blue",
-  },
-  {
-    title: "Tech Support",
-    description:
-      "On-demand assistance for software, hardware, and network problems. Get immediate help for all your tech issues.",
-    icon: Monitor,
-    color: "green",
-  },
-  {
-    title: "Electrical Services",
-    description:
-      "Safe installation, repair, and maintenance of home electrical systems and appliances. Licensed electricians available.",
-    icon: Zap,
-    color: "yellow",
-  },
-  {
-    title: "Deep Cleaning",
-    description:
-      "Thorough and meticulous cleaning services to refresh and rejuvenate your living environment.",
-    icon: Shield,
-    color: "purple",
-  },
-  {
-    title: "Interior Painting",
-    description:
-      "Professional painting for walls, ceilings, and trim. Transform your space with expert color consultation.",
-    icon: Paintbrush,
-    color: "orange",
-  },
-  {
-    title: "Locksmith Services",
-    description:
-      "Emergency lockouts, lock repair, and installation services for enhanced home safety and security.",
-    icon: Lock,
-    color: "red",
-  },
-  {
-    title: "Network Setup",
-    description:
-      "Secure and reliable home network installation and optimization for seamless connectivity across devices.",
-    icon: Network,
-    color: "blue",
-  },
-  {
-    title: "Water Damage Restoration",
-    description:
-      "Fast response and effective restoration for water leaks and flood damage, restoring your home quickly.",
-    icon: Droplets,
-    color: "blue",
-  },
-  {
-    title: "Appliance Repair",
-    description:
-      "Repair services for common household appliances, extending their lifespan and ensuring optimal performance.",
-    icon: Settings,
-    color: "gray",
-  },
-  {
-    title: "Fixture Installation",
-    description:
-      "Installation of new light fixtures, fans, and other electrical components for enhanced home functionality.",
-    icon: Lightbulb,
-    color: "yellow",
-  },
-  {
-    title: "Window Cleaning",
-    description:
-      "Professional window cleaning service for clear views and a brighter, more welcoming interior space.",
-    icon: Eye,
-    color: "blue",
-  },
-  {
-    title: "HVAC Maintenance",
-    description:
-      "Regular maintenance and repair of heating, ventilation, and air conditioning systems for comfort.",
-    icon: Wind,
-    color: "green",
-  },
-];
-
 // Categories for filtering (simplified)
 const categories = [
   { name: "All Services", active: true, icon: "🏠" },
@@ -363,6 +276,19 @@ const testimonials = [
 ];
 
 function ServicePage() {
+  const [services, setServices] = useState<{ title: string; description: string; icon: any; color: string }[]>([]);
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await fetch(`${API_URL}/services`, { method: "GET" });
+        const data = await res.json();
+        setServices(data);
+      } catch (error) {
+        console.error("Error fetching services:", error);
+      }
+    }
+    fetchServices();
+  }, []);
   const navigate = useNavigate();
   const handleCategoryClick = (categoryName: string) => {
     navigate(`/professionals?category=${categoryName}`);
@@ -446,8 +372,8 @@ function ServicePage() {
                   key={category.name}
                   variant={category.active ? "default" : "outline"}
                   className={`rounded-full px-6 py-2 ${category.active
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-600 hover:bg-blue-50"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-600 hover:bg-blue-50"
                     }`}
                 >
                   {category.name}
@@ -457,8 +383,8 @@ function ServicePage() {
 
             {/* Services Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {services.map((service, index) => {
-                const IconComponent = service.icon;
+              {services.map((service) => {
+                const IconComponent = service.icon.toString() === "Home" ? Home : service.icon.toString() === "Wrench" ? Wrench : service.icon.toString() === "Monitor" ? Monitor : service.icon.toString() === "Zap" ? Zap : service.icon.toString() === "Paintbrush" ? Paintbrush : service.icon.toString() === "Shield" ? Shield : service.icon.toString() === "Lock" ? Lock : service.icon.toString() === "Network" ? Network : service.icon.toString() === "Droplets" ? Droplets : service.icon.toString() === "Lightbulb" ? Lightbulb : service.icon.toString() === "Eye" ? Eye : service.icon.toString() === "Wind" ? Wind : service.icon.toString() === "ClipboardCheck" ? ClipboardCheck : service.icon.toString() === "MessageCircle" ? MessageCircle : Star;
                 return (
                   <Card
                     key={service.title}

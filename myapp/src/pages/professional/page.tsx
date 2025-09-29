@@ -7,9 +7,11 @@ import { User } from "../../interfaces/user";
 import { useParams } from "react-router-dom";
 
 export function ProfessionalPage() {
+  const params = new URLSearchParams(window.location.search);
   const [professionals, setProfessionals] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [priceFilter, setPriceFilter] = useState<string | null>(null);
   const [ratingFilter, setRatingFilter] = useState<string | null>(null);
   const [availabilityFilter, setAvailabilityFilter] = useState<string | null>(
@@ -21,10 +23,10 @@ export function ProfessionalPage() {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [Location, setLocation] = useState("");
-  const { locationName } = useParams();
-  console.log(decodeURIComponent(locationName));
-  // Calculate average rating for a professional
+
+  const location = params.get("location");
+  const category = params.get("category");
+
   const calculateAverageRating = (ratings: number[]): number => {
     if (!ratings || ratings.length === 0) return 0;
     const sum = ratings.reduce((a, b) => a + b, 0);
@@ -51,8 +53,6 @@ export function ProfessionalPage() {
 
   // Fetch professionals from backend
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const category = params.get("category");
     const fetchProfessionals = async () => {
       try {
         setLoading(true);
@@ -76,6 +76,7 @@ export function ProfessionalPage() {
       } finally {
         setLoading(false);
         category && setSelectedCategory(category);
+        location && setSelectedLocation(location);
       }
     };
 
@@ -130,6 +131,13 @@ export function ProfessionalPage() {
           return pro.category === selectedCategory;
         })();
 
+      const matchesLocation =
+        !selectedLocation ||
+        (pro.address?.city &&
+          pro.address.city
+            .toLowerCase()
+            .includes(selectedLocation.toLowerCase()));
+
       let matchesPrice = true;
       if (pro.hourlyRate) {
         if (priceFilter === "low") matchesPrice = pro.hourlyRate < 300;
@@ -154,7 +162,8 @@ export function ProfessionalPage() {
         matchesCategory &&
         matchesPrice &&
         matchesRating &&
-        matchesAvailability
+        matchesAvailability &&
+        matchesLocation
       );
     })
     .sort((a, b) => {
@@ -177,6 +186,7 @@ export function ProfessionalPage() {
     setPriceFilter(null);
     setRatingFilter(null);
     setAvailabilityFilter(null);
+    setSelectedLocation(null);
   };
 
   if (loading) {

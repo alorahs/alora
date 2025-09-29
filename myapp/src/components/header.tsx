@@ -27,13 +27,14 @@ import { NotificationDropdown } from "./notification_dropdown";
 
 const navigationItems = [
   { href: "/", label: "Home" },
+  { href: "/professionals", label: "Professionals" },
   { href: "/services", label: "Services" },
   { href: "/about", label: "About Us" },
   { href: "/contact", label: "Contact" },
-  { href: "/feedback", label: "Feedback" },
-  { href: "/professionals", label: "Professionals" },
-  { href: "/faq", label: "FAQ" },
-  { href: "/help", label: "Help" },
+  // { href: "/feedback", label: "Feedback" },
+
+  // { href: "/faq", label: "FAQ" },
+  // { href: "/help", label: "Help" },
 ];
 
 export function Header() {

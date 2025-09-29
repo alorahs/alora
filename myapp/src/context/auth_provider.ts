@@ -28,7 +28,7 @@ interface AuthContextType {
   logout: () => void
   isLoading: boolean
 }
-export const API_URL = import.meta.env.VITE_API_URL && "http://192.168.29.162:5000/api";
+export const API_URL = import.meta.env.VITE_API_URL || "http://192.168.29.162:5000/api";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

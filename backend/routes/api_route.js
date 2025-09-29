@@ -12,11 +12,14 @@ import favoriteRouter from './favorite_route.js';
 import notificationRouter from './notification_route.js';
 import fileRouter from './file_route.js';
 import verifyAccessToken from '../middleware/authentication.js';
+import navigationRouter from './navigation_route.js';
+import serviceRouter from './service_route.js';
 
 const router = express.Router();
 
 router.use('/auth', authRouter);
 router.use('/_', shareRouter);
+router.use('/services', serviceRouter);
 router.use('/user', verifyAccessToken, userRouter);
 router.use('/faq', faqRouter);
 router.use('/feedback', feedbackRouter);
@@ -27,5 +30,6 @@ router.use('/favorite', verifyAccessToken, favoriteRouter);
 router.use('/notification', verifyAccessToken, notificationRouter);
 router.use('/refresh-token', verifyAccessToken, refreshTokenRouter);
 router.use('/files', fileRouter);
+router.use('/geocode', navigationRouter);
 
 export default router;
