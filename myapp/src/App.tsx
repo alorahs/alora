@@ -15,6 +15,7 @@ import ProfilePage from "./pages/profile/page";
 import AboutPage from "./pages/about/page";
 import FaqPage from "./pages/faq/page";
 import ContactPage from "./pages/contact/page";
+import ReachUsPage from "./pages/reach-us/page";
 import HelpPage from "./pages/help/page";
 import ServicePage from "./pages/services/page";
 import FeedbackPage from "./pages/feedback/page";
@@ -40,6 +41,7 @@ function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="faq" element={<FaqPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/reach-us" element={<ReachUsPage />} />
           <Route path="/help" element={<HelpPage />} />
           <Route path="/services" element={<ServicePage />} />
           <Route path="/feedback" element={<FeedbackPage />} />

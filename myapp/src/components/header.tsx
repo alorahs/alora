@@ -31,6 +31,7 @@ const navigationItems = [
   { href: "/services", label: "Services" },
   { href: "/about", label: "About Us" },
   { href: "/contact", label: "Contact" },
+  { href: "/reach-us", label: "Reach Us" },
   // { href: "/feedback", label: "Feedback" },
 
   // { href: "/faq", label: "FAQ" },

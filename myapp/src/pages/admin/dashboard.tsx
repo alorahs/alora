@@ -41,6 +41,10 @@ import {
   Trash2,
   Plus,
   Briefcase,
+  Mail,
+  Eye,
+  Calendar,
+  Filter,
 } from "lucide-react";
 
 interface User {
@@ -161,6 +165,15 @@ interface Feedback {
   createdAt: string;
 }
 
+interface ReachUs {
+  _id: string;
+  fullName: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+}
+
 // Function to get icon emoji from icon name
 const getIconEmoji = (iconName: string): string => {
   if (!iconName) return "📋"; // Default icon
@@ -189,6 +202,7 @@ export default function AdminDashboard() {
   const [services, setServices] = useState<Service[]>([]);
   const [faqs, setFAQs] = useState<FAQ[]>([]);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
+  const [reachUsMessages, setReachUsMessages] = useState<ReachUs[]>([]);
 
   // Loading states
   const [loading, setLoading] = useState(false);
@@ -199,7 +213,12 @@ export default function AdminDashboard() {
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [isEditServiceOpen, setIsEditServiceOpen] = useState(false);
   const [isEditFAQOpen, setIsEditFAQOpen] = useState(false);
+  const [isViewReachUsOpen, setIsViewReachUsOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  
+  // Filter states for reach us
+  const [reachUsFilter, setReachUsFilter] = useState<string>('all');
+  const [reachUsSearchTerm, setReachUsSearchTerm] = useState<string>('');
 
   // Form states
   const [formData, setFormData] = useState<any>({});
@@ -272,11 +291,26 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchReachUsMessages = async () => {
+    try {
+      const response = await fetch(`${API_URL}/reachus`, {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setReachUsMessages(data);
+      }
+    } catch (error) {
+      console.error("Error fetching reach us messages:", error);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchServices();
     fetchFAQs();
     fetchFeedback();
+    fetchReachUsMessages();
   }, []);
 
   // CRUD Operations for Users
@@ -533,6 +567,62 @@ export default function AdminDashboard() {
     }
   };
 
+  // Operations for Reach Us Messages
+  const deleteReachUsMessage = async (messageId: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_URL}/reachus/${messageId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Message deleted successfully",
+        });
+        fetchReachUsMessages();
+      } else {
+        throw new Error("Failed to delete message");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete message",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter reach us messages
+  const filteredReachUsMessages = reachUsMessages.filter(message => {
+    const matchesSearch = 
+      message.fullName.toLowerCase().includes(reachUsSearchTerm.toLowerCase()) ||
+      message.email.toLowerCase().includes(reachUsSearchTerm.toLowerCase()) ||
+      message.subject.toLowerCase().includes(reachUsSearchTerm.toLowerCase()) ||
+      message.message.toLowerCase().includes(reachUsSearchTerm.toLowerCase());
+    
+    if (reachUsFilter === 'all') return matchesSearch;
+    
+    const messageDate = new Date(message.createdAt);
+    const now = new Date();
+    
+    switch (reachUsFilter) {
+      case 'today':
+        return matchesSearch && messageDate.toDateString() === now.toDateString();
+      case 'week':
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return matchesSearch && messageDate >= weekAgo;
+      case 'month':
+        const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        return matchesSearch && messageDate >= monthAgo;
+      default:
+        return matchesSearch;
+    }
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -542,7 +632,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">
               <BarChart3 className="h-4 w-4 mr-2" />
               Overview
@@ -563,10 +653,14 @@ export default function AdminDashboard() {
               <MessageSquare className="h-4 w-4 mr-2" />
               Feedback
             </TabsTrigger>
+            <TabsTrigger value="reachus">
+              <Mail className="h-4 w-4 mr-2" />
+              Reach Us
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
@@ -624,6 +718,21 @@ export default function AdminDashboard() {
                   <div className="text-2xl font-bold">{feedback.length}</div>
                   <p className="text-xs text-muted-foreground">
                     User feedback entries
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Reach Us
+                  </CardTitle>
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{reachUsMessages.length}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Contact messages
                   </p>
                 </CardContent>
               </Card>
@@ -1165,7 +1274,297 @@ export default function AdminDashboard() {
               )}
             </div>
           </TabsContent>
+
+          <TabsContent value="reachus" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Reach Us Messages</h3>
+                <div className="flex items-center space-x-4">
+                  <Input
+                    placeholder="Search messages..."
+                    value={reachUsSearchTerm}
+                    onChange={(e) => setReachUsSearchTerm(e.target.value)}
+                    className="w-64"
+                  />
+                  <Select value={reachUsFilter} onValueChange={setReachUsFilter}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Messages</SelectItem>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="week">This Week</SelectItem>
+                      <SelectItem value="month">This Month</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Messages Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{reachUsMessages.length}</div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Today</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {reachUsMessages.filter(msg => 
+                        new Date(msg.createdAt).toDateString() === new Date().toDateString()
+                      ).length}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">This Week</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {reachUsMessages.filter(msg => {
+                        const msgDate = new Date(msg.createdAt);
+                        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                        return msgDate >= weekAgo;
+                      }).length}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Messages Table */}
+              <Card>
+                <CardContent>
+                  {filteredReachUsMessages.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        {reachUsSearchTerm || reachUsFilter !== 'all' ? 'No messages found' : 'No messages yet'}
+                      </h3>
+                      <p className="text-gray-600">
+                        {reachUsSearchTerm || reachUsFilter !== 'all' 
+                          ? 'Try adjusting your search or filter criteria.'
+                          : 'Contact messages from users will appear here.'}
+                      </p>
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Name</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Subject</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredReachUsMessages.map((message) => (
+                          <TableRow key={message._id}>
+                            <TableCell className="font-medium">
+                              {message.fullName}
+                            </TableCell>
+                            <TableCell>{message.email}</TableCell>
+                            <TableCell className="max-w-xs truncate">
+                              {message.subject}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center space-x-1">
+                                <Calendar className="h-3 w-3 text-muted-foreground" />
+                                <span className="text-sm">
+                                  {new Date(message.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {new Date(message.createdAt).toLocaleTimeString()}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedItem(message);
+                                    setIsViewReachUsOpen(true);
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => deleteReachUsMessage(message._id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reachus" className="mt-6">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Reach Us Messages</h3>
+                <div className="flex items-center space-x-4">
+                  <Select
+                    value={reachUsFilter}
+                    onValueChange={setReachUsFilter}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Filter by date" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="week">Last 7 Days</SelectItem>
+                      <SelectItem value="month">Last 30 Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder="Search by name, email, subject, or message"
+                    value={reachUsSearchTerm}
+                    onChange={(e) => setReachUsSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredReachUsMessages.length === 0 ? (
+                  <div className="col-span-full text-center py-12">
+                    <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      No messages found
+                    </h3>
+                    <p className="text-gray-600">
+                      Try adjusting your filters or search term.
+                    </p>
+                  </div>
+                ) : (
+                  filteredReachUsMessages.map((message) => (
+                    <Card key={message._id}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <span>{message.fullName}</span>
+                          <div className="flex items-center">
+                            <Eye
+                              className="h-4 w-4 mr-2 cursor-pointer"
+                              onClick={() => {
+                                setSelectedItem(message);
+                                setIsViewReachUsOpen(true);
+                              }}
+                            />
+                            <Trash2
+                              className="h-4 w-4 cursor-pointer"
+                              onClick={() => deleteReachUsMessage(message._id)}
+                            />
+                          </div>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          {message.subject}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {new Date(message.createdAt).toLocaleDateString()}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
+
+        {/* View Reach Us Message Dialog */}
+        <Dialog open={isViewReachUsOpen} onOpenChange={setIsViewReachUsOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Contact Message Details</DialogTitle>
+              <DialogDescription>
+                View the complete message from {selectedItem?.fullName}
+              </DialogDescription>
+            </DialogHeader>
+            {selectedItem && (
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Full Name</Label>
+                    <p className="text-sm mt-1">{selectedItem.fullName}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Email</Label>
+                    <p className="text-sm mt-1">{selectedItem.email}</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Subject</Label>
+                  <p className="text-sm mt-1">{selectedItem.subject}</p>
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Message</Label>
+                  <div className="mt-1 p-3 bg-gray-50 rounded-md border text-sm whitespace-pre-wrap">
+                    {selectedItem.message}
+                  </div>
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Received</Label>
+                  <p className="text-sm mt-1">
+                    {new Date(selectedItem.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                
+                {/* Quick Actions */}
+                <div className="flex space-x-2 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      window.open(`mailto:${selectedItem.email}?subject=Re: ${selectedItem.subject}`, '_blank');
+                    }}
+                  >
+                    <Mail className="h-4 w-4 mr-2" />
+                    Reply via Email
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      deleteReachUsMessage(selectedItem._id);
+                      setIsViewReachUsOpen(false);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Message
+                  </Button>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsViewReachUsOpen(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Edit User Dialog */}
         <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
