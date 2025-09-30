@@ -33,7 +33,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../components/ui/table";
+} from "../..11/components/ui/table";
 
 interface Review {
   _id: string;
