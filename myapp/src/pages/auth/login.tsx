@@ -10,6 +10,7 @@ import { Label } from "../../components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 
 import { AtSign, Lock, Mail, Phone, Eye, EyeOff } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState("email")
@@ -45,22 +46,57 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
+    
+    // Validate required fields based on active tab
+    const isEmailValid = activeTab === "email" ? email.trim() !== "" : true
+    const isUsernameValid = activeTab === "username" ? username.trim() !== "" : true
+    const isPhoneValid = activeTab === "phone" ? phone.trim() !== "" : true
+    const isPasswordValid = password.trim() !== ""
+    
+    if (!isPasswordValid || (!isEmailValid && !isUsernameValid && !isPhoneValid)) {
+      toast({
+        title: "Please fill in all required fields", 
+        description: "Email/Username/Phone and Password are required"
+      })
+      setIsLoading(false)
+      return
+    }
+
+    // Clear unused fields based on active tab
+    const loginData = {
+      password,
+      email: activeTab === "email" ? email : "",
+      username: activeTab === "username" ? username : "",
+      phone: activeTab === "phone" ? phone : ""
+    }
 
     try {
       type LoginResponse = { errors?: { msg: string }[] } | any
-      const response: LoginResponse = await login({ password, email, username, phone })
+      const response: LoginResponse = await login(loginData)
 
       if (typeof response === "object" && response !== null && Array.isArray(response.errors)) {
-        setError(response.errors[0].msg)
+        const errorMsg = response.errors[0].msg
+        setError(errorMsg)
+        toast({
+          title: "Login Failed",
+          description: errorMsg,
+          variant: "destructive"
+        })
       } else {
-        if (user.emailVerified === false) {
-          navigate("/auth/signup-success");
+        if (user?.emailVerified === false) {
+          navigate("/auth/signup-success")
         } else {
-          navigate("/");
+          navigate("/")
         }
       }
     } catch (error: unknown) {
-      console.error("Login failed:", error)
+      const errorMsg = "An unexpected error occurred during login"
+      setError(errorMsg)
+      toast({
+        title: "Login Error",
+        description: errorMsg,
+        variant: "destructive"
+      })
     } finally {
       setIsLoading(false)
     }
@@ -99,6 +135,7 @@ export default function LoginPage() {
 
               {/* Email Tab */}
               <TabsContent value="email">
+                
                 <div className="grid gap-2 mt-4">
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">

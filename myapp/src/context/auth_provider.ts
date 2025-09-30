@@ -54,6 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const json = await response.json();
         if (!response.ok || response.status === 400) {
           setError(json.errors || "Failed to refresh token");
+          return;
         }
         setSuccess(json.msg || "Token refreshed");
         const res = await fetch(`${API_URL}/auth/me`, {

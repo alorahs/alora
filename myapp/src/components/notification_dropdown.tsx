@@ -24,7 +24,6 @@ export function NotificationDropdown() {
     markAsRead,
     markAllAsRead,
     unreadCount,
-    fetchNotifications,
   } = useNotifications();
 
   const getIcon = (type: string) => {
@@ -61,7 +60,6 @@ export function NotificationDropdown() {
           size="icon"
           className="relative"
           aria-label="Notifications"
-          onClick={fetchNotifications}
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
@@ -111,7 +109,7 @@ export function NotificationDropdown() {
                       {notification.message}
                     </p>
                     <p className="text-xs text-gray-400 mt-2">
-                      {formatDistanceToNow(new Date(notification.timestamp), {
+                      {formatDistanceToNow(new Date(notification.createdAt), {
                         addSuffix: true,
                       })}
                     </p>
