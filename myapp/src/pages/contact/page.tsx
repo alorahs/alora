@@ -124,26 +124,12 @@ function ContactPage() {
 
             {/* Right side - Illustration */}
             <div className="flex justify-center">
-              <div className="w-80 h-80 bg-gray-200 rounded-2xl flex items-center justify-center">
-                {/* Placeholder for illustration - you can replace with actual image */}
-                <div className="text-center">
-                  <div className="w-32 h-32 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <svg
-                      className="w-16 h-16 text-blue-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-gray-500 text-sm">Contact Illustration</p>
-                </div>
+              <div className="w-80 h-80 bg-gray-200 rounded-2xl flex items-center justify-center overflow-hidden">
+                <img
+                  src="/contact us.png"
+                  alt="Contact Us Illustration"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
@@ -295,16 +281,14 @@ function ContactPage() {
                 </div>
               </div>
 
-              {/* Map placeholder */}
+              {/* Map View */}
               <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-                <div className="h-64 bg-gray-200 flex items-center justify-center">
-                  <div className="text-center">
-                    <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">Interactive Map</p>
-                    <p className="text-sm text-gray-400">
-                      123 Alora Avenue, Metropolis, MA
-                    </p>
-                  </div>
+                <div className="h-64 relative">
+                  <iframe
+                    src="https://www.openstreetmap.org/export/embed.html?bbox=80.3746272,22.6013664,80.3786272,22.6053664&layer=mapnik&marker=22.6033664,80.3766272"
+                    className="w-full h-full border-0"
+                    title="Alora Location Map"
+                  ></iframe>
                 </div>
               </div>
             </div>

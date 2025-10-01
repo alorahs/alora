@@ -101,10 +101,16 @@ function AboutPage() {
               </Button>
             </div>
             <div className="flex justify-center">
-              <div className="w-96 h-80 bg-gray-900 rounded-2xl flex items-center justify-center">
-                <div className="text-center text-blue-400">
-                  <div className="w-16 h-16 bg-blue-500 rounded-full mx-auto mb-4"></div>
-                  <p className="text-sm">Innovation Network</p>
+              <div className="w-96 h-80 bg-gray-900 rounded-2xl flex flex-col items-center justify-center overflow-hidden">
+                <img
+                  src="/about us image.jpg"
+                  alt="About Us"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-4 left-0 right-0 text-center">
+                  <p className="text-white text-lg font-semibold bg-black bg-opacity-50 px-4 py-2 rounded-lg inline-block">
+                    Innovation Network
+                  </p>
                 </div>
               </div>
             </div>
@@ -235,7 +241,7 @@ function AboutPage() {
                   <div className="flex justify-center mb-4">
                     {member.imageUrl ? (
                       <img
-                        src={member.imageUrl}
+                        src={`${API_URL}/files/${member.imageUrl}`}
                         alt={member.name}
                         className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
                       />

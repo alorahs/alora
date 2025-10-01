@@ -238,7 +238,7 @@ export default function UserManagement() {
           <div className="mb-6">
             <Button
               variant="outline"
-              onClick={() => navigate("/admin/dashboard")}
+              onClick={() => navigate("/admin")}
               className="mb-4"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -261,7 +261,7 @@ export default function UserManagement() {
         <div className="mb-6">
           <Button
             variant="outline"
-            onClick={() => navigate("/admin/dashboard")}
+            onClick={() => navigate("/admin")}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
