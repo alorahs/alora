@@ -87,8 +87,7 @@ function Feedback() {
         },
         credentials: "include",
         body: JSON.stringify({
-          name: formdata.name,
-          email: formdata.email,
+          _id: user._id,
           rating: formdata.rating,
           subject: formdata.subject,
           message: formdata.message,

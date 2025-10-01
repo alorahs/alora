@@ -67,6 +67,7 @@ export default function FeedbackList() {
       if (response.ok) {
         const data = await response.json();
         setFeedback(data);
+        console.log(data);
       }
     } catch (error) {
       console.error("Error fetching feedback:", error);

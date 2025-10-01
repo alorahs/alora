@@ -71,18 +71,6 @@ const howItWorksSteps = [
 ];
 
 // Testimonials
-const testimonials = [
-  {
-    name: "Sarah J.",
-    text: "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
-    rating: 5,
-  },
-  {
-    name: "David K.",
-    text: "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
-    rating: 5,
-  },
-];
 
 function HomePage() {
   const navigate = useNavigate();
@@ -103,6 +91,13 @@ function HomePage() {
       category: string;
     }[]
   >([]);
+  const [testimonials, setTestimonials] = useState<
+    {
+      name: string;
+      text: string;
+      rating: number;
+    }[]
+  >([]);
   // Fetch services from backend
   useEffect(() => {
     const fetchServices = async () => {
@@ -117,7 +112,7 @@ function HomePage() {
     };
     fetchServices();
   }, []);
-  
+
   // Reverse Geocoding: Coords -> Address
   const fetchAddressFromCoords = async (lat: number, lon: number) => {
     try {
@@ -183,7 +178,49 @@ function HomePage() {
       navigate(`/professionals?location=${encodeURIComponent(searchQuery)}`);
     }
   };
-
+  // Fetch feedback from backend
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      try {
+        const res = await fetch(`${API_URL}/feedback/public`);
+        if (res.ok) {
+          const data = await res.json();
+          setTestimonials(data);
+        } else {
+          // Fallback to hardcoded testimonials in case of error
+          setTestimonials([
+            {
+              name: "Sarah J.",
+              text: "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
+              rating: 4,
+            },
+            {
+              name: "David K.",
+              text: "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
+              rating: 4,
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error("Error fetching feedback:", error);
+        // Fallback to hardcoded testimonials in case of error
+        setTestimonials([
+          {
+            name: "Sarah J.",
+            text: "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
+            rating: 4,
+          },
+          {
+            name: "David K.",
+            text: "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
+          rating: 4,
+        },
+      ]);
+    }
+  };
+  fetchFeedback();
+}, []);
+  console.log(testimonials);
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -386,10 +423,7 @@ function HomePage() {
                   >
                     <CardContent className="p-4 sm:p-6 h-full flex flex-col">
                       <div className="flex items-start gap-3 sm:gap-4 flex-1">
-                        <div
-                          className={`p-2 sm:p-3 rounded-lg flex-shrink-0`}
-                          
-                        >
+                        <div className={`p-2 sm:p-3 rounded-lg flex-shrink-0`}>
                           <span className="text-white text-xl">
                             {service.icon || "📋"}
                           </span>
@@ -446,25 +480,37 @@ function HomePage() {
               What Our Users Say
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
-            {testimonials.map((t) => (
-              <Card
-                key={t.name}
-                className="p-6 shadow-sm border border-gray-100"
-              >
-                <div className="flex items-center mb-4">
-                  <Users className="text-blue-600 mr-2" size={24} />
-                  <h3 className="text-lg font-semibold">{t.name}</h3>
-                </div>
-                <p className="text-gray-600 mb-2">{t.text}</p>
-                <div className="flex">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="text-yellow-400 mr-1" size={16} />
-                  ))}
-                </div>
-              </Card>
-            ))}
-          </div>
+          {testimonials.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
+              {testimonials.map((t, index) => (
+                <Card
+                  key={index}
+                  className="p-6 shadow-sm border border-gray-100"
+                >
+                  <div className="flex items-center mb-4">
+                    <Users className="text-blue-600 mr-2" size={24} />
+                    <h3 className="text-lg font-semibold">{t.name}</h3>
+                  </div>
+                  <p className="text-gray-600 mb-2">{t.text}</p>
+                  <div className="flex">
+                    {Array.from({ length: t.rating }).map((_, i) => (
+                      <Star
+                        key={i}
+                        className="text-yellow-400 mr-1"
+                        size={16}
+                      />
+                    ))}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-600">
+                No feedback available at the moment.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
