@@ -51,7 +51,8 @@ router.post('/', verifyAccessToken, [
     // Send notification to professional
     const notificationTitle = 'New Booking Request';
     const notificationMessage = `You have a new booking request from ${savedBooking.user.fullName} for ${savedBooking.service} on ${new Date(savedBooking.date).toLocaleDateString()} at ${savedBooking.time}.`;
-    await createNotification(professionalId, notificationTitle, notificationMessage, 'info');
+    const notificationUrl = `/professional/booking/${savedBooking._id}`;
+    await createNotification(professionalId, notificationTitle, notificationMessage, 'info', notificationUrl);
     
     res.status(201).json({ message: 'Booking created successfully', booking: savedBooking });
   } catch (error) {
@@ -102,7 +103,7 @@ router.get('/:id', verifyAccessToken, async (req, res) => {
 
 // Update booking status (user can cancel, admin/professional can confirm/complete)
 router.put('/:id/status', verifyAccessToken, [
-  body('status').isIn(['pending', 'confirmed', 'completed', 'cancelled']).withMessage('Invalid status')
+  body('status').isIn(['pending', 'confirmed', 'completed', 'cancelled', 'rejected']).withMessage('Invalid status')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -122,8 +123,8 @@ router.put('/:id/status', verifyAccessToken, [
       // Admin can update any booking
     } else if (req.user.role === 'professional' && booking.professional.toString() === req.user._id.toString()) {
       // Professional can only update their own bookings
-      if (status !== 'confirmed' && status !== 'completed') {
-        return res.status(403).json({ message: 'Professionals can only confirm or complete bookings' });
+      if (status !== 'confirmed' && status !== 'completed' && status !== 'rejected') {
+        return res.status(403).json({ message: 'Professionals can only confirm, complete, or reject bookings' });
       }
     } else if (booking.user.toString() === req.user._id.toString()) {
       // User can only cancel their own bookings
@@ -155,10 +156,14 @@ router.put('/:id/status', verifyAccessToken, [
     } else if (status === 'cancelled' && previousStatus !== 'cancelled') {
       notificationTitle = 'Booking Cancelled';
       notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.service} has been cancelled.`;
+    } else if (status === 'rejected' && previousStatus !== 'rejected') {
+      notificationTitle = 'Booking Rejected';
+      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.service} has been rejected.`;
     }
     
     if (notificationTitle && notificationMessage) {
-      await createNotification(updatedBooking.user._id, notificationTitle, notificationMessage, 'info');
+      const notificationUrl = `/profile/booking/${updatedBooking._id}`;
+      await createNotification(updatedBooking.user._id, notificationTitle, notificationMessage, 'info', notificationUrl);
     }
     
     res.status(200).json({ message: 'Booking status updated', booking: updatedBooking });

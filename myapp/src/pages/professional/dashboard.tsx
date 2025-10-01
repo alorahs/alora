@@ -7,7 +7,6 @@ import { Loader2, Calendar, Clock, MapPin, User, Star } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
-import { useNotifications } from "@/context/notification_context";
 
 interface Booking {
   _id: string;
@@ -30,7 +29,7 @@ interface Booking {
     zip: string;
   };
   notes: string;
-  status: "pending" | "confirmed" | "completed" | "cancelled";
+  status: "pending" | "confirmed" | "completed" | "cancelled" | "rejected";
   rating?: number;
   review?: string;
   createdAt: string;
@@ -50,7 +49,6 @@ interface Review {
 
 export default function ProfessionalDashboard() {
   const { user } = useAuth();
-  const { fetchNotifications } = useNotifications();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -132,9 +130,7 @@ export default function ProfessionalDashboard() {
 
     fetchBookings();
     fetchReviews();
-    // Fetch notifications when dashboard loads
-    fetchNotifications();
-  }, [user, navigate, toast, fetchNotifications]);
+  }, [user, navigate, toast]);
 
   const handleStatusUpdate = async (
     bookingId: string,
@@ -205,6 +201,12 @@ export default function ProfessionalDashboard() {
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
             Cancelled
+          </span>
+        );
+      case "rejected":
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            Rejected
           </span>
         );
       default:
@@ -433,28 +435,49 @@ export default function ProfessionalDashboard() {
 
                               <div className="mt-4 flex space-x-2">
                                 <Button variant="outline" size="sm" asChild>
-                                  <Link to={`/profile/booking/${booking._id}`}>
+                                  <Link
+                                    to={`/professional/booking/${booking._id}`}
+                                  >
                                     View Details
                                   </Link>
                                 </Button>
 
                                 {booking.status === "pending" && (
-                                  <Button
-                                    size="sm"
-                                    onClick={() =>
-                                      handleStatusUpdate(
-                                        booking._id,
-                                        "confirmed"
-                                      )
-                                    }
-                                    disabled={updating}
-                                  >
-                                    {updating ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                      "Confirm"
-                                    )}
-                                  </Button>
+                                  <>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleStatusUpdate(
+                                          booking._id,
+                                          "rejected"
+                                        )
+                                      }
+                                      disabled={updating}
+                                    >
+                                      {updating ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        "Reject"
+                                      )}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      onClick={() =>
+                                        handleStatusUpdate(
+                                          booking._id,
+                                          "confirmed"
+                                        )
+                                      }
+                                      disabled={updating}
+                                    >
+                                      {updating ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        "Confirm"
+                                      )}
+                                    </Button>
+                                  </>
                                 )}
 
                                 {booking.status === "confirmed" && (

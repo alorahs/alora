@@ -22,6 +22,11 @@ const notificationSchema = new mongoose.Schema({
   read: {
     type: Boolean,
     default: false
+  },
+  // Add navigation URL field
+  url: {
+    type: String,
+    default: null
   }
 }, { timestamps: true});
 

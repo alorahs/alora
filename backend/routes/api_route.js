@@ -15,6 +15,7 @@ import verifyAccessToken from '../middleware/authentication.js';
 import navigationRouter from './navigation_route.js';
 import serviceRouter from './service_route.js';
 import adminRouter from './admin_route.js';
+import aboutUsRouter from './aboutus_route.js';
 
 const router = express.Router();
 
@@ -33,5 +34,6 @@ router.use('/refresh-token', verifyAccessToken, refreshTokenRouter);
 router.use('/files', fileRouter);
 router.use('/geocode', navigationRouter);
 router.use('/admin', verifyAccessToken, adminRouter);
+router.use('/aboutus', aboutUsRouter);
 
 export default router;

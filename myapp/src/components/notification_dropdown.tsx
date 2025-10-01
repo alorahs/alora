@@ -17,14 +17,30 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { useSocket } from "@/context/socket_context";
+import { useEffect, useState } from "react";
 
 export function NotificationDropdown() {
-  const {
-    notifications,
-    markAsRead,
-    markAllAsRead,
-    unreadCount,
-  } = useNotifications();
+  const { notifications, markAsRead, markAllAsRead, unreadCount } =
+    useNotifications();
+  const { isConnected } = useSocket();
+  const [newNotification, setNewNotification] = useState(false);
+  const navigate = useNavigate();
+
+  // Reset new notification indicator when dropdown is opened
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setNewNotification(false);
+    }
+  };
+
+  // Set new notification indicator when notifications change
+  useEffect(() => {
+    if (notifications.length > 0 && !notifications[0].read) {
+      setNewNotification(true);
+    }
+  }, [notifications]);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -52,8 +68,20 @@ export function NotificationDropdown() {
     }
   };
 
+  const handleNotificationClick = (id: string, url: string | null) => {
+    // Mark as read only if id is valid
+    if (id) {
+      markAsRead(id);
+    }
+
+    // Navigate to the URL if it exists
+    if (url) {
+      navigate(url);
+    }
+  };
+
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -66,6 +94,9 @@ export function NotificationDropdown() {
             <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
               {unreadCount}
             </span>
+          )}
+          {newNotification && (
+            <span className="absolute bottom-0 right-0 inline-flex items-center justify-center w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
           )}
         </Button>
       </DropdownMenuTrigger>
@@ -91,7 +122,9 @@ export function NotificationDropdown() {
                 className={`flex flex-col items-start p-4 ${
                   !notification.read ? "bg-gray-50" : ""
                 }`}
-                onClick={() => markAsRead(notification.id)}
+                onClick={() =>
+                  handleNotificationClick(notification.id, notification.url)
+                }
               >
                 <div className="flex w-full">
                   <div className="flex-shrink-0 mr-3">

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { API_URL } from "./auth_provider";
+import { API_URL, useAuth } from "./auth_provider";
 import Loader from "@/components/loader";
 import { useToast } from "@/hooks/use-toast";
 
@@ -9,14 +9,17 @@ interface Notification {
   message: string;
   type: "info" | "success" | "warning" | "error";
   read: boolean;
-  createdAt: string
-  updatedAt: string
+  url: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface NotificationContextType {
   notifications: Notification[];
+  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  refreshNotifications: () => void;
   unreadCount: number;
 }
 
@@ -26,9 +29,80 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [isLoading, setIsLoading] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  const refreshNotifications = async () => {
+    // Only fetch notifications if user is authenticated
+    if (!user) {
+      setNotifications([]);
+      return;
+    }
+
+    try {
+      // Fetch notifications
+      const response = await fetch(`${API_URL}/notification`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Validate and process notifications data
+        if (Array.isArray(data)) {
+          // Convert createdAt strings to Date objects and ensure proper structure
+          const notificationsWithDates = data.map((notification: any) => ({
+            id: notification._id || notification.id || '', // Use _id from MongoDB
+            title: notification.title || '',
+            message: notification.message || '',
+            type: notification.type && ['info', 'success', 'warning', 'error'].includes(notification.type) 
+              ? notification.type 
+              : 'info',
+            read: Boolean(notification.read),
+            url: notification.url || null,
+            createdAt: notification.createdAt || new Date().toISOString(),
+            updatedAt: notification.updatedAt || new Date().toISOString(),
+          })).filter((notification) => notification.id); // Filter out notifications without IDs
+          
+          setNotifications(notificationsWithDates);
+        } else {
+          console.warn('Unexpected notifications data format:', data);
+          setNotifications([]);
+        }
+      } else { 
+        if (user) {
+        const errorText = await response.text();
+        console.error('Failed to fetch notifications:', errorText);
+        toast({
+          title: "Failed to fetch notifications",
+          description: "Please try again later",
+          variant: "destructive"
+        });
+        setNotifications([]);
+      }}
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load notifications",
+        variant: "destructive"
+      });
+      setNotifications([]); // Ensure we have a clean state on error
+    }
+  };
 
   useEffect(() => {
     const fetchNotifications = async () => {
+      // If no user, clear notifications and return
+      if (!user) {
+        setNotifications([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
         // First verify user authentication
@@ -44,47 +118,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           return;
         }
 
-        // Fetch notifications
-        const response = await fetch(`${API_URL}/notification`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-
-          // Validate and process notifications data
-          if (Array.isArray(data)) {
-            // Convert createdAt strings to Date objects and ensure proper structure
-            const notificationsWithDates = data.map((notification: any) => ({
-              id: notification.id || '',
-              title: notification.title || '',
-              message: notification.message || '',
-              type: notification.type && ['info', 'success', 'warning', 'error'].includes(notification.type) 
-                ? notification.type 
-                : 'info',
-              read: Boolean(notification.read),
-              createdAt: notification.createdAt || new Date().toISOString(),
-              updatedAt: notification.updatedAt || new Date().toISOString(),
-            }));
-            setNotifications(notificationsWithDates);
-          } else {
-            console.warn('Unexpected notifications data format:', data);
-            setNotifications([]);
-          }
-        } else {
-          const errorText = await response.text();
-          console.error('Failed to fetch notifications:', errorText);
-          toast({
-            title: "Failed to fetch notifications",
-            description: "Please try again later",
-            variant: "destructive"
-          });
-          setNotifications([]);
-        }
+        await refreshNotifications();
       } catch (error) {
         console.error("Error fetching notifications:", error);
         toast({
@@ -99,9 +133,20 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     };
 
     fetchNotifications();
-  }, []);
+  }, [user, toast]);
 
   const markAsRead = async (id: string) => {
+    // Prevent calling API with empty ID
+    if (!id) {
+      console.warn('Attempted to mark notification as read with empty ID');
+      return;
+    }
+    
+    // Don't proceed if no user
+    if (!user) {
+      return;
+    }
+    
     try {
       await fetch(`${API_URL}/notification/${id}/read`, {
         method: "PUT",
@@ -132,6 +177,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   };
 
   const markAllAsRead = async () => {
+    // Only proceed if there are unread notifications and user exists
+    if (unreadCount === 0 || !user) {
+      return;
+    }
+    
     try {
       // Update on backend
       await fetch(`${API_URL}/notification/read-all`, {
@@ -154,9 +204,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Fetch notifications when provider is mounted
-
-
   if (isLoading) {
     return React.createElement(Loader);
   }
@@ -166,8 +213,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     {
       value: {
         notifications,
+        setNotifications,
         markAsRead,
         markAllAsRead,
+        refreshNotifications,
         unreadCount,
       }
     }, children

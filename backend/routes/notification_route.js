@@ -1,6 +1,7 @@
 import express from 'express';
 import verifyAccessToken from '../middleware/authentication.js';
 import Notification from '../models/notification.js';
+import { getIO } from '../socket.js';
 
 const router = express.Router();
 
@@ -21,6 +22,11 @@ router.get('/', verifyAccessToken, async (req, res) => {
 // Mark a notification as read
 router.put('/:id/read', verifyAccessToken, async (req, res) => {
   try {
+    // Check if ID is provided
+    if (!req.params.id) {
+      return res.status(400).json({ message: 'Notification ID is required' });
+    }
+    
     const notification = await Notification.findOneAndUpdate(
       { _id: req.params.id, user: req.user._id },
       { read: true },
@@ -54,16 +60,28 @@ router.put('/read-all', verifyAccessToken, async (req, res) => {
 });
 
 // Create a notification (internal use)
-export const createNotification = async (userId, title, message, type = 'info') => {
+export const createNotification = async (userId, title, message, type = 'info', url = null) => {
   try {
     const notification = new Notification({
       user: userId,
       title,
       message,
-      type
+      type,
+      url
     });
     
-    return await notification.save();
+    const savedNotification = await notification.save();
+    
+    // Emit real-time notification via WebSocket if user is connected
+    const io = getIO();
+    const socketId = global.connectedUsers?.get(userId.toString());
+    if (socketId) {
+      // Fetch the full notification with populated fields
+      const fullNotification = await Notification.findById(savedNotification._id);
+      io.to(socketId).emit('newNotification', fullNotification);
+    }
+    
+    return savedNotification;
   } catch (error) {
     console.error('Error creating notification:', error);
     return null;

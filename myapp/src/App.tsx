@@ -31,7 +31,10 @@ import RatingStatsPage from "./pages/admin/RatingStatsPage";
 import BookingRatingsPage from "./pages/admin/BookingRatingsPage";
 import UserManagement from "./pages/admin/users";
 import ServiceManagement from "./pages/admin/services";
+import AboutUsAdminPage from "./pages/admin/aboutus";
 import SettingsPage from "./pages/settings/page";
+import ProfessionalsDashboard from "./professionals Dashboard/page";
+import ProfessionalBookingDetailsPage from "./pages/professional/booking";
 
 function App() {
   const { user } = useAuth();
@@ -95,6 +98,21 @@ function App() {
             <Route
               path="/admin/booking-ratings"
               element={<BookingRatingsPage />}
+            />
+          )}
+          {user && user.role === "admin" && (
+            <Route path="/admin/aboutus" element={<AboutUsAdminPage />} />
+          )}
+          {user && user.role === "professional" && (
+            <Route
+              path="/professionals-dashboard"
+              element={<ProfessionalsDashboard />}
+            />
+          )}
+          {user && user.role === "professional" && (
+            <Route
+              path="/professional/booking/:id"
+              element={<ProfessionalBookingDetailsPage />}
             />
           )}
 

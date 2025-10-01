@@ -14,6 +14,7 @@ import {
   Briefcase,
   Mail,
   BookOpen,
+  Info,
 } from "lucide-react";
 import RatingStats from "@/components/admin/RatingStats";
 
@@ -256,6 +257,13 @@ export default function AdminDashboardSimple() {
             >
               <BookOpen className="h-4 w-4 mr-2" />
               Booking Ratings
+            </Button>
+            <Button
+              onClick={() => navigate("/admin/aboutus")}
+              variant="outline"
+            >
+              <Info className="h-4 w-4 mr-2" />
+              About Us
             </Button>
           </div>
         </div>

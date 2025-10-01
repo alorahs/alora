@@ -27,10 +27,21 @@ import { NotificationDropdown } from "./notification_dropdown";
 
 const navigationItems = [
   { href: "/", label: "Home" },
+  // { href: "/professionals-dashboard", label: "Dashboard" },
   { href: "/professionals", label: "Professionals" },
   { href: "/about", label: "About Us" },
   { href: "/contact", label: "Contact" },
-  
+  { href: "/feedback", label: "Feedback" },
+
+  // { href: "/faq", label: "FAQ" },
+  // { href: "/help", label: "Help" },
+];
+const navigationItemsforProfessionals = [
+  { href: "/", label: "Home" },
+  { href: "/professionals-dashboard", label: "Dashboard" },
+  { href: "/professionals", label: "Professionals" },
+  { href: "/about", label: "About Us" },
+  { href: "/contact", label: "Contact" },
   { href: "/feedback", label: "Feedback" },
 
   // { href: "/faq", label: "FAQ" },
@@ -71,17 +82,33 @@ export function Header() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {navigationItems.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        {(!user || user.role === "admin" || user.role === "customer") && (
+          <nav className="hidden md:flex items-center space-x-8">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        )}
+        {/* Desktop Navigation professional*/}
+        {user && user.role === "professional" && (
+          <nav className="hidden md:flex items-center space-x-8">
+            {navigationItemsforProfessionals.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        )}
 
         {/* Right Side - Auth & Mobile Menu */}
         <div className="flex items-center space-x-3">
