@@ -33,6 +33,10 @@ import AboutUsAdminPage from "./pages/admin/aboutus";
 import SettingsPage from "./pages/settings/page";
 import ProfessionalsDashboard from "./professionals-dashboard/page";
 import ProfessionalBookingDetailsPage from "./pages/professional/booking";
+// Legal pages
+import PrivacyPolicyPage from "./pages/legal/privacy";
+import TermsOfServicePage from "./pages/legal/terms";
+import CookiePolicyPage from "./pages/legal/cookie";
 
 function App() {
   const { user } = useAuth();
@@ -57,6 +61,11 @@ function App() {
             element={<ProfessionalProfileModal />}
           />
           <Route path="/booking/:id" element={<BookingPage />} />
+
+          {/* Legal Pages */}
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
+          <Route path="/cookie" element={<CookiePolicyPage />} />
 
           {/* Auth Pages */}
           <Route path="/auth/login" element={<LoginPage />} />

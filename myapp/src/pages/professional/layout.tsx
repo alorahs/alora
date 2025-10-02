@@ -53,18 +53,6 @@ function Layout({
               Filter by Category
             </h3>
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant={!selectedCategory ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(null)}
-                className={`rounded-full ${
-                  !selectedCategory
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-600 hover:bg-blue-50"
-                }`}
-              >
-                All Categories
-              </Button>
               {categories.map((category) => (
                 <Button
                   key={category.name}
@@ -76,7 +64,7 @@ function Layout({
                   className={`rounded-full flex items-center gap-2 ${
                     selectedCategory === category.name
                       ? "bg-blue-600 text-white"
-                      : "text-gray-600 hover:bg-blue-50"
+                      : "text-gray-600 hover:bg-green-500"
                   }`}
                 >
                   <span>{category.icon}</span>

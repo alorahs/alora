@@ -1,95 +1,120 @@
-import { Img } from "react-image";
 import { Link } from "react-router-dom";
 
 function Footer() {
   return (
-    <footer className="bg-gray-900 text-white py-8 sm:py-10">
+    <footer className="bg-gray-900 border-t border-border py-8 sm:py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
-          <div className="col-span-1 sm:col-span-2 lg:col-span-1">
+        {/* Mobile-first grid layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
+          {/* Logo and description - spans full width on mobile */}
+          <div className="col-span-1 md:col-span-2 lg:col-span-1">
             <Link to="/" className="flex-shrink-0 inline-block">
-              <Img
-                src="/alora-logo.png"
-                alt="Alora"
-                width={120}
-                height={40}
-                className="h-8 w-auto mb-4 brightness-0 invert"
-              />
+              <div className="rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg h-8 w-8 mb-4">
+                <img
+                  src="/alora-logo.png"
+                  alt="Alora"
+                  className="h-full w-full object-contain"
+                />
+              </div>
             </Link>
-            <p className="text-gray-400 text-sm sm:text-base max-w-md">
+            <p className="text-muted-foreground text-sm sm:text-base max-w-md">
               Connecting you with the best home service professionals in your
               area.
             </p>
           </div>
 
+          {/* Company links */}
           <div>
-            <h4 className="font-semibold text-base sm:text-lg mb-4">Company</h4>
-            <ul className="space-y-2 text-gray-400 text-sm sm:text-base">
+            <h4 className="font-semibold text-base sm:text-lg mb-4 text-muted-foreground">
+              Company
+            </h4>
+            <ul className="space-y-2 text-muted-foreground text-sm sm:text-base">
               <li>
-                <a href="/about" className="hover:text-white transition-colors">
+                <a
+                  href="/about"
+                  className="hover:text-foreground transition-colors"
+                >
                   About Us
                 </a>
               </li>
               <li>
                 <a
                   href="/careers"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   Careers
                 </a>
               </li>
               <li>
-                <a href="/press" className="hover:text-white transition-colors">
+                <a
+                  href="/press"
+                  className="hover:text-foreground transition-colors"
+                >
                   Press
                 </a>
               </li>
             </ul>
           </div>
 
+          {/* Support links */}
           <div>
-            <h4 className="font-semibold text-base sm:text-lg mb-4">Support</h4>
-            <ul className="space-y-2 text-gray-400 text-sm sm:text-base">
+            <h4 className="font-semibold text-base sm:text-lg mb-4 text-muted-foreground">
+              Support
+            </h4>
+            <ul className="space-y-2 text-muted-foreground text-sm sm:text-base">
               <li>
-                <a href="/faq" className="hover:text-white transition-colors">
+                <a
+                  href="/faq"
+                  className="hover:text-foreground transition-colors"
+                >
                   FAQ
                 </a>
               </li>
               <li>
                 <a
                   href="/contact"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   Contact
                 </a>
               </li>
               <li>
-                <a href="/help" className="hover:text-white transition-colors">
+                <a
+                  href="/help"
+                  className="hover:text-foreground transition-colors"
+                >
                   Help Center
                 </a>
               </li>
             </ul>
           </div>
 
-          <div className="col-span-1 sm:col-span-2 lg:col-span-1 lg:col-start-2">
-            <h4 className="font-semibold text-base sm:text-lg mb-4">Legal</h4>
-            <ul className="space-y-2 text-gray-400 text-sm sm:text-base">
+          {/* Legal links - positioned correctly on larger screens */}
+          <div className="col-span-1 md:col-span-2 lg:col-span-1 lg:col-start-4">
+            <h4 className="font-semibold text-base sm:text-lg mb-4 text-muted-foreground">
+              Legal
+            </h4>
+            <ul className="space-y-2 text-muted-foreground text-sm sm:text-base">
               <li>
                 <a
                   href="/privacy"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="/terms" className="hover:text-white transition-colors">
+                <a
+                  href="/terms"
+                  className="hover:text-foreground transition-colors"
+                >
                   Terms of Service
                 </a>
               </li>
               <li>
                 <a
                   href="/cookie"
-                  className="hover:text-white transition-colors"
+                  className="hover:text-foreground transition-colors"
                 >
                   Cookie Policy
                 </a>
@@ -98,9 +123,10 @@ function Footer() {
           </div>
         </div>
 
-        <div className="border-t border-gray-800 mt-8 sm:mt-10 pt-6 sm:pt-8 text-center text-gray-400">
+        {/* Copyright section */}
+        <div className="border-t border-border mt-8 sm:mt-10 pt-6 sm:pt-8 text-center text-muted-foreground">
           <p className="text-sm sm:text-base">
-            &copy; 2024 Alora. All rights reserved.
+            &copy; {new Date().getFullYear()} Alora. All rights reserved.
           </p>
         </div>
       </div>

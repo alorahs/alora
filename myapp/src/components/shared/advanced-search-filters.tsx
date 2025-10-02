@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -8,6 +6,8 @@ import { Slider } from "../ui/slider";
 import { Badge } from "../ui/badge";
 import { MapPin, Clock, Calendar, Star } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import { API_URL } from "@/context/auth_provider";
+import { useGeolocation } from "@/hooks/use-geolocation";
 
 interface FilterProps {
   searchQuery: string;
@@ -43,7 +43,13 @@ export function AdvancedSearchFilters({
   const [durationFilter, setDurationFilter] = useState("");
   const [experienceFilter, setExperienceFilter] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
-
+  const [coordinates, setCoordinates] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
+  const [locationName, setLocationName] = useState("");
+  const [clearAdvanceclick, setClearAdvancedClick] = useState(false);
+  const detectUserLocation = useGeolocation();
   const activeFiltersCount = [
     selectedCategory,
     priceFilter,
@@ -61,6 +67,59 @@ export function AdvancedSearchFilters({
     setExperienceFilter("");
     onClearAll();
   };
+
+  const fetchAddressFromCoords = async (lat: number, lon: number) => {
+    try {
+      const res = await fetch(
+        `${API_URL}/geocode/reverse?lat=${lat}&lon=${lon}`,
+        { method: "GET" }
+      );
+      const data = await res.json();
+      const place =
+        data?.address.city ||
+        data?.address.town ||
+        data?.address.village ||
+        data?.address.city_district;
+      if (place) {
+        setLocationFilter(`${place}, ${data.address.state || ""}`);
+        // setSearchQuery(`${place}, ${data.address.state || ""}`);
+      }
+    } catch (error) {
+      console.error("Error fetching address:", error);
+    }
+  };
+  // Geocoding: Address -> Coords
+  const fetchCoordsFromAddress = async (address: string) => {
+    try {
+      const res = await fetch(
+        `${API_URL}/geocode/forward?address=${encodeURIComponent(address)}`,
+        { method: "GET" }
+      );
+      const data = await res.json();
+      if (data.length > 0) {
+        const { lat, lon } = data[0];
+        setCoordinates({ lat: parseFloat(lat), lon: parseFloat(lon) });
+        setLocationName(address);
+      }
+    } catch (error) {
+      console.error("Error fetching coordinates:", error);
+    }
+  };
+
+  // Auto update when location detected
+  useEffect(() => {
+    if (
+      locationFilter === "" &&
+      !clearAdvanceclick &&
+      detectUserLocation.Coordinates
+    ) {
+      setCoordinates(detectUserLocation.Coordinates);
+      fetchAddressFromCoords(
+        detectUserLocation.Coordinates.lat,
+        detectUserLocation.Coordinates.lon
+      );
+    }
+  }, [detectUserLocation.Coordinates, locationFilter]);
   {
     /*router */
   }
@@ -86,7 +145,10 @@ export function AdvancedSearchFilters({
         <Button
           variant="ghost"
           size="sm"
-          onClick={clearAdvancedFilters}
+          onClick={() => {
+            clearAdvancedFilters();
+            setClearAdvancedClick(true);
+          }}
           className="text-blue-600 hover:text-blue-700"
         >
           Clear All
@@ -133,11 +195,26 @@ export function AdvancedSearchFilters({
           <MapPin className="h-4 w-4 mr-1" />
           Location
         </Label>
-        <Input
-          placeholder="Enter city or area..."
-          value={locationFilter}
-          onChange={(e) => setLocationFilter(e.target.value)}
-        />
+        <div className="flex">
+          <Input
+            placeholder="Enter city or area..."
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+          />
+          <Button
+            variant="outline"
+            onClick={() => {
+              setClearAdvancedClick(false);
+              if (detectUserLocation?.Coordinates) {
+                const { lat, lon } = detectUserLocation.Coordinates;
+                setCoordinates({ lat, lon });
+                fetchAddressFromCoords(lat, lon);
+              }
+            }}
+          >
+            <MapPin className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Price Range Slider */}
