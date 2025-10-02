@@ -1,9 +1,36 @@
 {
+  "name": "alora",
+  "version": "1.0.0",
+  "description": "Your Home Service Partner - A comprehensive platform connecting customers with professional service providers",
+  "type": "module",
+  "scripts": {
+    "start": "node run.js",
+    "dev": "node run.js",
+    "migrate": "node migrate.mjs",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd myapp && npm run dev",
+    "build": "cd myapp && npm run build",
+    "install-all": "npm install && cd backend && npm install && cd ../myapp && npm install",
+    "clean": "cd backend && rm -rf node_modules && cd ../myapp && rm -rf node_modules && rm -rf node_modules",
+    "lint": "cd myapp && npm run lint",
+    "type-check": "cd myapp && npx tsc --noEmit"
+  },
   "dependencies": {
     "child_process": "^1.0.2"
-
   },
-  "scripts": {
-    "start": "node run.js"
+  "devDependencies": {},
+  "keywords": [
+    "home-services",
+    "booking-platform",
+    "react",
+    "node.js",
+    "mongodb",
+    "typescript"
+  ],
+  "author": "Alora Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   }
 }
