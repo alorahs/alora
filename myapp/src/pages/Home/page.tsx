@@ -191,12 +191,14 @@ function HomePage() {
           setTestimonials([
             {
               name: "Sarah J.",
-              message: "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
+              message:
+                "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
               rating: 4,
             },
             {
               name: "David K.",
-              message: "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
+              message:
+                "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
               rating: 4,
             },
           ]);
@@ -207,12 +209,14 @@ function HomePage() {
         setTestimonials([
           {
             name: "Sarah J.",
-            message: "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
+            message:
+              "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
             rating: 4,
           },
           {
             name: "David K.",
-            message: "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
+            message:
+              "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
             rating: 4,
           },
         ]);
@@ -223,7 +227,7 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative min-h-[80vh] flex items-center overflow-hidden py-12 sm:py-16 lg:py-20">
+      <section className="relative min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] flex items-center overflow-hidden py-8 sm:py-12 lg:py-16">
         {/* Background slider */}
         <div className="absolute inset-0 overflow-hidden z-0">
           <div className="slider-track flex w-max h-full animate-slideImages">
@@ -247,11 +251,11 @@ function HomePage() {
         `}</style>
         <div className="absolute inset-0 bg-black/70"></div>
         <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Hero Content */}
             <div className="text-center lg:text-left">
               <h1
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 lg:mb-6 leading-tight"
+                className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 leading-tight"
                 style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.8)" }}
               >
                 Connect with Local
@@ -259,17 +263,17 @@ function HomePage() {
                 <span className="block">Experts Instantly</span>
               </h1>
               <p
-                className="text-base sm:text-lg text-white mb-6 lg:mb-8 max-w-lg mx-auto lg:mx-0"
+                className="text-base sm:text-lg md:text-xl text-white mb-6 max-w-lg mx-auto lg:mx-0"
                 style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.7)" }}
               >
                 From urgent repairs to routine maintenance, Alora connects you
                 directly with certified professionals. Get immediate support
                 with a single call.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 lg:gap-4 justify-center lg:justify-start">
+              <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
                 <Button
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-lg flex items-center justify-center w-full sm:w-auto"
+                  className="bg-blue-600 hover:bg-blue-700 px-6 py-3 sm:px-8 sm:py-4 text-base font-semibold rounded-lg flex items-center justify-center w-full xs:w-auto"
                   onClick={() => navigate("/professionals")}
                 >
                   <Plug className="mr-2" size={20} /> Call an Expert
@@ -277,7 +281,7 @@ function HomePage() {
                 <Button
                   variant="secondary"
                   size="lg"
-                  className="border-white bg-green-700 text-white hover:bg-green-600 hover:text-gray-900 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-lg w-full sm:w-auto"
+                  className="border-white bg-green-700 text-white hover:bg-green-600 hover:text-gray-900 px-6 py-3 sm:px-8 sm:py-4 text-base font-semibold rounded-lg w-full xs:w-auto"
                   onClick={() => navigate("/professionals")}
                 >
                   Explore Professionals
@@ -286,7 +290,7 @@ function HomePage() {
             </div>
 
             {/* Right Search Form */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 lg:p-10 shadow-2xl border border-gray-100 w-full max-w-md mx-auto lg:ml-auto lg:mr-0">
+            <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-2xl border border-gray-100 w-full max-w-md mx-auto">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
                 Find Services Near You
               </h2>
@@ -298,7 +302,7 @@ function HomePage() {
                   <Input
                     type="text"
                     placeholder="Enter your location"
-                    className="pl-12 py-3 sm:py-4 text-base sm:text-lg border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    className="pl-12 py-3 text-base sm:text-lg border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -318,7 +322,7 @@ function HomePage() {
                 </Button>
                 <Button
                   size="lg"
-                  className="w-full bg-blue-600 hover:bg-blue-700 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-lg flex items-center justify-center"
+                  className="w-full bg-blue-600 hover:bg-blue-700 py-3 sm:py-4 text-base font-semibold rounded-lg flex items-center justify-center"
                   onClick={handleSearch}
                 >
                   <Search className="mr-2" size={20} /> Search Services
@@ -330,32 +334,35 @@ function HomePage() {
       </section>
 
       {/* Services Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
+      <section className="py-10 sm:py-16 lg:py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 sm:mb-10 md:mb-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Our Comprehensive Services
             </h2>
           </div>
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-8 sm:mb-12">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 mb-8 sm:mb-10 md:mb-12">
             {categories.map((category) => (
               <Button
                 key={category.name}
                 variant={
                   activeCategory === category.name ? "default" : "outline"
                 }
-                className={`rounded-full px-4 sm:px-6 py-2 text-sm sm:text-base ${activeCategory === category.name
+                className={`rounded-full px-3 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm md:px-6 md:py-3 md:text-base ${
+                  activeCategory === category.name
                     ? "bg-blue-600 text-white"
                     : "bg-white text-gray-600 hover:bg-blue-500"
-                  }`}
+                }`}
                 onClick={() => setActiveCategory(category.name)}
               >
-                <span className="hidden sm:inline">{category.icon} </span>
-                {category.name}
+                <span className="hidden xs:inline mr-1 sm:mr-2">
+                  {category.icon}
+                </span>
+                <span className="whitespace-nowrap">{category.name}</span>
               </Button>
             ))}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
             {services
               .filter((service) => {
                 if (activeCategory === "All Services") return true;
@@ -419,15 +426,15 @@ function HomePage() {
                     onClick={() => onClickToServiceButton(service.title)}
                     className="group cursor-pointer border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white h-full"
                   >
-                    <CardContent className="p-4 sm:p-6 h-full flex flex-col">
+                    <CardContent className="p-4 sm:p-5 md:p-6 h-full flex flex-col">
                       <div className="flex items-start gap-3 sm:gap-4 flex-1">
                         <div className={`p-2 sm:p-3 rounded-lg flex-shrink-0`}>
-                          <span className="text-white text-xl">
+                          <span className="text-white text-lg sm:text-xl">
                             {service.icon || "📋"}
                           </span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors text-sm sm:text-base">
+                          <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors text-sm sm:text-base md:text-lg">
                             {service.title}
                           </h3>
                           <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
@@ -444,26 +451,28 @@ function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-white">
+      <section className="py-10 sm:py-16 lg:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               How It Works
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
             {howItWorksSteps.map((step) => (
               <Card
                 key={step.step}
-                className="p-6 text-center border border-gray-100 shadow-sm"
+                className="p-5 sm:p-6 text-center border border-gray-100 shadow-sm h-full"
               >
-                <div className="text-blue-600 font-bold text-xl mb-2">
+                <div className="text-blue-600 font-bold text-xl sm:text-2xl mb-3">
                   {step.step}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">
                   {step.title}
                 </h3>
-                <p className="text-gray-600">{step.description}</p>
+                <p className="text-gray-600 text-sm sm:text-base">
+                  {step.description}
+                </p>
               </Card>
             ))}
           </div>
@@ -471,31 +480,35 @@ function HomePage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
+      <section className="py-10 sm:py-16 lg:py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-10 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               What Our Users Say
             </h2>
           </div>
           {testimonials.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-8 lg:gap-10">
               {testimonials.map((t, index) => (
                 <Card
                   key={index}
-                  className="p-6 shadow-sm border border-gray-100"
+                  className="p-5 sm:p-6 shadow-sm border border-gray-100 h-full"
                 >
-                  <div className="flex items-center mb-4">
-                    <Users className="text-blue-600 mr-2" size={24} />
-                    <h3 className="text-lg font-semibold">{t.name}</h3>
+                  <div className="flex items-center mb-3 sm:mb-4">
+                    <Users className="text-blue-600 mr-2" size={20} />
+                    <h3 className="text-base sm:text-lg font-semibold">
+                      {t.name}
+                    </h3>
                   </div>
-                  <p className="text-gray-600 mb-2">{t.message}</p>
+                  <p className="text-gray-600 text-sm sm:text-base mb-3">
+                    {t.message}
+                  </p>
                   <div className="flex">
                     {Array.from({ length: t.rating }).map((_, i) => (
                       <Star
                         key={i}
                         className="text-yellow-400 mr-1"
-                        size={16}
+                        size={14}
                       />
                     ))}
                   </div>
@@ -503,8 +516,8 @@ function HomePage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-600">
+            <div className="text-center py-8 sm:py-12">
+              <p className="text-gray-600 text-base sm:text-lg">
                 No feedback available at the moment.
               </p>
             </div>
@@ -513,17 +526,17 @@ function HomePage() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-blue-600 text-white">
+      <section className="py-10 sm:py-16 lg:py-20 bg-blue-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             Ready to Get Started?
           </h2>
-          <p className="text-base sm:text-lg mb-6">
+          <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8">
             Find trusted home service professionals near you with Alora.
           </p>
           <Button
             size="lg"
-            className="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3 sm:py-4 rounded-lg font-semibold"
+            className="bg-white text-blue-600 hover:bg-gray-100 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg"
             onClick={() => navigate("/professionals")}
           >
             Explore Services

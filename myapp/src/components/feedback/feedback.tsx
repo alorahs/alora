@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Textarea } from "./ui/textarea";
-import { Label } from "./ui/label";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Card, CardContent, CardHeader, CardDescription } from "./ui/card";
-import { Alert, AlertDescription } from "./ui/alert";
-import { Badge } from "./ui/badge";
-import { Separator } from "./ui/separator";
+import { Textarea } from "../ui/textarea";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Card, CardContent, CardHeader, CardDescription } from "../ui/card";
+import { Alert, AlertDescription } from "../ui/alert";
+import { Badge } from "../ui/badge";
+import { Separator } from "../ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { API_URL, useAuth } from "@/context/auth_provider";
 import {

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { Input } from "./ui/input";
-import { Calendar } from "./ui/calendar";
-import { Badge } from "./ui/badge";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { Input } from "../ui/input";
+import { Calendar } from "../ui/calendar";
+import { Badge } from "../ui/badge";
 import { format } from "date-fns";
 import {
   Calendar as CalendarIcon,
@@ -17,11 +17,11 @@ import {
   ArrowRight,
   Zap,
 } from "lucide-react";
-import { cn } from "../lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { useToast } from "../hooks/use-toast";
-import { useAuth, API_URL } from "../context/auth_provider";
-import type { User } from "../interfaces/user";
+import { cn } from "../../lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { useToast } from "../../hooks/use-toast";
+import { useAuth, API_URL } from "../../context/auth_provider";
+import type { User } from "../../interfaces/user";
 
 export function BookingForm({ professional }: { professional: User }) {
   const { user } = useAuth();

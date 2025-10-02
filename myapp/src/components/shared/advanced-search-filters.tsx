@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Slider } from "../components/ui/slider";
-import { Badge } from "../components/ui/badge";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Slider } from "../ui/slider";
+import { Badge } from "../ui/badge";
 import { MapPin, Clock, Calendar, Star } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 
@@ -66,11 +66,11 @@ export function AdvancedSearchFilters({
   }
   const [searchParams] = useSearchParams();
   useEffect(() => {
-  const locationFromParams = searchParams.get("location");
-  if (locationFromParams) {
-    setLocationFilter(locationFromParams);
-  }
-}, [searchParams]);
+    const locationFromParams = searchParams.get("location");
+    if (locationFromParams) {
+      setLocationFilter(locationFromParams);
+    }
+  }, [searchParams]);
 
   return (
     <div className="bg-white border rounded-lg p-6 sticky top-24">

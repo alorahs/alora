@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Layout from "./layout";
-import ProfessionalProfileModal from "@/components/professional-profile-modal";
+import { ProfessionalProfileModal } from "@/components/profile";
 import { categories } from "../Home/page";
 import { API_URL } from "@/context/auth_provider";
 import { User } from "../../interfaces/user";

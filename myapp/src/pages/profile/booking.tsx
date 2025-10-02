@@ -13,7 +13,7 @@ import {
   Star,
   CheckCircle,
 } from "lucide-react";
-import { ReviewForm } from "@/components/review_form";
+import { ReviewForm } from "@/components/feedback";
 
 interface Booking {
   _id: string;

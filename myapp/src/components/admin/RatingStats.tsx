@@ -35,39 +35,47 @@ export default function RatingStats({ className = "" }: RatingStatsProps) {
   if (loading) {
     return (
       <div className={className}>
-        <h3 className="text-lg font-semibold mb-4">Rating Statistics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <h3 className="text-lg sm:text-xl font-semibold mb-4">
+          Rating Statistics
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <Star className="h-5 w-5 text-yellow-500 mr-2" />
+              <CardTitle className="flex items-center text-sm sm:text-base">
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 mr-2" />
                 Booking Ratings
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-center">Loading...</div>
+              <div className="text-2xl sm:text-3xl font-bold text-center">
+                Loading...
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <MessageSquare className="h-5 w-5 text-blue-500 mr-2" />
+              <CardTitle className="flex items-center text-sm sm:text-base">
+                <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 mr-2" />
                 Feedback Ratings
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-center">Loading...</div>
+              <div className="text-2xl sm:text-3xl font-bold text-center">
+                Loading...
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center">
-                <BookOpen className="h-5 w-5 text-green-500 mr-2" />
+              <CardTitle className="flex items-center text-sm sm:text-base">
+                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mr-2" />
                 Review Ratings
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-center">Loading...</div>
+              <div className="text-2xl sm:text-3xl font-bold text-center">
+                Loading...
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -77,8 +85,10 @@ export default function RatingStats({ className = "" }: RatingStatsProps) {
 
   return (
     <div className={className}>
-      <h3 className="text-lg font-semibold mb-4">Rating Statistics</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <h3 className="text-lg sm:text-xl font-semibold mb-4">
+        Rating Statistics
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Booking Ratings */}
         <Card>
           <CardHeader>

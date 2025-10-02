@@ -14,7 +14,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
-import { BookingForm } from "../../components/booking_form";
+import { BookingForm } from "../../components/booking";
 import { useAuth, API_URL } from "../../context/auth_provider";
 import { useToast } from "../../hooks/use-toast";
 import { User } from "../../interfaces/user";

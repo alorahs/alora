@@ -1,0 +1,1 @@
+export { default as ProfessionalProfileModal } from './professional-profile-modal';

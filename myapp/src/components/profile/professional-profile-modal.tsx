@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "../components/ui/button";
+import { Button } from "../ui/button";
 import { Img } from "react-image";
-import { useAuth, API_URL } from "../context/auth_provider";
-import { useToast } from "../hooks/use-toast";
+import { useAuth, API_URL } from "../../context/auth_provider";
+import { useToast } from "../../hooks/use-toast";
 import {
   Heart,
   Star,
@@ -18,7 +18,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { User } from "../interfaces/user";
+import { User } from "../../interfaces/user";
 import { useParams, useNavigate } from "react-router-dom";
 
 // Close Icon

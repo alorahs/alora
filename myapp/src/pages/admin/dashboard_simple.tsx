@@ -108,10 +108,10 @@ export default function AdminDashboardSimple() {
   // Check if user is admin
   if (!user || user.role !== "admin") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="p-6">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="p-6 w-full max-w-md">
           <CardContent>
-            <p className="text-center text-red-600">
+            <p className="text-center text-red-600 text-lg">
               Access Denied: Admin privileges required
             </p>
           </CardContent>
@@ -211,137 +211,181 @@ export default function AdminDashboardSimple() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage your Alora platform</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Admin Dashboard
+          </h1>
+          <p className="text-gray-600 text-sm sm:text-base">
+            Manage your Alora platform
+          </p>
 
           {/* Navigation Buttons */}
           <div className="flex flex-wrap gap-2 mt-4">
-            <Button onClick={() => navigate("/admin/users")} variant="outline">
-              <Users className="h-4 w-4 mr-2" />
-              User Management
+            <Button
+              onClick={() => navigate("/admin/users")}
+              variant="outline"
+              size="sm"
+              className="text-xs sm:text-sm"
+            >
+              <Users className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="whitespace-nowrap">User Management</span>
             </Button>
             <Button
               onClick={() => navigate("/admin/services")}
               variant="outline"
+              size="sm"
+              className="text-xs sm:text-sm"
             >
-              <Briefcase className="h-4 w-4 mr-2" />
-              Service Management
+              <Briefcase className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="whitespace-nowrap">Service Management</span>
             </Button>
             <Button
               onClick={() => navigate("/admin/feedback")}
               variant="outline"
+              size="sm"
+              className="text-xs sm:text-sm"
             >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Feedback Management
+              <MessageSquare className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="whitespace-nowrap">Feedback</span>
             </Button>
             <Button
               onClick={() => navigate("/admin/reachus")}
               variant="outline"
+              size="sm"
+              className="text-xs sm:text-sm"
             >
-              <Mail className="h-4 w-4 mr-2" />
-              Reach Us Messages
+              <Mail className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="whitespace-nowrap">Reach Us</span>
             </Button>
             <Button
               onClick={() => navigate("/admin/rating-stats")}
               variant="outline"
+              size="sm"
+              className="text-xs sm:text-sm"
             >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Rating Statistics
+              <BarChart3 className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="whitespace-nowrap">Rating Stats</span>
             </Button>
             <Button
               onClick={() => navigate("/admin/booking-ratings")}
               variant="outline"
+              size="sm"
+              className="text-xs sm:text-sm"
             >
-              <BookOpen className="h-4 w-4 mr-2" />
-              Booking Ratings
+              <BookOpen className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="whitespace-nowrap">Booking Ratings</span>
             </Button>
             <Button
               onClick={() => navigate("/admin/aboutus")}
               variant="outline"
+              size="sm"
+              className="text-xs sm:text-sm"
             >
-              <Info className="h-4 w-4 mr-2" />
-              About Us
+              <Info className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="whitespace-nowrap">About Us</span>
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-6">
-          <Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6 mb-6">
+          <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                Total Users
+              </CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{users.length}</div>
-              <p className="text-xs text-muted-foreground">
+            <CardContent className="flex-grow">
+              <div className="text-xl sm:text-2xl font-bold">
+                {users.length}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
                 {users.filter((u) => u.role === "customer").length} customers,{" "}
-                {users.filter((u) => u.role === "professional").length}{" "}
-                professionals
+                {users.filter((u) => u.role === "professional").length} pros
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Services</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                Services
+              </CardTitle>
               <Briefcase className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{services.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Active service categories
+            <CardContent className="flex-grow">
+              <div className="text-xl sm:text-2xl font-bold">
+                {services.length}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Active categories
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">FAQs</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                FAQs
+              </CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{faqs.length}</div>
-              <p className="text-xs text-muted-foreground">
-                Help center articles
+            <CardContent className="flex-grow">
+              <div className="text-xl sm:text-2xl font-bold">{faqs.length}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Help articles
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Feedback</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                Feedback
+              </CardTitle>
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{feedback.length}</div>
-              <p className="text-xs text-muted-foreground">
-                User feedback entries
+            <CardContent className="flex-grow">
+              <div className="text-xl sm:text-2xl font-bold">
+                {feedback.length}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                User feedback
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Reach Us</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                Reach Us
+              </CardTitle>
               <Mail className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{reachUsMessages.length}</div>
-              <p className="text-xs text-muted-foreground">Contact messages</p>
+            <CardContent className="flex-grow">
+              <div className="text-xl sm:text-2xl font-bold">
+                {reachUsMessages.length}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Contact messages
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Reviews</CardTitle>
+              <CardTitle className="text-xs sm:text-sm font-medium">
+                Reviews
+              </CardTitle>
               <Star className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{reviews.length}</div>
-              <p className="text-xs text-muted-foreground">User reviews</p>
+            <CardContent className="flex-grow">
+              <div className="text-xl sm:text-2xl font-bold">
+                {reviews.length}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">User reviews</p>
             </CardContent>
           </Card>
         </div>

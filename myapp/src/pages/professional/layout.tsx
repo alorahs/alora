@@ -3,7 +3,7 @@ import { Input } from "../../components/ui/input";
 import { Card, CardContent } from "../../components/ui/card";
 import { StarIcon } from "lucide-react";
 import { Img } from "react-image";
-import { AdvancedSearchFilters } from "../../components/advanced-search-filters";
+import { AdvancedSearchFilters } from "../../components/shared";
 import { useNavigate } from "react-router-dom";
 
 function Layout({
@@ -42,7 +42,7 @@ function Layout({
   setSelectedProfessional: (professional: any) => void;
 }) {
   const navigate = useNavigate();
-  
+
   return (
     <section className="py-6 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

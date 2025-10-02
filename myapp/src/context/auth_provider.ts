@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { User } from "../interfaces/user";
-import Loader from "../components/loader";
+import { Loader } from "../components/shared";
 
 interface LoginParams {
   email?: string;

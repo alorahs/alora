@@ -1,18 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth, API_URL } from "@/context/auth_provider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import {
   User,
@@ -32,8 +22,15 @@ import {
   Mail,
   Calendar,
   Clock,
+  ChevronDown,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import {
+  PersonalDataSection,
+  FavoritesSection,
+  BookingsSection,
+  PlaceholderSection,
+} from "./index";
 
 interface UserProfile {
   fullName: string;
@@ -100,6 +97,7 @@ export default function ProfilePage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(false);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -489,360 +487,26 @@ export default function ProfilePage() {
     }
   };
   const renderPersonalDataSection = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Personal data</h2>
-        <p className="text-gray-600 mb-6">
-          Real-time information and activities of your prototype.
-        </p>
-      </div>
-
-      <div className="space-y-8">
-        {/* Profile Picture Section */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Personal Data
-          </h3>
-
-          <div className="flex items-center space-x-6 mb-6">
-            <Avatar className="h-20 w-20">
-              <AvatarImage
-                src={
-                  previewImageUrl ||
-                  (profileData.profilePicture
-                    ? `${API_URL}/files/${profileData.profilePicture}`
-                    : undefined)
-                }
-                alt="Profile"
-              />
-              <AvatarFallback className="text-lg">
-                {profileData.fullName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-lg font-medium text-gray-900">
-                    Profile picture
-                  </h4>
-                  <p className="text-sm text-gray-500">PNG, JPEG under 15MB</p>
-                </div>
-                <div className="flex space-x-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      handleOnSubmitProfilePicture();
-                    }}
-                    disabled={!isEditing && !loading}
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    {loading
-                      ? "Uploading..."
-                      : pendingProfilePictureFile
-                      ? "Change Picture"
-                      : isEditing
-                      ? "Select Picture"
-                      : "Upload new picture"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700"
-                    onClick={handleDeleteProfilePicture}
-                    disabled={!isEditing}
-                  >
-                    {!isEditing && loading ? "Deleting..." : "Delete"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Name Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <Label
-              htmlFor="firstName"
-              className="text-sm font-medium text-gray-700 mb-2 block"
-            >
-              First name
-            </Label>
-            <Input
-              id="firstName"
-              value={profileData.fullName.split(" ")[0] || ""}
-              onChange={(e) => {
-                const lastName = profileData.fullName
-                  .split(" ")
-                  .slice(1)
-                  .join(" ");
-                handleInputChange(
-                  "fullName",
-                  `${e.target.value} ${lastName}`.trim()
-                );
-              }}
-              disabled={!isEditing}
-              className="w-full"
-            />
-          </div>
-
-          <div>
-            <Label
-              htmlFor="lastName"
-              className="text-sm font-medium text-gray-700 mb-2 block"
-            >
-              Last name
-            </Label>
-            <Input
-              id="lastName"
-              value={profileData.fullName.split(" ").slice(1).join(" ") || ""}
-              onChange={(e) => {
-                const firstName = profileData.fullName.split(" ")[0] || "";
-                handleInputChange(
-                  "fullName",
-                  `${firstName} ${e.target.value}`.trim()
-                );
-              }}
-              disabled={!isEditing}
-              className="w-full"
-            />
-          </div>
-        </div>
-
-        {/* Contact Email Section */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Contact email
-          </h3>
-          <p className="text-gray-600 mb-4">
-            Allows for accurate identification and communication with you.
-          </p>
-
-          <div>
-            <Label
-              htmlFor="email"
-              className="text-sm font-medium text-gray-700 mb-2 block"
-            >
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={profileData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              disabled={!isEditing}
-              className="w-full max-w-md"
-            />
-          </div>
-        </div>
-
-        {/* Phone Number Section */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Phone number
-          </h3>
-          <p className="text-gray-600 mb-4">
-            The phone number is an important data field that helps identify and
-            directly communicate with an individual.
-          </p>
-
-          <div>
-            <Label
-              htmlFor="phone"
-              className="text-sm font-medium text-gray-700 mb-2 block"
-            >
-              Phone number
-            </Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={profileData.phone}
-              onChange={(e) => handleInputChange("phone", e.target.value)}
-              disabled={!isEditing}
-              className="w-full max-w-md"
-              placeholder="(+1) (409) 124-1241"
-            />
-          </div>
-        </div>
-
-        {/* Professional Work Section */}
-        {user && user.role === "professional" && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Professional Information
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Your professional details and services you provide.
-            </p>
-
-            <div className="space-y-6">
-              {/* Work Category */}
-              <div>
-                <Label
-                  htmlFor="category"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  Work Category
-                </Label>
-                <Select
-                  value={profileData.category || ""}
-                  onValueChange={(value) =>
-                    handleInputChange("category", value)
-                  }
-                  disabled={!isEditing}
-                >
-                  <SelectTrigger className="w-full max-w-md">
-                    <SelectValue placeholder="Select your profession" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="plumbing">Plumbing</SelectItem>
-                    <SelectItem value="electrical">Electrical</SelectItem>
-                    <SelectItem value="cleaning">Cleaning</SelectItem>
-                    <SelectItem value="carpentry">Carpentry</SelectItem>
-                    <SelectItem value="painting">Painting</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Bio/Description */}
-              <div>
-                <Label
-                  htmlFor="bio"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  Professional Bio
-                </Label>
-                <Textarea
-                  id="bio"
-                  value={profileData.bio || ""}
-                  onChange={(e) => handleInputChange("bio", e.target.value)}
-                  disabled={!isEditing}
-                  className="w-full"
-                  placeholder="Describe your experience, expertise, and services..."
-                  rows={4}
-                />
-              </div>
-
-              {/* Hourly Rate */}
-              <div>
-                <Label
-                  htmlFor="hourlyRate"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  Hourly Rate (₹)
-                </Label>
-                <Input
-                  id="hourlyRate"
-                  type="number"
-                  value={profileData.hourlyRate || ""}
-                  onChange={(e) =>
-                    handleInputChange("hourlyRate", e.target.value)
-                  }
-                  disabled={!isEditing}
-                  className="w-full max-w-md"
-                  placeholder="Enter your hourly rate"
-                  min="0"
-                />
-              </div>
-
-              {/* Skills */}
-              <div>
-                <Label
-                  htmlFor="skills"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  Skills & Expertise
-                </Label>
-                <Input
-                  id="skills"
-                  value={profileData.skills?.join(", ") || ""}
-                  onChange={(e) => {
-                    const skillsArray = e.target.value
-                      .split(",")
-                      .map((skill) => skill.trim())
-                      .filter((skill) => skill.length > 0);
-                    setProfileData((prev) => ({
-                      ...prev,
-                      skills: skillsArray,
-                    }));
-                  }}
-                  disabled={!isEditing}
-                  className="w-full"
-                  placeholder="Enter skills separated by commas (e.g., Pipe Installation, Leak Repair, Emergency Services)"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Separate multiple skills with commas
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex space-x-4 pt-6">
-          {isEditing ? (
-            <>
-              <Button
-                onClick={handleSaveChanges}
-                disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {loading ? "Saving..." : "Save Changes"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsEditing(false);
-                  setPendingProfilePictureFile(null);
-                  setPreviewImageUrl("");
-                }}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-            </>
-          ) : (
-            <Button
-              onClick={() => setIsEditing(true)}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Edit Profile
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
+    <PersonalDataSection
+      profileData={profileData}
+      isEditing={isEditing}
+      loading={loading}
+      pendingProfilePictureFile={pendingProfilePictureFile}
+      previewImageUrl={previewImageUrl}
+      API_URL={API_URL}
+      handleInputChange={handleInputChange}
+      setIsEditing={setIsEditing}
+      setPendingProfilePictureFile={setPendingProfilePictureFile}
+      setPreviewImageUrl={setPreviewImageUrl}
+      handleSaveChanges={handleSaveChanges}
+      handleOnSubmitProfilePicture={handleOnSubmitProfilePicture}
+      handleDeleteProfilePicture={handleDeleteProfilePicture}
+      user={user}
+    />
   );
 
   const renderPlaceholderSection = (title: string) => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
-        <p className="text-gray-600 mb-6">This section is coming soon.</p>
-      </div>
-
-      <Card className="p-8 text-center">
-        <CardContent>
-          <div className="text-gray-400 mb-4">
-            <Settings className="h-12 w-12 mx-auto" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Feature Coming Soon
-          </h3>
-          <p className="text-gray-600">
-            We're working on this feature. It will be available in a future
-            update.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+    <PlaceholderSection title={title} />
   );
 
   const renderContent = () => {
@@ -851,250 +515,20 @@ export default function ProfilePage() {
         return renderPersonalDataSection();
       case "favorites":
         return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                My Favorites
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Your favorite professionals for quick access.
-              </p>
-            </div>
-
-            {favoritesLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading your favorites...</p>
-                </div>
-              </div>
-            ) : favorites.length === 0 ? (
-              <div className="text-center py-12">
-                <Heart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No favorites yet
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Start exploring professionals and add them to your favorites
-                  for quick access.
-                </p>
-                <Link to="/professionals">
-                  <Button>
-                    <User className="h-4 w-4 mr-2" />
-                    Browse Professionals
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {favorites.map((favorite) => (
-                  <Card
-                    key={favorite._id}
-                    className="hover:shadow-lg transition-shadow"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="h-20 w-20">
-                            <AvatarImage
-                              src={
-                                favorite.professional.profilePicture
-                                  ? `${API_URL}/files/${favorite.professional.profilePicture}`
-                                  : undefined
-                              }
-                            />
-                            <AvatarFallback className="text-lg">
-                              {favorite.professional.fullName
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-
-                          <div>
-                            <h3 className="font-semibold text-gray-900">
-                              {favorite.professional.fullName}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              {favorite.professional.category}
-                            </p>
-                            {favorite.professional.rating && (
-                              <div className="flex items-center mt-1">
-                                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                                <span className="text-sm text-gray-600 ml-1">
-                                  {favorite.professional.rating.toFixed(1)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            handleRemoveFavorite(favorite.professional._id)
-                          }
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-
-                      <div className="space-y-2 mb-4">
-                        {favorite.professional.hourlyRate && (
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">Hourly Rate:</span>
-                            <span className="font-semibold text-green-600">
-                              ₹{favorite.professional.hourlyRate}/hr
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Phone className="h-4 w-4 mr-2" />
-                          <span>{favorite.professional.phone}</span>
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <Mail className="h-4 w-4 mr-2" />
-                          <span className="truncate">
-                            {favorite.professional.email}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex space-x-2">
-                        <Link
-                          to={`/professionals/${favorite.professional._id}`}
-                          className="flex-1"
-                        >
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Profile
-                          </Button>
-                        </Link>
-                        <Link
-                          to={`/booking/${favorite.professional._id}`}
-                          className="flex-1"
-                        >
-                          <Button
-                            size="sm"
-                            className="w-full bg-blue-600 hover:bg-blue-700"
-                          >
-                            <Calendar className="h-4 w-4 mr-1" />
-                            Book Now
-                          </Button>
-                        </Link>
-                      </div>
-
-                      <div className="mt-3 pt-3 border-t border-gray-100">
-                        <p className="text-xs text-gray-500">
-                          Added on{" "}
-                          {new Date(favorite.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+          <FavoritesSection
+            favorites={favorites}
+            favoritesLoading={favoritesLoading}
+            handleRemoveFavorite={handleRemoveFavorite}
+            API_URL={API_URL}
+          />
         );
       case "bookings":
         return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                My Bookings
-              </h2>
-              <p className="text-gray-600 mb-6">
-                View and manage your service bookings.
-              </p>
-            </div>
-
-            {bookingsLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading your bookings...</p>
-                </div>
-              </div>
-            ) : bookings.length === 0 ? (
-              <div className="text-center py-12">
-                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No bookings yet
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  You haven't made any bookings yet.
-                </p>
-                <Link to="/services">
-                  <Button>
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Book a Service
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {bookings.map((booking) => (
-                  <Card key={booking._id}>
-                    <CardContent className="p-6">
-                      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                        <div className="flex-1">
-                          <div className="flex flex-col md:flex-row md:items-center">
-                            <div className="flex items-center">
-                              <div className="ml-4">
-                                <h3 className="font-semibold text-gray-900">
-                                  {booking.professional.fullName}
-                                </h3>
-                                <p className="text-sm text-gray-600">
-                                  {booking.service}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="mt-4 md:mt-0 md:ml-8">
-                              <div className="flex items-center text-sm text-gray-600">
-                                <Calendar className="h-4 w-4 mr-1" />
-                                <span>
-                                  {new Date(booking.date).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <div className="flex items-center text-sm text-gray-600 mt-1">
-                                <Clock className="h-4 w-4 mr-1" />
-                                <span>{booking.time}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-end">
-                          <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            {booking.status.charAt(0).toUpperCase() +
-                              booking.status.slice(1)}
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-2"
-                            asChild
-                          >
-                            <Link to={`/profile/booking/${booking._id}`}>
-                              View Details
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+          <BookingsSection
+            bookings={bookings}
+            bookingsLoading={bookingsLoading}
+            API_URL={API_URL}
+          />
         );
       case "payment-account":
         return renderPlaceholderSection("Payment Account");
@@ -1121,14 +555,71 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ">
-        <div className="flex gap-8">
-          {/* Sidebar */}
-          <div className="w-80 bg-white rounded-lg shadow-sm p-6 h-fit">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        {/* Mobile: Collapsible sidebar */}
+        <div className="lg:hidden mb-4">
+          <div className="bg-white rounded-lg shadow-sm">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="flex items-center justify-between w-full p-4 sm:p-6 cursor-pointer"
+            >
+              <div className="flex items-center">
+                <User className="h-5 w-5 text-gray-600 mr-2" />
+                <span className="font-medium text-gray-900">Profile Menu</span>
+              </div>
+              <ChevronDown
+                className={`h-5 w-5 text-gray-500 transition-transform duration-200 ${
+                  mobileMenuOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+            {mobileMenuOpen && (
+              <div className="px-4 pb-4 sm:px-6 sm:pb-6 border-t border-gray-200">
+                <div className="space-y-6">
+                  {sidebarItems.map((category) => (
+                    <div key={category.category}>
+                      <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                        {category.category}
+                      </h3>
+                      <nav className="space-y-1">
+                        {category.items.map((item) => {
+                          const Icon = item.icon;
+                          const isActive = activeSection === item.id;
+
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => {
+                                setActiveSection(item.id);
+                                setMobileMenuOpen(false);
+                              }}
+                              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                isActive
+                                  ? "bg-blue-50 text-blue-700 border-l-4 border-blue-700"
+                                  : "text-gray-700 hover:bg-gray-50"
+                              }`}
+                            >
+                              <Icon className="h-4 w-4 mr-3 flex-shrink-0" />
+                              <span className="truncate">{item.label}</span>
+                            </button>
+                          );
+                        })}
+                      </nav>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+          {/* Desktop: Sidebar always visible */}
+          <div className="hidden lg:block lg:w-80 bg-white rounded-lg shadow-sm p-6 h-fit">
             <div className="space-y-6">
               {sidebarItems.map((category) => (
                 <div key={category.category}>
-                  <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+                  <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
                     {category.category}
                   </h3>
                   <nav className="space-y-1">
@@ -1147,7 +638,7 @@ export default function ProfilePage() {
                           }`}
                         >
                           <Icon className="h-4 w-4 mr-3 flex-shrink-0" />
-                          {item.label}
+                          <span className="truncate">{item.label}</span>
                         </button>
                       );
                     })}
@@ -1158,7 +649,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 bg-white rounded-lg shadow-sm p-8">
+          <div className="flex-1 bg-white rounded-lg shadow-sm p-4 sm:p-6 md:p-8">
             {renderContent()}
           </div>
         </div>

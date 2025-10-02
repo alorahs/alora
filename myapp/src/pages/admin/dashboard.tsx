@@ -1463,326 +1463,6 @@ export default function AdminDashboard() {
                 <h3 className="text-lg font-semibold">Reach Us Messages</h3>
                 <div className="flex items-center space-x-4">
                   <Select
-                    value={selectedCategory}
-                    onValueChange={setSelectedCategory}
-                  >
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Filter by category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SERVICE_CATEGORIES.map((category) => (
-                        <SelectItem key={category.name} value={category.name}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={() => {
-                      setSelectedItem(null);
-                      setFormData({});
-                      setIsEditServiceOpen(true);
-                    }}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Service
-                  </Button>
-                </div>
-              </div>
-
-              {/* Category Overview Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {SERVICE_CATEGORIES.filter(
-                  (cat) => cat.name !== "All Services"
-                ).map((category) => {
-                  const categoryServices = services.filter((service) => {
-                    // Check if service has a category field that matches
-                    if (
-                      service.category &&
-                      service.category === category.name
-                    ) {
-                      return true;
-                    }
-                    // Fallback: check if service title matches any predefined services in this category
-                    return category.services.some(
-                      (categoryService) =>
-                        service.title
-                          .toLowerCase()
-                          .includes(categoryService.toLowerCase()) ||
-                        categoryService
-                          .toLowerCase()
-                          .includes(service.title.toLowerCase())
-                    );
-                  });
-
-                  // Get dominant color from services in this category
-                  const categoryColors = categoryServices
-                    .map((s) => s.color)
-                    .filter(Boolean);
-                  const dominantColor = categoryColors[0] || "#6B7280";
-
-                  return (
-                    <Card
-                      key={category.name}
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => setSelectedCategory(category.name)}
-                    >
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: dominantColor }}
-                            />
-                            <span className="text-sm font-medium">
-                              {category.name}
-                            </span>
-                          </div>
-                          <Badge variant="outline">
-                            {categoryServices.length} services
-                          </Badge>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-1">
-                          {categoryServices
-                            .slice(0, 3)
-                            .map((service, index) => (
-                              <div
-                                key={service._id || index}
-                                className="flex items-center text-xs text-muted-foreground"
-                              >
-                                <div
-                                  className="w-2 h-2 rounded-full mr-2"
-                                  style={{
-                                    backgroundColor: service.color || "#9CA3AF",
-                                  }}
-                                />
-                                <span>• {service.title}</span>
-                              </div>
-                            ))}
-                          {categoryServices.length > 3 && (
-                            <div className="text-xs text-muted-foreground">
-                              + {categoryServices.length - 3} more
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Color palette for this category */}
-                        {categoryColors.length > 0 && (
-                          <div className="flex space-x-1 mt-3 pt-3 border-t">
-                            {[...new Set(categoryColors)]
-                              .slice(0, 5)
-                              .map((color, index) => (
-                                <div
-                                  key={index}
-                                  className="w-4 h-4 rounded border"
-                                  style={{ backgroundColor: color }}
-                                  title={color}
-                                />
-                              ))}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {services
-                  .filter((service) => {
-                    if (selectedCategory === "All Services") return true;
-                    // Check if service has a category field that matches
-                    if (
-                      service.category &&
-                      service.category === selectedCategory
-                    ) {
-                      return true;
-                    }
-                    // Fallback: check if service title matches any predefined services in this category
-                    return SERVICE_CATEGORIES.some(
-                      (category) =>
-                        category.name === selectedCategory &&
-                        category.services.some(
-                          (categoryService) =>
-                            service.title
-                              .toLowerCase()
-                              .includes(categoryService.toLowerCase()) ||
-                            categoryService
-                              .toLowerCase()
-                              .includes(service.title.toLowerCase())
-                        )
-                    );
-                  })
-                  .map((service) => (
-                    <Card key={service._id}>
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: service.color }}
-                            />
-                            <span className="text-sm font-medium">
-                              {service.title}
-                            </span>
-                          </div>
-                          <Badge variant="outline">
-                            {service.category || "N/A"}
-                          </Badge>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-1">
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <div
-                              className="w-2 h-2 rounded-full mr-2"
-                              style={{
-                                backgroundColor: service.color || "#9CA3AF",
-                              }}
-                            />
-                            <span>• {service.title}</span>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {service.description}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="faqs" className="mt-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">FAQ Management</h3>
-                <Button
-                  onClick={() => {
-                    setSelectedItem(null);
-                    setFormData({});
-                    setIsEditFAQOpen(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add FAQ
-                </Button>
-              </div>
-
-              <Card>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Question</TableHead>
-                        <TableHead>Answer</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {faqs.map((faq) => (
-                        <TableRow key={faq._id}>
-                          <TableCell className="font-medium">
-                            {faq.question}
-                          </TableCell>
-                          <TableCell>{faq.answer}</TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedItem(faq);
-                                  setFormData(faq);
-                                  setIsEditFAQOpen(true);
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => deleteFAQ(faq._id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="feedback" className="mt-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Feedback Management</h3>
-              </div>
-
-              <Card>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>User</TableHead>
-                        <TableHead>Rating</TableHead>
-                        <TableHead>Subject</TableHead>
-                        <TableHead>Message</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {feedback.map((fb) => (
-                        <TableRow key={fb._id}>
-                          <TableCell className="font-medium">
-                            {fb.user?.fullName || "N/A"}
-                          </TableCell>
-                          <TableCell>{fb.rating}</TableCell>
-                          <TableCell>{fb.subject}</TableCell>
-                          <TableCell>{fb.message}</TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedItem(fb);
-                                  setFormData(fb);
-                                  setIsEditFeedbackOpen(true);
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => deleteFeedback(fb._id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="reachus" className="mt-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Reach Us Messages</h3>
-                <div className="flex items-center space-x-4">
-                  <Select
                     value={reachUsFilter}
                     onValueChange={setReachUsFilter}
                   >
@@ -1903,712 +1583,6 @@ export default function AdminDashboard() {
                                 onClick={() => {
                                   setSelectedItem(review);
                                   setFormData(review);
-                                  setIsEditReviewOpen(true);
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => deleteReview(review._id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="services" className="mt-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Service Management</h3>
-                <div className="flex items-center space-x-4">
-                  <Select
-                    value={selectedCategory}
-                    onValueChange={setSelectedCategory}
-                  >
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Filter by category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SERVICE_CATEGORIES.map((category) => (
-                        <SelectItem key={category.name} value={category.name}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={() => {
-                      setSelectedItem(null);
-                      setFormData({});
-                      setIsEditServiceOpen(true);
-                    }}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Service
-                  </Button>
-                </div>
-              </div>
-
-              {/* Category Overview Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {SERVICE_CATEGORIES.filter(
-                  (cat) => cat.name !== "All Services"
-                ).map((category) => {
-                  const categoryServices = services.filter((service) => {
-                    // Check if service has a category field that matches
-                    if (
-                      service.category &&
-                      service.category === category.name
-                    ) {
-                      return true;
-                    }
-                    // Fallback: check if service title matches any predefined services in this category
-                    return category.services.some(
-                      (categoryService) =>
-                        service.title
-                          .toLowerCase()
-                          .includes(categoryService.toLowerCase()) ||
-                        categoryService
-                          .toLowerCase()
-                          .includes(service.title.toLowerCase())
-                    );
-                  });
-
-                  // Get dominant color from services in this category
-                  const categoryColors = categoryServices
-                    .map((s) => s.color)
-                    .filter(Boolean);
-                  const dominantColor = categoryColors[0] || "#6B7280";
-
-                  return (
-                    <Card
-                      key={category.name}
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => setSelectedCategory(category.name)}
-                    >
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: dominantColor }}
-                            />
-                            <span className="text-sm font-medium">
-                              {category.name}
-                            </span>
-                          </div>
-                          <Badge variant="outline">
-                            {categoryServices.length} services
-                          </Badge>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-1">
-                          {categoryServices
-                            .slice(0, 3)
-                            .map((service, index) => (
-                              <div
-                                key={service._id || index}
-                                className="flex items-center text-xs text-muted-foreground"
-                              >
-                                <div
-                                  className="w-2 h-2 rounded-full mr-2"
-                                  style={{
-                                    backgroundColor: service.color || "#9CA3AF",
-                                  }}
-                                />
-                                <span>• {service.title}</span>
-                              </div>
-                            ))}
-                          {categoryServices.length > 3 && (
-                            <div className="text-xs text-muted-foreground">
-                              + {categoryServices.length - 3} more
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Color palette for this category */}
-                        {categoryColors.length > 0 && (
-                          <div className="flex space-x-1 mt-3 pt-3 border-t">
-                            {[...new Set(categoryColors)]
-                              .slice(0, 5)
-                              .map((color, index) => (
-                                <div
-                                  key={index}
-                                  className="w-4 h-4 rounded border"
-                                  style={{ backgroundColor: color }}
-                                  title={color}
-                                />
-                              ))}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {services
-                  .filter((service) => {
-                    if (selectedCategory === "All Services") return true;
-                    // Check if service has a category field that matches
-                    if (
-                      service.category &&
-                      service.category === selectedCategory
-                    ) {
-                      return true;
-                    }
-                    // Fallback: check if service title is in the category's predefined services
-                    const category = SERVICE_CATEGORIES.find(
-                      (cat) => cat.name === selectedCategory
-                    );
-                    return category
-                      ? category.services.some(
-                          (categoryService) =>
-                            service.title
-                              .toLowerCase()
-                              .includes(categoryService.toLowerCase()) ||
-                            categoryService
-                              .toLowerCase()
-                              .includes(service.title.toLowerCase())
-                        )
-                      : false;
-                  })
-                  .map((service) => {
-                    // Determine which category this service belongs to
-                    const serviceCategory =
-                      service.category ||
-                      SERVICE_CATEGORIES.find((cat) =>
-                        cat.services.some(
-                          (categoryService) =>
-                            service.title
-                              .toLowerCase()
-                              .includes(categoryService.toLowerCase()) ||
-                            categoryService
-                              .toLowerCase()
-                              .includes(service.title.toLowerCase())
-                        )
-                      )?.name ||
-                      "Other";
-
-                    return (
-                      <Card key={service._id}>
-                        <CardHeader>
-                          <CardTitle className="flex items-center justify-between">
-                            <div>
-                              <span>{service.title}</span>
-                              <Badge
-                                variant="secondary"
-                                className="ml-2 text-xs"
-                              >
-                                {serviceCategory}
-                              </Badge>
-                            </div>
-                            <div className="flex space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedItem(service);
-                                  setFormData({
-                                    ...service,
-                                    category: serviceCategory,
-                                  });
-                                  setIsEditServiceOpen(true);
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => deleteService(service._id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {service.description}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <div
-                                className="w-4 h-4 rounded border"
-                                style={{ backgroundColor: service.color }}
-                                title={`Color: ${service.color}`}
-                              />
-                              <span className="text-xs font-mono">
-                                {service.color}
-                              </span>
-                            </div>
-                            <span
-                              className="text-lg"
-                              title={`Icon: ${service.icon}`}
-                            >
-                              {getIconEmoji(service.icon)}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-              </div>
-
-              {/* Show message when no services in selected category */}
-              {services.filter((service) => {
-                if (selectedCategory === "All Services") return true;
-                // Check if service has a category field that matches
-                if (service.category && service.category === selectedCategory) {
-                  return true;
-                }
-                // Fallback: check if service title is in the category's predefined services
-                const category = SERVICE_CATEGORIES.find(
-                  (cat) => cat.name === selectedCategory
-                );
-                return category
-                  ? category.services.some(
-                      (categoryService) =>
-                        service.title
-                          .toLowerCase()
-                          .includes(categoryService.toLowerCase()) ||
-                        categoryService
-                          .toLowerCase()
-                          .includes(service.title.toLowerCase())
-                    )
-                  : false;
-              }).length === 0 && (
-                <Card className="text-center py-8">
-                  <CardContent>
-                    <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No services in {selectedCategory}
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      Create services that belong to this category.
-                    </p>
-                    <Button
-                      onClick={() => {
-                        setSelectedItem(null);
-                        setFormData({ category: selectedCategory });
-                        setIsEditServiceOpen(true);
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Service to {selectedCategory}
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="faqs" className="mt-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">FAQ Management</h3>
-                <Button
-                  onClick={() => {
-                    setSelectedItem(null);
-                    setFormData({});
-                    setIsEditFAQOpen(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add FAQ
-                </Button>
-              </div>
-
-              <Card>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Question</TableHead>
-                        <TableHead>Answer</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {faqs.map((faq) => (
-                        <TableRow key={faq._id}>
-                          <TableCell>
-                            <Badge variant="outline">{faq.type}</Badge>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {faq.question}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {faq.answer}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedItem(faq);
-                                  setFormData(faq);
-                                  setIsEditFAQOpen(true);
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => deleteFAQ(faq._id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="feedback" className="mt-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Feedback Management</h3>
-
-              <Card>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>User</TableHead>
-                        <TableHead>Rating</TableHead>
-                        <TableHead>Subject</TableHead>
-                        <TableHead>Message</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {feedback.map((item) => (
-                        <TableRow key={item._id}>
-                          <TableCell>
-                            {item.user ? (
-                              <div>
-                                <div className="font-medium">
-                                  {item.user.fullName ||
-                                    item.user.username ||
-                                    "Unknown User"}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  @{item.user.username}
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="text-gray-500">Anonymous</div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
-                              {[...Array(item.rating)].map((_, index) => (
-                                <Star
-                                  key={index}
-                                  className="h-4 w-4 text-yellow-400"
-                                />
-                              ))}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {item.subject}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {item.message}
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm text-gray-500">
-                              {new Date(item.createdAt).toLocaleDateString()}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedItem(item);
-                                  setFormData({
-                                    rating: item.rating,
-                                    subject: item.subject || "",
-                                    message: item.message || "",
-                                  });
-                                  setIsEditFeedbackOpen(true);
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => deleteFeedback(item._id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="reachus" className="mt-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Reach Us Messages</h3>
-                <div className="flex items-center space-x-4">
-                  <Input
-                    placeholder="Search messages..."
-                    value={reachUsSearchTerm}
-                    onChange={(e) => setReachUsSearchTerm(e.target.value)}
-                    className="w-64"
-                  />
-                  <Select
-                    value={reachUsFilter}
-                    onValueChange={setReachUsFilter}
-                  >
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Messages</SelectItem>
-                      <SelectItem value="today">Today</SelectItem>
-                      <SelectItem value="week">This Week</SelectItem>
-                      <SelectItem value="month">This Month</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <Card>
-                <CardContent>
-                  {filteredReachUsMessages.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        {reachUsSearchTerm || reachUsFilter !== "all"
-                          ? "No messages found"
-                          : "No messages yet"}
-                      </h3>
-                      <p className="text-gray-600">
-                        {reachUsSearchTerm || reachUsFilter !== "all"
-                          ? "Try adjusting your search or filter criteria."
-                          : "Contact messages from users will appear here."}
-                      </p>
-                    </div>
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>User</TableHead>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Subject</TableHead>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredReachUsMessages.map((message) => (
-                          <TableRow key={message._id}>
-                            <TableCell>
-                              {message.user ? (
-                                <div>
-                                  <div className="font-medium">
-                                    {message.user.fullName ||
-                                      message.user.username ||
-                                      "Registered User"}
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    @{message.user.username}
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="text-gray-500">Guest</div>
-                              )}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {message.fullName}
-                            </TableCell>
-                            <TableCell>{message.email}</TableCell>
-                            <TableCell className="max-w-xs truncate">
-                              {message.subject}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-1">
-                                <Calendar className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-sm">
-                                  {new Date(
-                                    message.createdAt
-                                  ).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {new Date(
-                                  message.createdAt
-                                ).toLocaleTimeString()}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex space-x-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setSelectedItem(message);
-                                    setIsViewReachUsOpen(true);
-                                  }}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    setSelectedItem(message);
-                                    setFormData({
-                                      fullName: message.fullName,
-                                      email: message.email,
-                                      subject: message.subject,
-                                      message: message.message,
-                                    });
-                                    setIsEditReachUsOpen(true);
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() =>
-                                    deleteReachUsMessage(message._id)
-                                  }
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="reviews" className="mt-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Review Management</h3>
-
-              <Card>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Reviewer</TableHead>
-                        <TableHead>Reviewee</TableHead>
-                        <TableHead>Rating</TableHead>
-                        <TableHead>Comment</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {reviews.map((review) => (
-                        <TableRow key={review._id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {review.reviewer?.fullName ||
-                                  review.reviewer?.username ||
-                                  "Unknown User"}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {review.reviewer?.username &&
-                                  `@${review.reviewer.username}`}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {review.reviewee?.fullName ||
-                                  review.reviewee?.username ||
-                                  "Unknown Professional"}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {review.reviewee?.username &&
-                                  `@${review.reviewee.username}`}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
-                              {Array.from({ length: 5 }, (_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-4 w-4 ${
-                                    i < review.rating
-                                      ? "fill-yellow-400 text-yellow-400"
-                                      : "text-gray-300"
-                                  }`}
-                                />
-                              ))}
-                              <span className="ml-1">({review.rating}/5)</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {review.comment}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-sm">
-                                {new Date(
-                                  review.createdAt
-                                ).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedItem(review);
-                                  setFormData({
-                                    rating: review.rating,
-                                    comment: review.comment || "",
-                                  });
                                   setIsEditReviewOpen(true);
                                 }}
                               >
@@ -2811,6 +1785,409 @@ export default function AdminDashboard() {
               <Button
                 type="submit"
                 onClick={() => updateUser(selectedItem?._id, formData)}
+                disabled={loading}
+              >
+                {loading ? "Saving..." : "Save changes"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Service Dialog */}
+        <Dialog open={isEditServiceOpen} onOpenChange={setIsEditServiceOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedItem ? "Edit Service" : "Add Service"}
+              </DialogTitle>
+              <DialogDescription>
+                {selectedItem
+                  ? "Update service information"
+                  : "Create a new service"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="title" className="text-right">
+                  Title
+                </Label>
+                <Input
+                  id="title"
+                  value={formData.title || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="description" className="text-right">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  value={formData.description || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="category" className="text-right">
+                  Category
+                </Label>
+                <Select
+                  value={formData.category || ""}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, category: value })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SERVICE_CATEGORIES.filter(
+                      (cat) => cat.name !== "All Services"
+                    ).map((category) => (
+                      <SelectItem key={category.name} value={category.name}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="icon" className="text-right">
+                  Icon
+                </Label>
+                <Select
+                  value={formData.icon || ""}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, icon: value })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select icon" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PREDEFINED_ICONS.map((icon) => (
+                      <SelectItem key={icon.name} value={icon.name}>
+                        <div className="flex items-center">
+                          <span className="mr-2">{icon.value}</span>
+                          <span>{icon.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="color" className="text-right">
+                  Color
+                </Label>
+                <Select
+                  value={formData.color || ""}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, color: value })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select color" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PREDEFINED_COLORS.map((color) => (
+                      <SelectItem key={color.name} value={color.value}>
+                        <div className="flex items-center">
+                          <div
+                            className="w-4 h-4 rounded-full mr-2 border"
+                            style={{ backgroundColor: color.value }}
+                          ></div>
+                          <span>{color.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                onClick={() =>
+                  selectedItem
+                    ? updateService(selectedItem._id, formData)
+                    : createService(formData)
+                }
+                disabled={loading}
+              >
+                {loading
+                  ? "Saving..."
+                  : selectedItem
+                  ? "Save changes"
+                  : "Create service"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit FAQ Dialog */}
+        <Dialog open={isEditFAQOpen} onOpenChange={setIsEditFAQOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{selectedItem ? "Edit FAQ" : "Add FAQ"}</DialogTitle>
+              <DialogDescription>
+                {selectedItem ? "Update FAQ information" : "Create a new FAQ"}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="type" className="text-right">
+                  Type
+                </Label>
+                <Input
+                  id="type"
+                  value={formData.type || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, type: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="question" className="text-right">
+                  Question
+                </Label>
+                <Input
+                  id="question"
+                  value={formData.question || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, question: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="answer" className="text-right">
+                  Answer
+                </Label>
+                <Textarea
+                  id="answer"
+                  value={formData.answer || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, answer: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                onClick={() =>
+                  selectedItem
+                    ? updateFAQ(selectedItem._id, formData)
+                    : createFAQ(formData)
+                }
+                disabled={loading}
+              >
+                {loading
+                  ? "Saving..."
+                  : selectedItem
+                  ? "Save changes"
+                  : "Create FAQ"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Feedback Dialog */}
+        <Dialog open={isEditFeedbackOpen} onOpenChange={setIsEditFeedbackOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Feedback</DialogTitle>
+              <DialogDescription>Update feedback information</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="rating" className="text-right">
+                  Rating
+                </Label>
+                <Input
+                  id="rating"
+                  type="number"
+                  min="1"
+                  max="5"
+                  value={formData.rating || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      rating: parseInt(e.target.value),
+                    })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="subject" className="text-right">
+                  Subject
+                </Label>
+                <Input
+                  id="subject"
+                  value={formData.subject || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, subject: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="message" className="text-right">
+                  Message
+                </Label>
+                <Textarea
+                  id="message"
+                  value={formData.message || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, message: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                onClick={() => updateFeedback(selectedItem?._id, formData)}
+                disabled={loading}
+              >
+                {loading ? "Saving..." : "Save changes"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Reach Us Message Dialog */}
+        <Dialog open={isEditReachUsOpen} onOpenChange={setIsEditReachUsOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Message</DialogTitle>
+              <DialogDescription>Update message information</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="fullName" className="text-right">
+                  Full Name
+                </Label>
+                <Input
+                  id="fullName"
+                  value={formData.fullName || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, fullName: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="email" className="text-right">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="subject" className="text-right">
+                  Subject
+                </Label>
+                <Input
+                  id="subject"
+                  value={formData.subject || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, subject: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="message" className="text-right">
+                  Message
+                </Label>
+                <Textarea
+                  id="message"
+                  value={formData.message || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, message: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                onClick={() =>
+                  updateReachUsMessage(selectedItem?._id, formData)
+                }
+                disabled={loading}
+              >
+                {loading ? "Saving..." : "Save changes"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Review Dialog */}
+        <Dialog open={isEditReviewOpen} onOpenChange={setIsEditReviewOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Review</DialogTitle>
+              <DialogDescription>Update review information</DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="rating" className="text-right">
+                  Rating
+                </Label>
+                <Input
+                  id="rating"
+                  type="number"
+                  min="1"
+                  max="5"
+                  value={formData.rating || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      rating: parseInt(e.target.value),
+                    })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="comment" className="text-right">
+                  Comment
+                </Label>
+                <Textarea
+                  id="comment"
+                  value={formData.comment || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, comment: e.target.value })
+                  }
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                onClick={() => updateReview(selectedItem?._id, formData)}
                 disabled={loading}
               >
                 {loading ? "Saving..." : "Save changes"}

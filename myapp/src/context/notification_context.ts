@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { API_URL, useAuth } from "./auth_provider";
-import Loader from "@/components/loader";
+import { Loader } from "@/components/shared";
 import { useToast } from "@/hooks/use-toast";
 
 interface Notification {
