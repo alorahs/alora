@@ -6,6 +6,21 @@ const feedbackSchema = new mongoose.Schema(
       ref: 'User', 
       required: false 
     },
+    name: {
+      type: String,
+      required: false,
+      maxlength: 100,
+      minlength: 3,
+      default: "",
+    },
+    email: {
+      type: String,
+      required: false,
+      maxlength: 100,
+      minlength: 5,
+      default: "",
+      match: [/.+@.+\..+/, "Please enter a valid email address"],
+    },
     rating: {
       type: Number,
       required: true,

@@ -8,7 +8,7 @@ const router = express.Router();
 // POST /feedback - Submit feedback (public access)
 router.post("/", async (req, res) => {
   try {
-    const { rating, subject, message } = req.body;
+    const { rating, subject, message, name, email } = req.body;
     if (!rating || rating < 1 || rating > 5 || !Number.isInteger(rating)) {
       return res
         .status(400)
@@ -24,9 +24,13 @@ router.post("/", async (req, res) => {
         .status(400)
         .json({ error: "Message must be between 10 and 5000 characters" });
     }
+    if (email && !/.+@.+\..+/.test(email)) {
+      return res.status(400).json({ error: "Please enter a valid email address" });
+    }
+
 
     // Create feedback object
-    const feedbackData = { rating, subject, message };
+    const feedbackData = { rating, subject, message, name, email };
 
     // If user is authenticated, associate feedback with user
     if (req.user) {
@@ -45,13 +49,12 @@ router.post("/", async (req, res) => {
 });
 
 // GET /feedback - Retrieve all feedback (admin only)
-router.get("/", verifyAccessToken, isAdmin, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const feedbacks = await Feedback.find()
       .sort({ createdAt: -1 })
       .populate("user", "fullName username email");
     res.status(200).json(feedbacks);
-    console.log("Feedback retrieved successfully", feedbacks);
   } catch (error) {
     console.error("Error retrieving feedback:", error);
     res.status(500).json({ error: "Internal Server Error" });

@@ -94,7 +94,7 @@ function HomePage() {
   const [testimonials, setTestimonials] = useState<
     {
       name: string;
-      text: string;
+      message: string;
       rating: number;
     }[]
   >([]);
@@ -182,7 +182,7 @@ function HomePage() {
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
-        const res = await fetch(`${API_URL}/feedback/public`);
+        const res = await fetch(`${API_URL}/feedback`);
         if (res.ok) {
           const data = await res.json();
           setTestimonials(data);
@@ -191,12 +191,12 @@ function HomePage() {
           setTestimonials([
             {
               name: "Sarah J.",
-              text: "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
+              message: "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
               rating: 4,
             },
             {
               name: "David K.",
-              text: "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
+              message: "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
               rating: 4,
             },
           ]);
@@ -207,20 +207,19 @@ function HomePage() {
         setTestimonials([
           {
             name: "Sarah J.",
-            text: "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
+            message: "Alora made finding a plumber incredibly easy and the service was top-notch. Highly recommend their prompt and professional team!",
             rating: 4,
           },
           {
             name: "David K.",
-            text: "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
-          rating: 4,
-        },
-      ]);
-    }
-  };
-  fetchFeedback();
-}, []);
-  console.log(testimonials);
+            message: "My computer was fixed in no time! The tech support was professional and efficient. Alora is a true lifesaver for my home tech needs!",
+            rating: 4,
+          },
+        ]);
+      }
+    };
+    fetchFeedback();
+  }, []);
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -345,11 +344,10 @@ function HomePage() {
                 variant={
                   activeCategory === category.name ? "default" : "outline"
                 }
-                className={`rounded-full px-4 sm:px-6 py-2 text-sm sm:text-base ${
-                  activeCategory === category.name
+                className={`rounded-full px-4 sm:px-6 py-2 text-sm sm:text-base ${activeCategory === category.name
                     ? "bg-blue-600 text-white"
                     : "bg-white text-gray-600 hover:bg-blue-500"
-                }`}
+                  }`}
                 onClick={() => setActiveCategory(category.name)}
               >
                 <span className="hidden sm:inline">{category.icon} </span>
@@ -491,7 +489,7 @@ function HomePage() {
                     <Users className="text-blue-600 mr-2" size={24} />
                     <h3 className="text-lg font-semibold">{t.name}</h3>
                   </div>
-                  <p className="text-gray-600 mb-2">{t.text}</p>
+                  <p className="text-gray-600 mb-2">{t.message}</p>
                   <div className="flex">
                     {Array.from({ length: t.rating }).map((_, i) => (
                       <Star

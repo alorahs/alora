@@ -80,17 +80,19 @@ function Feedback() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_URL}/_/feedback`, {
+      const response = await fetch(`${API_URL}/feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
-          _id: user._id,
+          user: user._id,
           rating: formdata.rating,
           subject: formdata.subject,
           message: formdata.message,
+          name: formdata.name,
+          email: formdata.email,
         }),
       });
 
