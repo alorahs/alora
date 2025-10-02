@@ -59,6 +59,19 @@ export default function BookingDetailsPage() {
         return;
       }
 
+      // Check if the current user is authorized to view this booking
+      // Only the booking owner (user) or admin can view this page
+      // Professionals should not be able to access this page
+      if (user.role === "professional") {
+        toast({
+          title: "Access Denied",
+          description: "Professionals cannot access this page.",
+          variant: "destructive",
+        });
+        navigate("/professionals-dashboard");
+        return;
+      }
+
       try {
         setLoading(true);
 
@@ -74,6 +87,17 @@ export default function BookingDetailsPage() {
 
         if (!response.ok) {
           throw new Error(data.message || "Failed to fetch booking");
+        }
+
+        // Additional check to ensure the current user is the booking owner
+        if (data.user._id !== user._id) {
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to view this booking.",
+            variant: "destructive",
+          });
+          navigate("/profile");
+          return;
         }
 
         setBooking(data);

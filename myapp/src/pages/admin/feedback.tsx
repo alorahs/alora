@@ -38,11 +38,8 @@ interface Feedback {
   subject: string;
   message: string;
   createdAt: string;
-  user?: {
-    fullName: string;
-    username: string;
-    email: string;
-  };
+  name: string;
+  email: string;
 }
 
 export default function FeedbackList() {
@@ -229,15 +226,13 @@ export default function FeedbackList() {
                   feedback.map((item) => (
                     <TableRow key={item._id}>
                       <TableCell>
-                        {item.user ? (
+                        {item ? (
                           <div>
                             <div className="font-medium">
-                              {item.user.fullName ||
-                                item.user.username ||
-                                "Unknown User"}
+                              {item.name || "Unknown User"}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {item.user.email}
+                              {item.email}
                             </div>
                           </div>
                         ) : (

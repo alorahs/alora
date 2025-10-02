@@ -346,7 +346,7 @@ export default function ProfessionalsDashboard() {
                       <div className="flex-1">
                         <div className="flex flex-col md:flex-row md:items-center">
                           <div className="flex items-center">
-                            <div className="bg-gray-200 border-2 border-dashed rounded-xl w-12 h-12" />
+                            {/* <div className="bg-gray-200 border-2 border-dashed rounded-xl w-12 h-12" /> */}
                             <div className="ml-4">
                               <h3 className="font-semibold text-gray-900">
                                 {booking.user.fullName}
