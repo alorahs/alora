@@ -3,9 +3,7 @@ import type { User } from "../interfaces/user";
 import { Loader } from "../components/shared";
 
 interface LoginParams {
-  email?: string;
-  username?: string;
-  phone?: string;
+  identifier: string;
   password: string;
 }
 
@@ -89,14 +87,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     setSuccess(null);
     try {
-      const { password, email, username, phone } = loginData;
-      if (!username && !email && !phone) {
-        setError("Please provide any one [username, email or phone] to login");
-        return ({ "message": "Please provide any one [username, email or phone] to login" }) as unknown as boolean;
+      const { identifier, password } = loginData;
+      if (!identifier) {
+        setError("Please provide username, email or phone to login");
+        return ({ "message": "Please provide username, email or phone to login" }) as unknown as boolean;
       }
       const resLogin = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
-        body: JSON.stringify({ email, username, phone, password }),
+        body: JSON.stringify({ identifier, password }),
         credentials: "include",
         headers: {
           "Content-Type": "application/json",

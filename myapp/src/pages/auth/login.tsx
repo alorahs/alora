@@ -7,16 +7,12 @@ import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
 
-import { AtSign, Lock, Mail, Phone, Eye, EyeOff } from "lucide-react"
+import { User, Lock, Eye, EyeOff } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
-  const [activeTab, setActiveTab] = useState("email")
-  const [email, setEmail] = useState("")
-  const [username, setUsername] = useState("")
-  const [phone, setPhone] = useState("")
+  const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -47,27 +43,19 @@ export default function LoginPage() {
     setIsLoading(true)
     setError(null)
     
-    // Validate required fields based on active tab
-    const isEmailValid = activeTab === "email" ? email.trim() !== "" : true
-    const isUsernameValid = activeTab === "username" ? username.trim() !== "" : true
-    const isPhoneValid = activeTab === "phone" ? phone.trim() !== "" : true
-    const isPasswordValid = password.trim() !== ""
-    
-    if (!isPasswordValid || (!isEmailValid && !isUsernameValid && !isPhoneValid)) {
+    // Validate required fields
+    if (!identifier.trim() || !password.trim()) {
       toast({
         title: "Please fill in all required fields", 
-        description: "Email/Username/Phone and Password are required"
+        description: "Username/Email/Phone and Password are required"
       })
       setIsLoading(false)
       return
     }
 
-    // Clear unused fields based on active tab
     const loginData = {
-      password,
-      email: activeTab === "email" ? email : "",
-      username: activeTab === "username" ? username : "",
-      phone: activeTab === "phone" ? phone : ""
+      identifier: identifier.trim(),
+      password: password.trim()
     }
 
     try {
@@ -113,84 +101,24 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Tabs for Email / Username / Phone */}
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger
-                  value="email"
-                >
-                  Email
-                </TabsTrigger>
-                <TabsTrigger
-                  value="username"
-                >
-                  Username
-                </TabsTrigger>
-                <TabsTrigger
-                  value="phone"
-                >
-                  Phone
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Email Tab */}
-              <TabsContent value="email">
-                
-                <div className="grid gap-2 mt-4">
-                  <Label htmlFor="email">Email</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="m@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-
-              {/* Username Tab */}
-              <TabsContent value="username">
-                <div className="grid gap-2 mt-4">
-                  <Label htmlFor="username">Username</Label>
-                  <div className="relative">
-                    <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                      id="username"
-                      type="text"
-                      placeholder="yourusername"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-
-              {/* Phone Tab */}
-              <TabsContent value="phone">
-                <div className="grid gap-2 mt-4">
-                  <Label htmlFor="phone">Phone</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+91 9876543210"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-
             {/* Login Form */}
-            <div className="flex flex-col gap-6 mt-6">
+            <div className="flex flex-col gap-6">
+              {/* Identifier Input */}
+              <div className="grid gap-2">
+                <Label htmlFor="identifier">Email, Username, or Phone</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Input
+                    id="identifier"
+                    type="text"
+                    placeholder="Enter your email, username, or phone"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
               {/* Password with toggle */}
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>

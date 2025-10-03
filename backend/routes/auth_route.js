@@ -86,24 +86,45 @@ router.post('/register', [
 
 // User Login
 router.post('/login', [
-  body('email').optional({ nullable: true, checkFalsy: true }).isEmail().withMessage('Invalid email address'),
-  body('username').optional({ nullable: true, checkFalsy: true }).isLength({ min: 8 }).withMessage('Username must be at least 8 characters long'),
-  body('phone').optional({ nullable: true, checkFalsy: true }).isMobilePhone().withMessage('Invalid phone number'),
+  body('identifier').exists().withMessage('Email, username, or phone number is required'),
   body('password').exists().withMessage('Password is required'),
-  body().custom(body => {
-    if (!body.email && !body.username && !body.phone) {
-      throw new Error('Either email, username or phone number is required');
-    }
-    return true;
-  })
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
-  const { email, username, phone, password } = req.body;
+  const { identifier, password } = req.body;
   try {
-    const user = await User.findOne({ $or: [{ email }, { username }, { phone }] }).select('+password');
+    console.log("Login attempt with identifier:", identifier);
+    
+    // Check if identifier is email, phone, or username
+    let query = {};
+    
+    // Check if identifier is email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Check if identifier is phone format (basic check for digits and common phone patterns)
+    const phoneRegex = /^[\+]?[1-9][\d]{3,14}$/;
+    
+    if (emailRegex.test(identifier)) {
+      // It's an email
+      query = { email: identifier };
+    } else if (phoneRegex.test(identifier.replace(/[\s\-\(\)]/g, ''))) {
+      // It's a phone number (remove common formatting characters)
+      query = { phone: identifier };
+    } else {
+      // Assume it's a username
+      query = { username: identifier };
+    }
+    
+    // Also search all fields as fallback
+    const user = await User.findOne({
+      $or: [
+        query,
+        { email: identifier },
+        { username: identifier },
+        { phone: identifier }
+      ]
+    }).select('+password');
     if (!user) {
       console.log("User not found");
       return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });

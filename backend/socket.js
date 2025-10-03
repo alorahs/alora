@@ -11,7 +11,7 @@ export const initializeSocket = (server) => {
   // Initialize Socket.IO
   ioInstance = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || ['http://localhost:8080', 'http://localhost:8000', "http://10.244.78.2:8000", 'http://192.168.29.106:8000', 'http://192.168.29.162:8000','https://51090895-ce0d-4997-9b08-6afe46072bdb.lovableproject.com'],
+      origin: process.env.CLIENT_URL || ['http://localhost:8080','http://localhost:8081', 'http://localhost:8000', "http://10.244.78.2:8000", 'http://192.168.29.106:8000', 'http://192.168.29.162:8000','https://51090895-ce0d-4997-9b08-6afe46072bdb.lovableproject.com'],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       credentials: true
     }
