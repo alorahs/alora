@@ -22,6 +22,13 @@ import './models/notification.js';
 
 import connectDB from './config/db.js';
 import apiRouter from './routes/api_route.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// __filename and __dirname are not available in ES modules by default.
+// Derive them from import.meta.url so legacy code using __dirname works.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const server = createServer(app);
@@ -35,7 +42,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(helmet());
 app.use(cors({
-    origin: process.env.CLIENT_URL || ['http://localhost:8081', 'http://localhost:8000', "http://10.244.78.2:8000", 'http://192.168.29.106:8000', 'http://192.168.29.162:8000','https://51090895-ce0d-4997-9b08-6afe46072bdb.lovableproject.com'],
+    origin: process.env.CLIENT_URL || ['http://localhost:8081','http://10.186.236.2:8081', 'http://localhost:8000', "http://10.244.78.2:8000", 'http://192.168.29.106:8000', 'http://192.168.29.162:8000','https://51090895-ce0d-4997-9b08-6afe46072bdb.lovableproject.com'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
     optionsSuccessStatus: 204,
@@ -44,10 +51,6 @@ app.use(cors({
 
 // API Routes - keep before frontend static serving
 app.use('/api', apiRouter);
-
-app.get('/', (req, res) => {
-    res.json({'message': 'Welcome to the API', 'status': 'running', 'version': '1.0.0', 'author': 'Alora', 'req': req.method + ' ' + req.originalUrl});
-});
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -65,12 +68,12 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Serve frontend static files
+// app.use(express.static(path.join(__dirname, '../myapp/dist')));
+
 // 404 handler (after all routes)
 app.use((req, res) => {
-    res.status(404).json({
-        error: 'Not Found',
-        message: `Route ${req.originalUrl} does not exist`,
-    });
+    res.status(404).json({ error: 'Not Found' });
 });
 
 // Connect DB and start server

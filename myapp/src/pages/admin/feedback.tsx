@@ -60,7 +60,10 @@ export default function FeedbackList() {
   const fetchFeedback = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/feedback`);
+      const response = await fetch(`${API_URL}/feedback/admin`, {
+        method: "GET",
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setFeedback(data);
@@ -202,6 +205,7 @@ export default function FeedbackList() {
               <TableHeader>
                 <TableRow>
                   <TableHead>User</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Rating</TableHead>
                   <TableHead>Subject</TableHead>
                   <TableHead>Message</TableHead>
@@ -227,17 +231,17 @@ export default function FeedbackList() {
                     <TableRow key={item._id}>
                       <TableCell>
                         {item ? (
-                          <div>
                             <div className="font-medium">
                               {item.name || "Unknown User"}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {item.email}
-                            </div>
                           </div>
                         ) : (
                           <div className="text-gray-500">Anonymous</div>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600 truncate max-w-xs">
+                          {item.email || "N/A"}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center">

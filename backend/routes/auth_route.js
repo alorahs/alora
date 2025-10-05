@@ -10,162 +10,187 @@ import verifyAccessToken from '../middleware/authentication.js';
 
 const router = express.Router();
 
+// ===================
 // Helper functions
+// ===================
 const generateAccessToken = (user) => {
   return jwt.sign({ sub: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1h",
+    expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1h',
   });
 };
 
 const generateRefreshToken = (user) => {
   return jwt.sign({ id: user._id }, process.env.REFRESH_TOKEN_SECRET, {
-    expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d",
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '7d',
   });
 };
 
+// ===================
 // User Registration
-router.post('/register', [
-  body('fullName').isLength({ min: 3 }).withMessage('Full name must be at least 3 characters long'),
-  body('username').isLength({ min: 8 }).withMessage('Username must be at least 8 characters long'),
-  body('email').isEmail().withMessage('Invalid email address'),
-  body('phone').isMobilePhone().withMessage('Invalid phone number'),
-  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
-  body('role').isIn(['customer', 'professional']).withMessage('Role must be either customer, professional'),
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+// ===================
+router.post(
+  '/register',
+  [
+    body('fullName').isLength({ min: 3 }).withMessage('Full name must be at least 3 characters long'),
+    body('username').isLength({ min: 8 }).withMessage('Username must be at least 8 characters long'),
+    body('email').isEmail().withMessage('Invalid email address'),
+    body('phone').isMobilePhone().withMessage('Invalid phone number'),
+    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+    body('role').isIn(['customer', 'professional']).withMessage('Role must be either customer, professional'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { username, email, password, role, phone, fullName } = req.body;
+
+    try {
+      // Check if user already exists
+      let user = await User.findOne({ email, username, phone });
+      if (user) {
+        return res.status(400).json({ errors: [{ msg: 'User already exists' }] });
+      }
+
+      if (await User.findOne({ email })) {
+        return res.status(400).json({ errors: [{ msg: 'Email already in use' }] });
+      }
+      if (await User.findOne({ username })) {
+        return res.status(400).json({ errors: [{ msg: 'Username already taken' }] });
+      }
+      if (await User.findOne({ phone })) {
+        return res.status(400).json({ errors: [{ msg: 'Phone number already in use' }] });
+      }
+
+      user = new User({
+        username,
+        email,
+        password: await bcrypt.hash(password, 10),
+        role: role || 'customer',
+        phone,
+        fullName,
+      });
+
+      await user.save();
+
+      // Send verification email
+      const verifyEmailToken = jwt.sign(
+        { id: user._id },
+        process.env.EMAIL_VERIFICATION_TOKEN_SECRET,
+        { expiresIn: '15m' }
+      );
+      user.verifyEmailToken = verifyEmailToken;
+      user.verifyEmailExpires = new Date(Date.now() + 15 * 60 * 1000);
+      await user.save();
+
+      await sendVerificationEmail(user.email, user.verifyEmailToken, user.fullName);
+
+      res.status(201).json({ msg: 'User registered successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ errors: [{ msg: 'Server error' }] });
+    }
   }
+);
 
-  const { username, email, password, role, phone, fullName } = req.body;
-
-  try {
-    // Check if user already exists
-    let user = await User.findOne({ email, username, phone });
-    if (user) {
-      return res.status(400).json({ errors: [{ msg: 'User already exists' }] });
-    }
-
-    user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ errors: [{ msg: 'Email already in use' }] });
-    }
-
-    user = await User.findOne({ username });
-    if (user) {
-      return res.status(400).json({ errors: [{ msg: 'Username already taken' }] });
-    }
-
-    user = await User.findOne({ phone });
-    if (user) {
-      return res.status(400).json({ errors: [{ msg: 'Phone number already in use' }] });
-    }
-
-    user = new User({
-      username,
-      email,
-      password: await bcrypt.hash(password, 10),
-      role: role || 'customer',
-      phone,
-      fullName
-    });
-
-    await user.save();
-    // Send verification email
-    const verifyEmailToken = jwt.sign({ id: user._id }, process.env.EMAIL_VERIFICATION_TOKEN_SECRET, { expiresIn: '15m' });
-    user.verifyEmailToken = verifyEmailToken;
-    user.verifyEmailExpires = new Date(Date.now() + 15 * 60 * 1000);
-    await user.save();
-    await sendVerificationEmail(user.email, user.verifyEmailToken, user.fullName);
-    res.status(201).json({ msg: 'User registered successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ errors: [{ msg: 'Server error' }] });
-  }
-});
-
+// ===================
 // User Login
-router.post('/login', [
-  body('identifier').exists().withMessage('Email, username, or phone number is required'),
-  body('password').exists().withMessage('Password is required'),
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+// ===================
+router.post(
+  '/login',
+  [
+    body('identifier').exists().withMessage('Email, username, or phone number is required'),
+    body('password').exists().withMessage('Password is required'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const { identifier, password } = req.body;
+
+    try {
+      console.log('Login attempt with identifier:', identifier);
+
+      // detect identifier type
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^[\+]?[1-9][\d]{3,14}$/;
+
+      let query = {};
+      if (emailRegex.test(identifier)) {
+        query = { email: identifier };
+      } else if (phoneRegex.test(identifier.replace(/[\s\-\(\)]/g, ''))) {
+        query = { phone: identifier };
+      } else {
+        query = { username: identifier };
+      }
+
+      const user = await User.findOne({
+        $or: [query, { email: identifier }, { username: identifier }, { phone: identifier }],
+      }).select('+password');
+
+      if (!user) {
+        return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
+      }
+
+      const accessToken = generateAccessToken(user);
+      const refreshToken = generateRefreshToken(user);
+
+      // Store refresh token in DB
+      const newRefreshToken = new RefreshToken({
+        token: refreshToken,
+        user: user._id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
+      await newRefreshToken.save();
+
+      // Set cookies (for web clients)
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      // Also send tokens in JSON (for mobile clients)
+      res.status(200).json({
+        msg: 'Login successful',
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          fullName: user.fullName,
+          phone: user.phone,
+        },
+        accessToken,
+        refreshToken,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ errors: [{ msg: 'Server error' }] });
+    }
   }
-  const { identifier, password } = req.body;
-  try {
-    console.log("Login attempt with identifier:", identifier);
-    
-    // Check if identifier is email, phone, or username
-    let query = {};
-    
-    // Check if identifier is email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // Check if identifier is phone format (basic check for digits and common phone patterns)
-    const phoneRegex = /^[\+]?[1-9][\d]{3,14}$/;
-    
-    if (emailRegex.test(identifier)) {
-      // It's an email
-      query = { email: identifier };
-    } else if (phoneRegex.test(identifier.replace(/[\s\-\(\)]/g, ''))) {
-      // It's a phone number (remove common formatting characters)
-      query = { phone: identifier };
-    } else {
-      // Assume it's a username
-      query = { username: identifier };
-    }
-    
-    // Also search all fields as fallback
-    const user = await User.findOne({
-      $or: [
-        query,
-        { email: identifier },
-        { username: identifier },
-        { phone: identifier }
-      ]
-    }).select('+password');
-    if (!user) {
-      console.log("User not found");
-      return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
-    }
+);
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      console.log("Password mismatch");
-      return res.status(400).json({ errors: [{ msg: 'Invalid credentials' }] });
-    }
-
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    // Store refresh token in DB
-    const newRefreshToken = new RefreshToken({ token: refreshToken, user: user._id, expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }); // 7 days
-    await newRefreshToken.save();
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-
-    res.status(200).json({ msg: 'Login successful', user: { id: user._id, username: user.username, email: user.email, role: user.role, fullName: user.fullName, phone: user.phone } });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ errors: [{ msg: 'Server error' }] });
-  }
-});
-
+// ===================
+// Logout
+// ===================
 router.post('/logout', async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
+  const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
   if (!refreshToken) {
     return res.status(400).json({ errors: [{ msg: 'No refresh token provided' }] });
   }
@@ -180,8 +205,11 @@ router.post('/logout', async (req, res) => {
   }
 });
 
+// ===================
+// Refresh Token
+// ===================
 router.post('/refresh', async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
+  const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
   if (!refreshToken) {
     return res.status(400).json({ errors: [{ msg: 'No refresh token provided' }] });
   }
@@ -190,9 +218,7 @@ router.post('/refresh', async (req, res) => {
     const storedToken = await RefreshToken.findOne({ token: refreshToken, user: decoded.id });
 
     if (!storedToken || new Date() > storedToken.expiresAt) {
-      if (storedToken) {
-        await storedToken.deleteOne();
-      }
+      if (storedToken) await storedToken.deleteOne();
       res.clearCookie('refreshToken');
       res.clearCookie('accessToken');
       return res.status(401).json({ errors: [{ msg: 'Invalid or expired refresh token' }] });
@@ -205,19 +231,28 @@ router.post('/refresh', async (req, res) => {
 
     const accessToken = generateAccessToken(user);
 
+    // Update cookie for web clients
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'Strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    res.status(200).json({ msg: 'Access token refreshed' });
+
+    // Return JSON for mobile clients
+    res.status(200).json({
+      msg: 'Access token refreshed',
+      accessToken,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ errors: [{ msg: 'Server error' }] });
   }
 });
 
+// ===================
+// Get Current User
+// ===================
 router.get('/me', verifyAccessToken, async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');

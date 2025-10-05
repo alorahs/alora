@@ -12,7 +12,9 @@ const userSchema = new mongoose.Schema({
     street: String,
     city: String,
     state: String,
-    pincode: String
+    pincode: String,
+    lon: Number,
+    lat: Number
   },
   bio: { type: String },
   skills: [{ type: String }],
@@ -41,6 +43,7 @@ const userSchema = new mongoose.Schema({
   verifyPhoneToken: { type: String },
   verifyPhoneExpires: { type: Date },
   deletionRequestedAt: { type: Date },
+  isVerifiedProfessional: { type: Boolean, default: false },
   settings: {
     // Notification preferences
     emailNotifications: { type: Boolean, default: true },

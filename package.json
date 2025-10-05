@@ -11,14 +11,14 @@
     "frontend": "cd myapp && npm run dev",
     "build": "cd myapp && npm run build",
     "install-all": "npm install && cd backend && npm install && cd ../myapp && npm install",
-    "clean": "cd backend && rm -rf node_modules && cd ../myapp && rm -rf node_modules && rm -rf node_modules",
+    "clean": "npx rimraf node_modules backend/node_modules myapp/node_modules",
     "lint": "cd myapp && npm run lint",
     "type-check": "cd myapp && npx tsc --noEmit"
   },
-  "dependencies": {
-    "child_process": "^1.0.2"
+  "dependencies": {},
+  "devDependencies": {
+    "rimraf": "^5.0.0"
   },
-  "devDependencies": {},
   "keywords": [
     "home-services",
     "booking-platform",

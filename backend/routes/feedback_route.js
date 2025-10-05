@@ -53,6 +53,19 @@ router.get("/", async (req, res) => {
   try {
     const feedbacks = await Feedback.find()
       .sort({ createdAt: -1 })
+      .populate("user", "fullName")
+      .select("-email");
+    res.status(200).json(feedbacks);
+  } catch (error) {
+    console.error("Error retrieving feedback:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/admin", verifyAccessToken, isAdmin, async (req, res) => {
+  try {
+    const feedbacks = await Feedback.find()
+      .sort({ createdAt: -1 })
       .populate("user", "fullName username email");
     res.status(200).json(feedbacks);
   } catch (error) {

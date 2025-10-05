@@ -27,8 +27,13 @@ router.post('/', verifyAccessToken, async (req, res) => {
     
     const newReview = new Review({ reviewer, reviewee, rating, comment });
     await newReview.save();
-    
-    res.status(201).json({ message: 'Review created successfully', review: newReview });
+    const populatedReview = await newReview.populate('reviewer reviewee', 'fullName username');
+    const professional = await User.findById(reviewee);
+    professional.reviews.push(newReview._id);
+    professional.ratings.push(rating);
+    await professional.save();
+
+    res.status(201).json({ message: 'Review created successfully', review: populatedReview });
   } catch (error) {
     console.error('Error creating review:', error);
     res.status(500).json({ message: 'Internal server error' });
