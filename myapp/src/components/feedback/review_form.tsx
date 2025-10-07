@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import { Star } from "lucide-react";
 
 interface ReviewFormProps {
@@ -40,16 +41,16 @@ export function ReviewForm({
 
     try {
       // Submit review to backend
-      const response = await fetch(`${API_URL}/booking/${bookingId}/rating`, {
+      const response = await proxyApiRequest(`/booking/${bookingId}/rating`, {
         method: "PUT",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
+        body: {
           rating,
           review: comment,
-        }),
+        },
       });
 
       const data = await response.json();
@@ -67,11 +68,11 @@ export function ReviewForm({
       setRating(0);
       setComment("");
       onReviewSubmitted();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
         description:
-          error.message || "Failed to submit review. Please try again.",
+          (error as Error).message || "Failed to submit review. Please try again.",
         variant: "destructive",
       });
     } finally {

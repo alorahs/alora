@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,7 +61,7 @@ export default function FeedbackList() {
   const fetchFeedback = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/feedback/admin`, {
+      const response = await proxyApiRequest("/feedback/admin", {
         method: "GET",
         credentials: "include",
       });
@@ -80,14 +81,14 @@ export default function FeedbackList() {
     fetchFeedback();
   }, []);
 
-  const updateFeedback = async (feedbackId: string, feedbackData: any) => {
+  const updateFeedback = async (feedbackId: string, feedbackData: Partial<Feedback>) => {
     try {
-      const response = await fetch(`${API_URL}/feedback/${feedbackId}`, {
+      const response = await proxyApiRequest(`/feedback/${feedbackId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(feedbackData),
+        body: feedbackData,
         credentials: "include",
       });
 
@@ -112,7 +113,7 @@ export default function FeedbackList() {
 
   const deleteFeedback = async (feedbackId: string) => {
     try {
-      const response = await fetch(`${API_URL}/feedback/${feedbackId}`, {
+      const response = await proxyApiRequest(`/feedback/${feedbackId}`, {
         method: "DELETE",
         credentials: "include",
       });

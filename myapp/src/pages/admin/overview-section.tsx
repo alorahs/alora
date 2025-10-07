@@ -8,6 +8,81 @@ import {
   BarChart3,
 } from "lucide-react";
 
+// Define interfaces for the data types
+interface User {
+  _id: string;
+  username: string;
+  email: string;
+  fullName: string;
+  role: string;
+  phone: string;
+  isActive: boolean;
+  category?: string;
+  createdAt: string;
+}
+
+interface Service {
+  _id: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  category?: string;
+  createdAt: string;
+}
+
+interface FAQ {
+  _id: string;
+  type: string;
+  question: string;
+  answer: string;
+  createdAt: string;
+}
+
+interface Feedback {
+  _id: string;
+  rating: number;
+  subject: string;
+  message: string;
+  createdAt: string;
+  user?: {
+    fullName: string;
+    username: string;
+    email: string;
+  };
+}
+
+interface ReachUs {
+  _id: string;
+  fullName: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+  user?: {
+    fullName: string;
+    username: string;
+    email: string;
+  };
+}
+
+interface Review {
+  _id: string;
+  reviewer: {
+    _id: string;
+    fullName: string;
+    username: string;
+  };
+  reviewee: {
+    _id: string;
+    fullName: string;
+    username: string;
+  };
+  rating: number;
+  comment: string;
+  createdAt: string;
+}
+
 export default function OverviewSection({
   users = [],
   services = [],
@@ -16,12 +91,12 @@ export default function OverviewSection({
   reachUsMessages = [],
   reviews = [],
 }: {
-  users: any[];
-  services: any[];
-  faqs: any[];
-  feedback: any[];
-  reachUsMessages: any[];
-  reviews: any[];
+  users: User[];
+  services: Service[];
+  faqs: FAQ[];
+  feedback: Feedback[];
+  reachUsMessages: ReachUs[];
+  reviews: Review[];
 }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">

@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { Header, Footer, ScrollToTop } from "./components/layout";
 import { Toaster } from "./components/ui/toaster";
+import WebSocketStatus from "./components/shared/WebSocketStatus";
 
 import HomePage from "./pages/Home/page";
 import LoginPage from "./pages/auth/login";
@@ -129,6 +130,7 @@ function App() {
 
         <Footer />
         <Toaster />
+        <WebSocketStatus />
       </div>
     </Router>
   );

@@ -3,10 +3,30 @@ import { Input } from "../../components/ui/input";
 import { Card, CardContent } from "../../components/ui/card";
 import { StarIcon } from "lucide-react";
 import { Img } from "react-image";
-import { AdvancedSearchFilters } from "../../components/advanced-search-filters"
+import { AdvancedSearchFilters } from "../../components/shared/advanced-search-filters"
+
+interface Category {
+  name: string;
+  icon: string;
+}
+
+interface Professional {
+  id: number;
+  name: string;
+  category: string;
+  rating: number;
+  reviewCount: number;
+  hourlyRate: number;
+  bio: string;
+  skills: string[];
+  profileImageURL: string;
+  location: string;
+  availability: string;
+  // Add other properties as needed
+}
 
 function Section9({ categories, handleViewSwitch, selectedCategory, setSelectedCategory, sortedProfessionals, searchQuery, setSearchQuery, priceFilter, setPriceFilter, ratingFilter, setRatingFilter, availabilityFilter, setAvailabilityFilter, clearAllFilters, showMobileFilters, setShowMobileFilters, setSelectedProfessional }:
-  { categories: { name: string; icon: string }[]; handleViewSwitch: (view: string) => void; selectedCategory: string | null; setSelectedCategory: (category: string | null) => void; sortedProfessionals: any[]; searchQuery: string; setSearchQuery: (query: string) => void; priceFilter: string | null; setPriceFilter: (filter: string | null) => void; ratingFilter: string | null; setRatingFilter: (filter: string | null) => void; availabilityFilter: string | null; setAvailabilityFilter: (filter: string | null) => void; clearAllFilters: () => void; showMobileFilters: boolean; setShowMobileFilters: (show: boolean) => void; setSelectedProfessional: (professional: any) => void; }) {
+  { categories: Category[]; handleViewSwitch: (view: string) => void; selectedCategory: string | null; setSelectedCategory: (category: string | null) => void; sortedProfessionals: Professional[]; searchQuery: string; setSearchQuery: (query: string) => void; priceFilter: string | null; setPriceFilter: (filter: string | null) => void; ratingFilter: string | null; setRatingFilter: (filter: string | null) => void; availabilityFilter: string | null; setAvailabilityFilter: (filter: string | null) => void; clearAllFilters: () => void; showMobileFilters: boolean; setShowMobileFilters: (show: boolean) => void; setSelectedProfessional: (professional: Professional) => void; }) {
   return (
     <section className="py-6 sm:py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

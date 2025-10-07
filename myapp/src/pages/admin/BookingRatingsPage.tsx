@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, ArrowLeft, Calendar } from "lucide-react";
@@ -12,6 +13,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+// Define interface for the stats data
+interface RatingStats {
+  average?: number;
+  total?: number;
+  distribution?: {
+    [key: number]: number;
+  };
+}
 
 interface BookingWithRating {
   _id: string;
@@ -36,9 +46,14 @@ interface BookingWithRating {
 export default function BookingRatingsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState<any>({});
+  // Fix: Replace 'any' with the specific interface
+  const [stats, setStats] = useState<RatingStats>({});
   const [bookings, setBookings] = useState<BookingWithRating[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBookingRatings();
+  }, []);
 
   // Check if user is admin
   if (!user || user.role !== "admin") {
@@ -58,7 +73,8 @@ export default function BookingRatingsPage() {
   const fetchBookingRatings = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/admin/bookings/ratings`, {
+      const response = await proxyApiRequest("/admin/bookings/ratings", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -72,10 +88,6 @@ export default function BookingRatingsPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchBookingRatings();
-  }, []);
 
   const renderStars = (rating: number) => {
     return (

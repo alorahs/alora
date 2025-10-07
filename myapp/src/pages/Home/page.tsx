@@ -24,8 +24,24 @@ import {
   Users,
   MessageCircle,
 } from "lucide-react";
-import { useNavigate } from "react-router";
-import { API_URL } from "@/context/auth_provider";
+import { useNavigate } from "react-router-dom";
+import { proxyFetch } from "@/lib/apiProxy";
+import { categories } from "./categories";
+
+// Define types for our data structures
+interface Service {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  color: string;
+  category: string;
+}
+
+interface Testimonial {
+  name: string;
+  message: string;
+  rating: number;
+}
 
 // Tailwind color map for services
 const colorClasses: Record<string, string> = {
@@ -38,17 +54,7 @@ const colorClasses: Record<string, string> = {
   gray: "bg-gray-100 text-gray-600",
 };
 
-// Categories
-export const categories = [
-  { name: "All Services", icon: "🏠" },
-  { name: "Home Repair", icon: "🔧" },
-  { name: "Tech Support", icon: "💻" },
-  { name: "Cleaning", icon: "🧹" },
-  { name: "Electrical", icon: "⚡" },
-  { name: "Plumbing", icon: "🚿" },
-];
-
-// Steps
+// Steps data - moved to separate section
 const howItWorksSteps = [
   {
     step: "1",
@@ -82,32 +88,25 @@ function HomePage() {
     lon: number;
   } | null>(null);
   const [locationName, setLocationName] = useState("");
-  const [services, setServices] = useState<
-    {
-      title: string;
-      description: string;
-      icon: any;
-      color: string;
-      category: string;
-    }[]
-  >([]);
-  const [testimonials, setTestimonials] = useState<
-    {
-      name: string;
-      message: string;
-      rating: number;
-    }[]
-  >([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+
   // Fetch services from backend
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await fetch(`${API_URL}/services`, { method: "GET" });
-        const data = await res.json();
-
-        setServices(data);
+        // Use proxy instead of direct API call
+        const data = await proxyFetch("/services");
+        // Ensure data is an array before setting state
+        if (Array.isArray(data)) {
+          setServices(data);
+        } else {
+          console.warn("Services data is not an array:", data);
+          setServices([]); // Set to empty array as fallback
+        }
       } catch (error) {
         console.error("Error fetching services:", error);
+        setServices([]); // Set to empty array on error
       }
     };
     fetchServices();
@@ -116,19 +115,19 @@ function HomePage() {
   // Reverse Geocoding: Coords -> Address
   const fetchAddressFromCoords = async (lat: number, lon: number) => {
     try {
-      const res = await fetch(
-        `${API_URL}/geocode/reverse?lat=${lat}&lon=${lon}`,
-        { method: "GET" }
-      );
-      const data = await res.json();
-      const place =
-        data?.address.city ||
-        data?.address.town ||
-        data?.address.village ||
-        data?.address.city_district;
-      if (place) {
-        setLocationName(`${place}, ${data.address.state || ""}`);
-        setSearchQuery(`${place}, ${data.address.state || ""}`);
+      // Use proxy instead of direct API call
+      const data = await proxyFetch(`/geocode/reverse?lat=${lat}&lon=${lon}`);
+      // Add safety checks for data structure
+      if (data && data.address) {
+        const place =
+          data.address.city ||
+          data.address.town ||
+          data.address.village ||
+          data.address.city_district;
+        if (place) {
+          setLocationName(`${place}, ${data.address.state || ""}`);
+          setSearchQuery(`${place}, ${data.address.state || ""}`);
+        }
       }
     } catch (error) {
       console.error("Error fetching address:", error);
@@ -138,11 +137,8 @@ function HomePage() {
   // Geocoding: Address -> Coords
   const fetchCoordsFromAddress = async (address: string) => {
     try {
-      const res = await fetch(
-        `${API_URL}/geocode/forward?address=${encodeURIComponent(address)}`,
-        { method: "GET" }
-      );
-      const data = await res.json();
+      // Use proxy instead of direct API call
+      const data = await proxyFetch(`/geocode/forward?address=${encodeURIComponent(address)}`);
       if (data.length > 0) {
         const { lat, lon } = data[0];
         setCoordinates({ lat: parseFloat(lat), lon: parseFloat(lon) });
@@ -178,15 +174,17 @@ function HomePage() {
       navigate(`/professionals?location=${encodeURIComponent(searchQuery)}`);
     }
   };
+
   // Fetch feedback from backend
   useEffect(() => {
     const fetchFeedback = async () => {
       try {
-        const res = await fetch(`${API_URL}/feedback`);
-        if (res.ok) {
-          const data = await res.json();
+        // Use proxy instead of direct API call
+        const data = await proxyFetch("/feedback");
+        if (Array.isArray(data)) {
           setTestimonials(data);
         } else {
+          console.warn("Feedback data is not an array:", data);
           // Fallback to hardcoded testimonials in case of error
           setTestimonials([
             {
@@ -224,6 +222,7 @@ function HomePage() {
     };
     fetchFeedback();
   }, []);
+
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}

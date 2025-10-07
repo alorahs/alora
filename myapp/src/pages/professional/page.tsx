@@ -1,10 +1,20 @@
 import { useState, useEffect } from "react";
 import Layout from "./layout";
 import { ProfessionalProfileModal } from "@/components/profile";
-import { categories } from "../Home/page";
 import { API_URL } from "@/context/auth_provider";
 import { User } from "../../interfaces/user";
 import { useParams } from "react-router-dom";
+import { proxyFetch } from "@/lib/apiProxy";
+
+// Define categories locally since we can't import them from Home page
+const categories = [
+  { name: "All Services", icon: "🏠" },
+  { name: "Home Repair", icon: "🔧" },
+  { name: "Tech Support", icon: "💻" },
+  { name: "Cleaning", icon: "🧹" },
+  { name: "Electrical", icon: "⚡" },
+  { name: "Plumbing", icon: "🚿" },
+];
 
 export function ProfessionalPage() {
   const params = new URLSearchParams(window.location.search);
@@ -58,15 +68,9 @@ export function ProfessionalPage() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`${API_URL}/_/users`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const data = await proxyFetch("/_/users");
 
-        if (response.ok) {
-          const data = await response.json();
+        if (data) {
           setProfessionals(data);
         } else {
           throw new Error("Failed to fetch professionals");
@@ -75,13 +79,17 @@ export function ProfessionalPage() {
         setError("Failed to load professionals. Please try again later.");
       } finally {
         setLoading(false);
-        category && setSelectedCategory(category);
-        location && setSelectedLocation(location);
+        if (category) {
+          setSelectedCategory(category);
+        }
+        if (location) {
+          setSelectedLocation(location);
+        }
       }
     };
 
     fetchProfessionals();
-  }, []);
+  }, [category, location]); // Added missing dependencies
 
   // Filter professionals based on search and filters
   const filteredProfessionals = professionals

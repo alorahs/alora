@@ -1,6 +1,7 @@
 import express from 'express';
 import verifyAccessToken from '../middleware/authentication.js';
 import Notification from '../models/notification.js';
+// Import the getIO function
 import { getIO } from '../socket.js';
 
 const router = express.Router();

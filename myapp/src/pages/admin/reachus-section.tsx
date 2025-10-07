@@ -44,6 +44,16 @@ interface ReachUs {
   };
 }
 
+// Define form data interface
+interface ReachUsFormData {
+  _id?: string;
+  fullName: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt?: string;
+}
+
 export default function ReachUsSection({
   reachUsMessages = [],
   loading,
@@ -62,10 +72,10 @@ export default function ReachUsSection({
   loading: boolean;
   setIsEditReachUsOpen: (open: boolean) => void;
   setIsViewReachUsOpen: (open: boolean) => void;
-  setSelectedItem: (item: any) => void;
+  setSelectedItem: (item: ReachUs) => void;
   deleteReachUsMessage: (id: string) => void;
-  updateReachUsMessage: (id: string, data: any) => void;
-  setFormData: (data: any) => void;
+  updateReachUsMessage: (id: string, data: Partial<ReachUsFormData>) => void;
+  setFormData: (data: Partial<ReachUsFormData>) => void;
   reachUsFilter: string;
   setReachUsFilter: (filter: string) => void;
   reachUsSearchTerm: string;

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            margin-bottom: 20px;
+        }
+        input, button {
+            margin: 5px;
+            padding: 8px;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .notification {
+            background-color: #e3f2fd;
+        }
+        .status {
+            background-color: #f1f8e9;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <h1>Socket.IO Real-time Notifications Example</h1>
+    
+    <div class="container">
+        <h2>Connection</h2>
+        <input type="text" id="token" placeholder="JWT Token" size="50">
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+        <div id="connectionStatus">Disconnected</div>
+    </div>
+    
+    <div class="container">
+        <h2>Send Test Notification</h2>
+        <input type="text" id="title" placeholder="Notification Title" value="Test Notification">
+        <input type="text" id="message" placeholder="Notification Message" value="This is a test message">
+        <select id="type">
+            <option value="info">Info</option>
+            <option value="success">Success</option>
+            <option value="warning">Warning</option>
+            <option value="error">Error</option>
+        </select>
+        <button onclick="sendBroadcast()">Broadcast to All</button>
+    </div>
+    
+    <div class="container">
+        <h2>Messages</h2>
+        <div id="messages"></div>
+    </div>
+
+    <!-- Include Socket.IO client library -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket;
+        
+        function connect() {
+            const token = document.getElementById('token').value;
+            
+            if (!token) {
+                addMessage('Please enter a JWT token', 'error');
+                return;
+            }
+            
+            // Connect to Socket.IO server
+            socket = io({
+                auth: {
+                    token: token
+                }
+            });
+            
+            // Connection events
+            socket.on('connect', () => {
+                document.getElementById('connectionStatus').textContent = 'Connected (ID: ' + socket.id + ')';
+                addMessage('Connected to server', 'status');
+            });
+            
+            socket.on('disconnect', () => {
+                document.getElementById('connectionStatus').textContent = 'Disconnected';
+                addMessage('Disconnected from server', 'status');
+            });
+            
+            socket.on('connect_error', (error) => {
+                addMessage('Connection error: ' + error.message, 'error');
+            });
+            
+            // Notification event
+            socket.on('newNotification', (notification) => {
+                addMessage('New Notification: ' + notification.title + ' - ' + notification.message, 'notification');
+            });
+            
+            // User status events
+            socket.on('userOnline', (data) => {
+                addMessage('User ' + data.userId + ' is now online', 'status');
+            });
+            
+            socket.on('userOffline', (data) => {
+                addMessage('User ' + data.userId + ' is now offline', 'status');
+            });
+        }
+        
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+            }
+        }
+        
+        function sendBroadcast() {
+            if (!socket || !socket.connected) {
+                addMessage('Not connected to server', 'error');
+                return;
+            }
+            
+            const title = document.getElementById('title').value;
+            const message = document.getElementById('message').value;
+            const type = document.getElementById('type').value;
+            
+            // In a real app, you would call your API endpoint
+            // For this example, we'll just show how the event would be structured
+            addMessage('Would send broadcast: ' + title + ' - ' + message, 'status');
+            
+            // Example of how to emit events to the server
+            // socket.emit('customEvent', { data: 'example' });
+        }
+        
+        function addMessage(text, type) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + type;
+            messageDiv.textContent = new Date().toLocaleTimeString() + ' - ' + text;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // Add some initial instructions
+        addMessage('Enter your JWT token and click Connect to start', 'status');
+        addMessage('After connecting, you can send test notifications', 'status');
+    </script>
+</body>
+</html>

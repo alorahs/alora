@@ -47,6 +47,14 @@ interface Review {
   createdAt: string;
 }
 
+// Define form data interface
+interface ReviewFormData {
+  _id?: string;
+  rating: number;
+  comment: string;
+  createdAt?: string;
+}
+
 export default function ReviewsSection({
   reviews = [],
   loading,
@@ -59,10 +67,10 @@ export default function ReviewsSection({
   reviews: Review[];
   loading: boolean;
   setIsEditReviewOpen: (open: boolean) => void;
-  setSelectedItem: (item: any) => void;
+  setSelectedItem: (item: Review) => void;
   deleteReview: (id: string) => void;
-  updateReview: (id: string, data: any) => void;
-  setFormData: (data: any) => void;
+  updateReview: (id: string, data: Partial<ReviewFormData>) => void;
+  setFormData: (data: Partial<ReviewFormData>) => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");

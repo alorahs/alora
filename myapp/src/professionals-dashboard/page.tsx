@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
 import {
   Loader2,
   Calendar,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 interface Booking {
   _id: string;
@@ -55,14 +56,11 @@ export default function ProfessionalsDashboard() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(
-          `${API_URL}/booking/professional/${user._id}`,
+        const response = await proxyApiRequest(
+          `/booking/professional/${user._id}`,
           {
             method: "GET",
             credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
           }
         );
 
@@ -98,13 +96,13 @@ export default function ProfessionalsDashboard() {
     setUpdating(true);
 
     try {
-      const response = await fetch(`${API_URL}/booking/${bookingId}/status`, {
+      const response = await proxyApiRequest(`/booking/${bookingId}/status`, {
         method: "PUT",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: { status: newStatus },
       });
 
       const data = await response.json();

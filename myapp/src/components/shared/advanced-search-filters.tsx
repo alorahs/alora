@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -48,25 +48,29 @@ export function AdvancedSearchFilters({
     lon: number;
   } | null>(null);
   const [locationName, setLocationName] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
   const [clearAdvanceclick, setClearAdvancedClick] = useState(false);
   const detectUserLocation = useGeolocation();
+  
+  const clearAdvancedFilters = useCallback(() => {
+    setSearchQuery("");
+    setLocationFilter("");
+    setPriceRange([0, 1000]);
+    setPriceFilter("");
+    setRatingFilter("");
+    setAvailabilityFilter("");
+    setCoordinates(null);
+  }, [setSearchQuery, setLocationFilter, setPriceFilter, setRatingFilter, setAvailabilityFilter, setCoordinates]);
+
+  // Calculate active filters count
   const activeFiltersCount = [
-    selectedCategory,
+    searchQuery,
+    selectedCategory !== "All Services" ? selectedCategory : null,
     priceFilter,
     ratingFilter,
     availabilityFilter,
     locationFilter,
-    durationFilter,
-    experienceFilter,
   ].filter(Boolean).length;
-
-  const clearAdvancedFilters = () => {
-    setLocationFilter("");
-    setPriceRange([0, 1000]);
-    setDurationFilter("");
-    setExperienceFilter("");
-    onClearAll();
-  };
 
   const fetchAddressFromCoords = async (lat: number, lon: number) => {
     try {
@@ -119,11 +123,8 @@ export function AdvancedSearchFilters({
         detectUserLocation.Coordinates.lon
       );
     }
-  }, [detectUserLocation.Coordinates, locationFilter]);
-  {
-    /*router */
-  }
-  const [searchParams] = useSearchParams();
+  }, [detectUserLocation.Coordinates, locationFilter, clearAdvanceclick]);
+
   useEffect(() => {
     const locationFromParams = searchParams.get("location");
     if (locationFromParams) {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import {
   Info,
 } from "lucide-react";
 import RatingStats from "@/components/admin/RatingStats";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 interface User {
   _id: string;
@@ -92,12 +93,9 @@ interface Review {
   createdAt: string;
 }
 
-export default function AdminDashboardSimple() {
+export default function SimpleAdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-
-  // State for different sections
   const [users, setUsers] = useState<User[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [faqs, setFAQs] = useState<FAQ[]>([]);
@@ -105,25 +103,10 @@ export default function AdminDashboardSimple() {
   const [reachUsMessages, setReachUsMessages] = useState<ReachUs[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
 
-  // Check if user is admin
-  if (!user || user.role !== "admin") {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="p-6 w-full max-w-md">
-          <CardContent>
-            <p className="text-center text-red-600 text-lg">
-              Access Denied: Admin privileges required
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Fetch data functions
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_URL}/admin/users`, {
+      const response = await proxyApiRequest("/admin/users", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -137,7 +120,10 @@ export default function AdminDashboardSimple() {
 
   const fetchServices = async () => {
     try {
-      const response = await fetch(`${API_URL}/services`);
+      const response = await proxyApiRequest("/services", {
+        method: "GET",
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setServices(data);
@@ -149,7 +135,10 @@ export default function AdminDashboardSimple() {
 
   const fetchFAQs = async () => {
     try {
-      const response = await fetch(`${API_URL}/faq`);
+      const response = await proxyApiRequest("/faq", {
+        method: "GET",
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setFAQs(data);
@@ -161,7 +150,8 @@ export default function AdminDashboardSimple() {
 
   const fetchFeedback = async () => {
     try {
-      const response = await fetch(`${API_URL}/admin/feedback`, {
+      const response = await proxyApiRequest("/admin/feedback", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -175,7 +165,8 @@ export default function AdminDashboardSimple() {
 
   const fetchReachUsMessages = async () => {
     try {
-      const response = await fetch(`${API_URL}/reachus`, {
+      const response = await proxyApiRequest("/reachus", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -189,7 +180,8 @@ export default function AdminDashboardSimple() {
 
   const fetchReviews = async () => {
     try {
-      const response = await fetch(`${API_URL}/review`, {
+      const response = await proxyApiRequest("/review", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -209,6 +201,21 @@ export default function AdminDashboardSimple() {
     fetchReachUsMessages();
     fetchReviews();
   }, []);
+
+  // Check if user is admin
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-6">
+          <CardContent>
+            <p className="text-center text-red-600">
+              Access Denied: Admin privileges required
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6">

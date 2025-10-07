@@ -33,7 +33,7 @@ export default function SignupPage() {
     if (user) {
       navigate("/")
     }
-  }, [user])
+  }, [user, navigate])
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,12 +63,14 @@ export default function SignupPage() {
 
     try {
       const response = await signup({ fullName, password, phone, username, email, role })
-      if (response && Array.isArray((response as any).errors) && (response as any).errors.length > 0) {
-        setError("Signup failed: " + (response as any).errors[0].msg)
+      if (!response) {
+        // Signup failed, error should be in the auth context
+        // We don't need to handle it here as the toast is already shown in the context
       } else {
+        // Signup successful
         navigate("/auth/signup-success")
       }
-    } catch (error: unknown) {
+    } catch (error) {
       setError(error instanceof Error ? error.message : "An error occurred")
     } finally {
       setIsLoading(false)

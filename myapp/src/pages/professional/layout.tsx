@@ -1,10 +1,23 @@
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Card, CardContent } from "../../components/ui/card";
-import { StarIcon } from "lucide-react";
-import { Img } from "react-image";
-import { AdvancedSearchFilters } from "../../components/shared";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { AdvancedSearchFilters } from "@/components/shared/advanced-search-filters";
+import { User } from "@/interfaces/user";
+import { Star, MapPin } from "lucide-react";
+import { Img } from "react-image";
+
+// Define the display professional interface
+interface DisplayProfessional extends User {
+  id: string;
+  name: string;
+  rating: number;
+  reviewCount: number;
+  profileImageURL: string;
+  workGalleryURLs: string[];
+  location: string;
+}
 
 function Layout({
   categories,
@@ -27,7 +40,7 @@ function Layout({
   categories: { name: string; icon: string }[];
   selectedCategory: string | null;
   setSelectedCategory: (category: string | null) => void;
-  sortedProfessionals: any[];
+  sortedProfessionals: DisplayProfessional[];
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   priceFilter: string | null;
@@ -39,7 +52,7 @@ function Layout({
   clearAllFilters: () => void;
   showMobileFilters: boolean;
   setShowMobileFilters: (show: boolean) => void;
-  setSelectedProfessional: (professional: any) => void;
+  setSelectedProfessional: (professional: User | null) => void;
 }) {
   const navigate = useNavigate();
 
@@ -248,7 +261,7 @@ function Layout({
                       />
                       <span className="text-sm text-gray-700 flex items-center">
                         4.0+{" "}
-                        <StarIcon className="h-3 w-3 text-yellow-400 ml-1" />
+                        <Star className="h-3 w-3 text-yellow-400 ml-1" />
                       </span>
                     </label>
                     <label className="flex items-center">
@@ -262,7 +275,7 @@ function Layout({
                       />
                       <span className="text-sm text-gray-700 flex items-center">
                         4.5+{" "}
-                        <StarIcon className="h-3 w-3 text-yellow-400 ml-1" />
+                        <Star className="h-3 w-3 text-yellow-400 ml-1" />
                       </span>
                     </label>
                     <label className="flex items-center">
@@ -276,7 +289,7 @@ function Layout({
                       />
                       <span className="text-sm text-gray-700 flex items-center">
                         4.8+{" "}
-                        <StarIcon className="h-3 w-3 text-yellow-400 ml-1" />
+                        <Star className="h-3 w-3 text-yellow-400 ml-1" />
                       </span>
                     </label>
                   </div>
@@ -404,7 +417,7 @@ function Layout({
 
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center">
-                          <StarIcon className="h-4 w-4 text-yellow-400" />
+                          <Star className="h-4 w-4 text-yellow-400" />
                           <span className="ml-1 font-semibold">
                             {pro.rating}
                           </span>
@@ -413,7 +426,7 @@ function Layout({
                           </span>
                         </div>
                         <span className="text-sm text-green-600 font-medium">
-                          {pro.availability}
+                          {pro.availability ? "Available" : "Not Available"}
                         </span>
                       </div>
 

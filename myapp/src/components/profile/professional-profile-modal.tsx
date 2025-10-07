@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Img } from "react-image";
-import { useAuth, API_URL } from "../../context/auth_provider";
+import { useAuth } from "../../context/auth_provider";
 import { useToast } from "../../hooks/use-toast";
 import {
   Heart,
@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { User } from "../../interfaces/user";
 import { useParams, useNavigate } from "react-router-dom";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 // Close Icon
 const XIcon = () => (
@@ -103,21 +104,20 @@ export default function ProfessionalProfileModal() {
     const fetchProfessional = async () => {
       if (!id) return;
       try {
-        const response = user
-          ? await fetch(`${API_URL}/user/${id}`, { credentials: "include" })
-          : await fetch(`${API_URL}/_/users/${id}`);
-        if (!response.ok) {
+        const response = await proxyApiRequest(`/user/${id}`, {
+          credentials: "include",
+          method: "GET"
+        });
+        if (response.ok) {
           const data = await response.json();
+          setProfessional(data.user || data);
+        } else {
           toast({
             title: "Error",
-            description: data.message || "Failed to load professional.",
+            description: "Failed to load professional.",
             variant: "destructive",
           });
-          return;
         }
-        const data = await response.json();
-        console.log("Fetched professional:", data);
-        setProfessional({ ...data });
       } catch (error) {
         toast({
           title: "Error",
@@ -127,19 +127,17 @@ export default function ProfessionalProfileModal() {
       }
     };
     fetchProfessional();
-  }, [id, toast]);
+  }, [id, toast, user]);
 
   // Check if professional is favorited
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       if (!user || !professional?._id) return;
       try {
-        const response = await fetch(
-          `${API_URL}/favorite/${professional._id}`,
-          {
-            credentials: "include",
-          }
-        );
+        const response = await proxyApiRequest(`/favorite/${professional._id}`, {
+          credentials: "include",
+          method: "GET"
+        });
         if (response.ok) {
           const data = await response.json();
           setIsFavorited(data.isFavorited);
@@ -168,13 +166,10 @@ export default function ProfessionalProfileModal() {
     try {
       if (isFavorited) {
         // Remove from favorites
-        const response = await fetch(
-          `${API_URL}/favorite/${professional._id}`,
-          {
-            method: "DELETE",
-            credentials: "include",
-          }
-        );
+        const response = await proxyApiRequest(`/favorite/${professional._id}`, {
+          method: "DELETE",
+          credentials: "include"
+        });
         if (response.ok) {
           setIsFavorited(false);
           toast({
@@ -186,12 +181,12 @@ export default function ProfessionalProfileModal() {
         }
       } else {
         // Add to favorites
-        const response = await fetch(`${API_URL}/favorite`, {
+        const response = await proxyApiRequest("/favorite", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ professionalId: professional._id }),
+          body: { professionalId: professional._id },
           credentials: "include",
         });
         if (response.ok) {

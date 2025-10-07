@@ -12,6 +12,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Upload, User } from "lucide-react";
+import type { User as UserType } from "@/interfaces/user"; // Import the User type
 
 interface UserProfile {
   fullName: string;
@@ -53,7 +54,8 @@ export default function PersonalDataSection({
   handleSaveChanges: () => void;
   handleOnSubmitProfilePicture: () => void;
   handleDeleteProfilePicture: () => void;
-  user: any;
+  // Fix: Replace 'any' with the specific User type
+  user: UserType | null;
 }) {
   return (
     <div className="space-y-6">

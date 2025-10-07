@@ -1,14 +1,28 @@
 import { useState, useEffect } from "react";
-import { API_URL } from "@/context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star, MessageSquare, BookOpen } from "lucide-react";
+
+// Define the interface for the stats data
+interface RatingStatsData {
+  ratings?: {
+    avgBooking?: number;
+    avgFeedback?: number;
+    avgReview?: number;
+    totalBookingRatings?: number;
+    bookingDistribution?: {
+      [key: number]: number;
+    };
+  };
+}
 
 interface RatingStatsProps {
   className?: string;
 }
 
 export default function RatingStats({ className = "" }: RatingStatsProps) {
-  const [stats, setStats] = useState<any>({});
+  // Fix: Replace 'any' with the specific interface
+  const [stats, setStats] = useState<RatingStatsData>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,7 +32,8 @@ export default function RatingStats({ className = "" }: RatingStatsProps) {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/admin/stats`, {
+      const response = await proxyApiRequest(`/admin/stats`, {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {

@@ -1,6 +1,6 @@
-import { API_URL } from "@/context/auth_provider";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 function EmailVerify() {
   const [status, setStatus] = useState("Verifying...");
@@ -18,13 +18,13 @@ function EmailVerify() {
 
     const verifyEmail = async () => {
       try {
-        const res = await fetch(`${API_URL}/_/users/verify-email`, {
+        const res = await proxyApiRequest(`/_/users/verify-email`, {
           method: "POST",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({token: token}),
+          body: { token },
         });
 
         if (res.ok) {

@@ -52,7 +52,10 @@ export default function PersonalDataSection({
   handleSaveChanges: () => void;
   handleOnSubmitProfilePicture: () => void;
   handleDeleteProfilePicture: () => void;
-  user: any;
+  user: {
+    role: string;
+    // Add other properties as needed
+  };
 }) {
   return (
     <div className="space-y-6">
@@ -78,7 +81,7 @@ export default function PersonalDataSection({
                 src={
                   previewImageUrl ||
                   (profileData.profilePicture
-                    ? `${API_URL}/files/${profileData.profilePicture}`
+                    ? `${API_URL}/proxy/file/${profileData.profilePicture}`
                     : undefined)
                 }
                 alt="Profile"

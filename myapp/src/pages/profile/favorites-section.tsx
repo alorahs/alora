@@ -90,7 +90,7 @@ export default function FavoritesSection({
                       <AvatarImage
                         src={
                           favorite.professional.profilePicture
-                            ? `${API_URL}/files/${favorite.professional.profilePicture}`
+                            ? `${API_URL}/proxy/file/${favorite.professional.profilePicture}`
                             : undefined
                         }
                       />

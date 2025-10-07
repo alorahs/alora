@@ -16,24 +16,33 @@ import navigationRouter from './navigation_route.js';
 import serviceRouter from './service_route.js';
 import adminRouter from './admin_route.js';
 import aboutUsRouter from './aboutus_route.js';
+import verifyApiKey from '../middleware/verify_api_key.js';
+// Import socket test router
+import socketTestRouter from './socket_test_route.js';
+// Import proxy router
+import proxyRouter from './proxy_route.js';
 
 const router = express.Router();
 
-router.use('/auth', authRouter);
-router.use('/_', shareRouter);
-router.use('/services', serviceRouter);
-router.use('/user', verifyAccessToken, userRouter);
-router.use('/faq', faqRouter);
-router.use('/feedback', feedbackRouter);
-router.use('/reachus', reachUsRouter);
-router.use('/review', verifyAccessToken, reviewRouter);
-router.use('/booking', verifyAccessToken, bookingRouter);
-router.use('/favorite', verifyAccessToken, favoriteRouter);
-router.use('/notification', verifyAccessToken, notificationRouter);
-router.use('/refresh-token', verifyAccessToken, refreshTokenRouter);
+router.use('/auth', verifyApiKey, authRouter);
+router.use('/_', verifyApiKey, shareRouter);
+router.use('/services', verifyApiKey, serviceRouter);
+router.use('/user', verifyAccessToken, verifyApiKey, userRouter);
+router.use('/faq', verifyApiKey, faqRouter);
+router.use('/feedback', verifyApiKey, feedbackRouter);
+router.use('/reachus', verifyApiKey, reachUsRouter);
+router.use('/review', verifyAccessToken, verifyApiKey, reviewRouter);
+router.use('/booking', verifyAccessToken, verifyApiKey, bookingRouter);
+router.use('/favorite', verifyAccessToken, verifyApiKey, favoriteRouter);
+router.use('/notification', verifyAccessToken, verifyApiKey, notificationRouter);
+router.use('/refresh-token', verifyAccessToken, verifyApiKey, refreshTokenRouter);
 router.use('/files', fileRouter);
-router.use('/geocode', navigationRouter);
-router.use('/admin', verifyAccessToken, adminRouter);
-router.use('/aboutus', aboutUsRouter);
+router.use('/geocode',verifyApiKey, navigationRouter);
+router.use('/admin', verifyAccessToken,verifyApiKey, adminRouter);
+router.use('/aboutus',verifyApiKey, aboutUsRouter);
+// Add socket test route
+router.use('/socket-test', verifyAccessToken, socketTestRouter);
+// Add proxy route (no API key verification needed as it handles its own)
+router.use('/proxy', proxyRouter);
 
 export default router;

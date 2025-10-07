@@ -36,7 +36,6 @@ router.post(
     body('email').isEmail().withMessage('Invalid email address'),
     body('phone').isMobilePhone().withMessage('Invalid phone number'),
     body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
-    body('role').isIn(['customer', 'professional']).withMessage('Role must be either customer, professional'),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -44,49 +43,70 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { username, email, password, role, phone, fullName } = req.body;
+    const { fullName, username, email, phone, password, role = 'user' } = req.body;
 
     try {
       // Check if user already exists
-      let user = await User.findOne({ email, username, phone });
-      if (user) {
-        return res.status(400).json({ errors: [{ msg: 'User already exists' }] });
+      const existingUser = await User.findOne({
+        $or: [{ email }, { username }, { phone }],
+      });
+
+      if (existingUser) {
+        return res.status(400).json({ errors: [{ msg: 'User already exists with this email, username, or phone' }] });
       }
 
-      if (await User.findOne({ email })) {
-        return res.status(400).json({ errors: [{ msg: 'Email already in use' }] });
-      }
-      if (await User.findOne({ username })) {
-        return res.status(400).json({ errors: [{ msg: 'Username already taken' }] });
-      }
-      if (await User.findOne({ phone })) {
-        return res.status(400).json({ errors: [{ msg: 'Phone number already in use' }] });
-      }
+      // Hash password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      user = new User({
+      // Create new user
+      const user = new User({
+        fullName,
         username,
         email,
-        password: await bcrypt.hash(password, 10),
-        role: role || 'customer',
         phone,
-        fullName,
+        password: hashedPassword,
+        role,
       });
 
       await user.save();
 
-      // Send verification email
-      const verifyEmailToken = jwt.sign(
-        { id: user._id },
-        process.env.EMAIL_VERIFICATION_TOKEN_SECRET,
-        { expiresIn: '15m' }
-      );
-      user.verifyEmailToken = verifyEmailToken;
-      user.verifyEmailExpires = new Date(Date.now() + 15 * 60 * 1000);
-      await user.save();
+      // Generate tokens
+      const accessToken = generateAccessToken(user);
+      const refreshToken = generateRefreshToken(user);
 
-      await sendVerificationEmail(user.email, user.verifyEmailToken, user.fullName);
+      // Store refresh token in DB
+      const newRefreshToken = new RefreshToken({
+        token: refreshToken,
+        user: user._id,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
+      await newRefreshToken.save();
 
-      res.status(201).json({ msg: 'User registered successfully' });
+      // Set cookies (for web clients)
+      const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      };
+
+      res.cookie('refreshToken', refreshToken, cookieOptions);
+
+      res.cookie('accessToken', accessToken, cookieOptions);
+
+      // Send response without tokens in JSON (for security)
+      res.status(201).json({
+        msg: 'Registration successful',
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          fullName: user.fullName,
+          phone: user.phone,
+        },
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ errors: [{ msg: 'Server error' }] });
@@ -100,19 +120,18 @@ router.post(
 router.post(
   '/login',
   [
-    body('identifier').exists().withMessage('Email, username, or phone number is required'),
-    body('password').exists().withMessage('Password is required'),
+    body('identifier').notEmpty().withMessage('Identifier is required'),
+    body('password').notEmpty().withMessage('Password is required'),
   ],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
     const { identifier, password } = req.body;
 
     try {
-      console.log('Login attempt with identifier:', identifier);
-
       // detect identifier type
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const phoneRegex = /^[\+]?[1-9][\d]{3,14}$/;
@@ -151,21 +170,18 @@ router.post(
       await newRefreshToken.save();
 
       // Set cookies (for web clients)
-      res.cookie('refreshToken', refreshToken, {
+      const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict',
+        sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      };
 
-      res.cookie('accessToken', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      res.cookie('refreshToken', refreshToken, cookieOptions);
 
-      // Also send tokens in JSON (for mobile clients)
+      res.cookie('accessToken', accessToken, cookieOptions);
+
+      // Send response without tokens in JSON (for security)
       res.status(200).json({
         msg: 'Login successful',
         user: {
@@ -176,8 +192,6 @@ router.post(
           fullName: user.fullName,
           phone: user.phone,
         },
-        accessToken,
-        refreshToken,
       });
     } catch (error) {
       console.error(error);
@@ -235,14 +249,13 @@ router.post('/refresh', async (req, res) => {
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // Return JSON for mobile clients
+    // Return JSON without accessToken for security (cookies will be used instead)
     res.status(200).json({
       msg: 'Access token refreshed',
-      accessToken,
     });
   } catch (error) {
     console.error(error);

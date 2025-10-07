@@ -19,4 +19,5 @@ const verifyAccessToken = async (req, res, next) => {
         return res.status(401).json({ errors: [{ msg: 'Invalid or expired access token' }] });
     }
 };
+
 export default verifyAccessToken;

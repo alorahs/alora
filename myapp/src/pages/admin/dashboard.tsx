@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +50,7 @@ import {
   MessageCircle,
   MailOpen,
 } from "lucide-react";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 interface User {
   _id: string;
@@ -224,6 +225,90 @@ const getIconEmoji = (iconName: string): string => {
   return icon ? icon.value : "📋"; // Return emoji or default
 };
 
+// Define interface for the stats data
+interface AdminStats {
+  users?: {
+    total?: number;
+    professionals?: number;
+    customers?: number;
+    admins?: number;
+  };
+  services?: {
+    total?: number;
+  };
+  bookings?: {
+    total?: number;
+    pending?: number;
+    confirmed?: number;
+    completed?: number;
+    cancelled?: number;
+  };
+  content?: {
+    faqs?: number;
+    feedback?: number;
+    reviews?: number;
+    messages?: number;
+  };
+  ratings?: {
+    avgFeedback?: number;
+    avgReview?: number;
+    avgBooking?: number;
+    totalBookingRatings?: number;
+    bookingDistribution?: {
+      [key: number]: number;
+    };
+  };
+}
+
+// Define interfaces for form data
+interface UserFormData {
+  username?: string;
+  email?: string;
+  fullName?: string;
+  role?: string;
+  phone?: string;
+  isActive?: boolean;
+  category?: string;
+}
+
+interface ServiceFormData {
+  title?: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  category?: string;
+}
+
+interface FAQFormData {
+  type?: string;
+  question?: string;
+  answer?: string;
+}
+
+interface FeedbackFormData {
+  rating?: number;
+  subject?: string;
+  message?: string;
+}
+
+interface ReachUsFormData {
+  fullName?: string;
+  email?: string;
+  subject?: string;
+  message?: string;
+}
+
+interface ReviewFormData {
+  rating?: number;
+  comment?: string;
+}
+
+// Define a union type for all possible form data types
+type FormData = Partial<UserFormData & ServiceFormData & FAQFormData & FeedbackFormData & ReachUsFormData & ReviewFormData>;
+
+// Define a union type for all possible item types
+type ItemType = User | Service | FAQ | Feedback | ReachUs | Review;
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -236,7 +321,7 @@ export default function AdminDashboard() {
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [reachUsMessages, setReachUsMessages] = useState<ReachUs[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [stats, setStats] = useState<any>({});
+  const [stats, setStats] = useState<AdminStats>({});
 
   // Loading states
   const [loading, setLoading] = useState(false);
@@ -251,34 +336,22 @@ export default function AdminDashboard() {
   const [isEditReachUsOpen, setIsEditReachUsOpen] = useState(false);
   const [isEditReviewOpen, setIsEditReviewOpen] = useState(false);
   const [isViewReachUsOpen, setIsViewReachUsOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  // Fix: Replace 'any' with union type of all possible item types
+  const [selectedItem, setSelectedItem] = useState<User | Service | FAQ | Feedback | ReachUs | Review | null>(null);
 
   // Filter states for reach us
   const [reachUsFilter, setReachUsFilter] = useState<string>("all");
   const [reachUsSearchTerm, setReachUsSearchTerm] = useState<string>("");
 
   // Form states
-  const [formData, setFormData] = useState<any>({});
-
-  // Check if user is admin
-  if (!user || user.role !== "admin") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="p-6">
-          <CardContent>
-            <p className="text-center text-red-600">
-              Access Denied: Admin privileges required
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  // Fix: Replace 'any' with a more specific type
+  const [formData, setFormData] = useState<FormData>({});
 
   // Fetch data functions
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_URL}/admin/users`, {
+      const response = await proxyApiRequest("/admin/users", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -292,7 +365,10 @@ export default function AdminDashboard() {
 
   const fetchServices = async () => {
     try {
-      const response = await fetch(`${API_URL}/services`);
+      const response = await proxyApiRequest("/services", {
+        method: "GET",
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setServices(data);
@@ -304,7 +380,10 @@ export default function AdminDashboard() {
 
   const fetchFAQs = async () => {
     try {
-      const response = await fetch(`${API_URL}/faq`);
+      const response = await proxyApiRequest("/faq", {
+        method: "GET",
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setFAQs(data);
@@ -316,7 +395,8 @@ export default function AdminDashboard() {
 
   const fetchFeedback = async () => {
     try {
-      const response = await fetch(`${API_URL}/admin/feedback`, {
+      const response = await proxyApiRequest("/admin/feedback", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -330,7 +410,8 @@ export default function AdminDashboard() {
 
   const fetchReachUsMessages = async () => {
     try {
-      const response = await fetch(`${API_URL}/reachus`, {
+      const response = await proxyApiRequest("/reachus", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -345,7 +426,8 @@ export default function AdminDashboard() {
   // Add fetchReviews function
   const fetchReviews = async () => {
     try {
-      const response = await fetch(`${API_URL}/review`, {
+      const response = await proxyApiRequest("/review", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -360,7 +442,8 @@ export default function AdminDashboard() {
   // Fetch admin stats
   const fetchStats = async () => {
     try {
-      const response = await fetch(`${API_URL}/admin/stats`, {
+      const response = await proxyApiRequest("/admin/stats", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -382,11 +465,26 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
+  // Check if user is admin
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-6">
+          <CardContent>
+            <p className="text-center text-red-600">
+              Access Denied: Admin privileges required
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // CRUD Operations for Users
-  const updateUser = async (userId: string, userData: any) => {
+  const updateUser = async (userId: string, userData: Partial<User>) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/user/${userId}`, {
+      const response = await proxyApiRequest(`/user/${userId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -419,7 +517,7 @@ export default function AdminDashboard() {
   const deleteUser = async (userId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+      const response = await proxyApiRequest(`/admin/users/${userId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -445,10 +543,10 @@ export default function AdminDashboard() {
   };
 
   // CRUD Operations for Services
-  const createService = async (serviceData: any) => {
+  const createService = async (serviceData: Partial<Service>) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/services`, {
+      const response = await proxyApiRequest(`/services`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -479,10 +577,10 @@ export default function AdminDashboard() {
     }
   };
 
-  const updateService = async (serviceId: string, serviceData: any) => {
+  const updateService = async (serviceId: string, serviceData: Partial<Service>) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/services/${serviceId}`, {
+      const response = await proxyApiRequest(`/services/${serviceId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -515,7 +613,7 @@ export default function AdminDashboard() {
   const deleteService = async (serviceId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/services/${serviceId}`, {
+      const response = await proxyApiRequest(`/services/${serviceId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -541,10 +639,10 @@ export default function AdminDashboard() {
   };
 
   // CRUD Operations for FAQs
-  const createFAQ = async (faqData: any) => {
+  const createFAQ = async (faqData: Partial<FAQ>) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/faq`, {
+      const response = await proxyApiRequest(`/faq`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -575,10 +673,10 @@ export default function AdminDashboard() {
     }
   };
 
-  const updateFAQ = async (faqId: string, faqData: any) => {
+  const updateFAQ = async (faqId: string, faqData: Partial<FAQ>) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/faq/${faqId}`, {
+      const response = await proxyApiRequest(`/faq/${faqId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -611,7 +709,7 @@ export default function AdminDashboard() {
   const deleteFAQ = async (faqId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/faq/${faqId}`, {
+      const response = await proxyApiRequest(`/faq/${faqId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -637,11 +735,11 @@ export default function AdminDashboard() {
   };
 
   // CRUD Operations for Feedback
-  const updateFeedback = async (feedbackId: string, feedbackData: any) => {
+  const createFeedback = async (feedbackData: Partial<Feedback>) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/feedback/${feedbackId}`, {
-        method: "PUT",
+      const response = await proxyApiRequest(`/feedback`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -649,7 +747,39 @@ export default function AdminDashboard() {
         credentials: "include",
       });
 
-      const result = await response.json();
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Feedback created successfully",
+        });
+        fetchFeedback();
+        setIsEditFeedbackOpen(false);
+        setFormData({});
+      } else {
+        throw new Error("Failed to create feedback");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create feedback",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateFeedback = async (feedbackId: string, feedbackData: Partial<Feedback>) => {
+    try {
+      setLoading(true);
+      const response = await proxyApiRequest(`/feedback/${feedbackId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(feedbackData),
+        credentials: "include",
+      });
 
       if (response.ok) {
         toast({
@@ -659,12 +789,12 @@ export default function AdminDashboard() {
         fetchFeedback();
         setIsEditFeedbackOpen(false);
       } else {
-        throw new Error(result.error || "Failed to update feedback");
+        throw new Error("Failed to update feedback");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update feedback",
+        description: "Failed to update feedback",
         variant: "destructive",
       });
     } finally {
@@ -675,7 +805,7 @@ export default function AdminDashboard() {
   const deleteFeedback = async (feedbackId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/feedback/${feedbackId}`, {
+      const response = await proxyApiRequest(`/admin/feedback/${feedbackId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -691,10 +821,10 @@ export default function AdminDashboard() {
       } else {
         throw new Error(result.error || "Failed to delete feedback");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete feedback",
+        description: (error as Error).message || "Failed to delete feedback",
         variant: "destructive",
       });
     } finally {
@@ -703,10 +833,10 @@ export default function AdminDashboard() {
   };
 
   // CRUD Operations for Reach Us Messages
-  const updateReachUsMessage = async (messageId: string, messageData: any) => {
+  const updateReachUsMessage = async (messageId: string, messageData: Partial<ReachUs>) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/reachus/${messageId}`, {
+      const response = await proxyApiRequest(`/reachus/${messageId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -714,8 +844,6 @@ export default function AdminDashboard() {
         body: JSON.stringify(messageData),
         credentials: "include",
       });
-
-      const result = await response.json();
 
       if (response.ok) {
         toast({
@@ -725,12 +853,12 @@ export default function AdminDashboard() {
         fetchReachUsMessages();
         setIsEditReachUsOpen(false);
       } else {
-        throw new Error(result.error || "Failed to update message");
+        throw new Error("Failed to update message");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update message",
+        description: "Failed to update message",
         variant: "destructive",
       });
     } finally {
@@ -741,7 +869,7 @@ export default function AdminDashboard() {
   const deleteReachUsMessage = async (messageId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/reachus/${messageId}`, {
+      const response = await proxyApiRequest(`/reachus/${messageId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -757,10 +885,10 @@ export default function AdminDashboard() {
       } else {
         throw new Error(result.error || "Failed to delete message");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete message",
+        description: (error as Error).message || "Failed to delete message",
         variant: "destructive",
       });
     } finally {
@@ -769,10 +897,10 @@ export default function AdminDashboard() {
   };
 
   // CRUD Operations for Reviews
-  const updateReview = async (reviewId: string, reviewData: any) => {
+  const updateReview = async (reviewId: string, reviewData: Partial<ReviewFormData>) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/review/${reviewId}`, {
+      const response = await proxyApiRequest(`/review/${reviewId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -793,10 +921,10 @@ export default function AdminDashboard() {
       } else {
         throw new Error(result.message || "Failed to update review");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update review",
+        description: (error as Error).message || "Failed to update review",
         variant: "destructive",
       });
     } finally {
@@ -807,7 +935,7 @@ export default function AdminDashboard() {
   const deleteReview = async (reviewId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/review/${reviewId}`, {
+      const response = await proxyApiRequest(`/review/${reviewId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -823,10 +951,10 @@ export default function AdminDashboard() {
       } else {
         throw new Error(result.message || "Failed to delete review");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete review",
+        description: (error as Error).message || "Failed to delete review",
         variant: "destructive",
       });
     } finally {
@@ -854,12 +982,14 @@ export default function AdminDashboard() {
         return (
           matchesSearch && messageDate.toDateString() === now.toDateString()
         );
-      case "week":
+      case "week": {
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         return matchesSearch && messageDate >= weekAgo;
-      case "month":
+      }
+      case "month": {
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         return matchesSearch && messageDate >= monthAgo;
+      }
       default:
         return matchesSearch;
     }
@@ -1611,110 +1741,62 @@ export default function AdminDashboard() {
         <Dialog open={isViewReachUsOpen} onOpenChange={setIsViewReachUsOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Contact Message Details</DialogTitle>
+              <DialogTitle>
+                View Message from {(selectedItem as ReachUs)?.fullName}
+              </DialogTitle>
               <DialogDescription>
-                View the complete message from {selectedItem?.fullName}
+                Here's the complete message from the user
               </DialogDescription>
             </DialogHeader>
-            {selectedItem && (
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">
-                      Full Name
-                    </Label>
-                    <p className="text-sm mt-1">{selectedItem.fullName}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700">
-                      Email
-                    </Label>
-                    <p className="text-sm mt-1">{selectedItem.email}</p>
-                  </div>
-                </div>
-
-                {selectedItem.user && (
-                  <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded">
-                    <div>
-                      <Label className="text-sm font-medium text-gray-700">
-                        Registered User
-                      </Label>
-                      <p className="text-sm mt-1">
-                        {selectedItem.user.fullName ||
-                          selectedItem.user.username}
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-700">
-                        Username
-                      </Label>
-                      <p className="text-sm mt-1">
-                        @{selectedItem.user.username}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold">From:</h3>
+                <p className="text-sm mt-1">{(selectedItem as ReachUs)?.fullName}</p>
+                <p className="text-sm mt-1">{(selectedItem as ReachUs)?.email}</p>
+              </div>
+              {selectedItem && (selectedItem as ReachUs).user && (
                 <div>
-                  <Label className="text-sm font-medium text-gray-700">
-                    Subject
-                  </Label>
-                  <p className="text-sm mt-1">{selectedItem.subject}</p>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">
-                    Message
-                  </Label>
-                  <div className="mt-1 p-3 bg-gray-50 rounded-md border text-sm whitespace-pre-wrap">
-                    {selectedItem.message}
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">
-                    Received
-                  </Label>
+                  <h3 className="font-semibold">User:</h3>
                   <p className="text-sm mt-1">
-                    {new Date(selectedItem.createdAt).toLocaleString()}
+                    {(selectedItem as ReachUs).user?.fullName ||
+                      (selectedItem as ReachUs).user?.username}
+                  </p>
+                  <p className="text-sm mt-1">
+                    @{(selectedItem as ReachUs).user?.username}
                   </p>
                 </div>
-
-                {/* Quick Actions */}
-                <div className="flex space-x-2 pt-4 border-t">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      window.open(
-                        `mailto:${selectedItem.email}?subject=Re: ${selectedItem.subject}`,
-                        "_blank"
-                      );
-                    }}
-                  >
-                    <Mail className="h-4 w-4 mr-2" />
-                    Reply via Email
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      deleteReachUsMessage(selectedItem._id);
-                      setIsViewReachUsOpen(false);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Message
-                  </Button>
+              )}
+              <div>
+                <h3 className="font-semibold">Subject:</h3>
+                <p className="text-sm mt-1">{(selectedItem as ReachUs)?.subject}</p>
+              </div>
+              <div>
+                <h3 className="font-semibold">Message:</h3>
+                <div className="bg-gray-50 p-4 rounded-lg mt-1">
+                  {(selectedItem as ReachUs)?.message}
                 </div>
               </div>
-            )}
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsViewReachUsOpen(false)}
-              >
-                Close
-              </Button>
-            </DialogFooter>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    window.open(
+                      `mailto:${(selectedItem as ReachUs)?.email}?subject=Re: ${(selectedItem as ReachUs)?.subject}`,
+                      "_blank"
+                    )
+                  }
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Reply via Email
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsViewReachUsOpen(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
 

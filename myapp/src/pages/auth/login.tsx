@@ -17,26 +17,38 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const authError = useAuth().error
+  const { login, user, error: authError } = useAuth()
 
   useEffect(() => {
-    if (authError) {
-      setError(Array.isArray(authError) ? authError[0].msg : authError)
+    if (!authError) {
+      setError(null)
+      return
     }
+
+    if (Array.isArray(authError.errors) && authError.errors.length > 0) {
+      setError(authError.errors.map((err) => err.msg).join("\n"))
+      return
+    }
+
+    if (typeof authError.message === "string") {
+      setError(authError.message)
+      return
+    }
+
+    setError("Login failed. Please try again.")
   }, [authError])
 
   const navigate = useNavigate()
-  const { login, user } = useAuth()
 
   useEffect(() => {
     if (user) {
       if (user.emailVerified === false) {
-        navigate("/auth/signup-success");
+        navigate("/auth/signup-success")
       } else {
-        navigate("/");
+        navigate("/")
       }
     }
-  }, [user])
+  }, [user, navigate])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,25 +71,20 @@ export default function LoginPage() {
     }
 
     try {
-      type LoginResponse = { errors?: { msg: string }[] } | any
-      const response: LoginResponse = await login(loginData)
+      const response = await login(loginData)
 
-      if (typeof response === "object" && response !== null && Array.isArray(response.errors)) {
-        const errorMsg = response.errors[0].msg
-        setError(errorMsg)
-        toast({
-          title: "Login Failed",
-          description: errorMsg,
-          variant: "destructive"
-        })
+      if (!response) {
+        // Login failed, error should be in the auth context
+        // We don't need to handle it here as the toast is already shown in the context
       } else {
+        // Login successful
         if (user?.emailVerified === false) {
           navigate("/auth/signup-success")
         } else {
           navigate("/")
         }
       }
-    } catch (error: unknown) {
+    } catch (error) {
       const errorMsg = "An unexpected error occurred during login"
       setError(errorMsg)
       toast({

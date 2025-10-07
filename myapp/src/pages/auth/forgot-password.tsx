@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { API_URL } from "@/context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import { Mail } from "lucide-react";
 
 export default function ForgotPasswordPage() {
@@ -35,18 +35,18 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/auth/forgot-password`, {
+      const response = await proxyApiRequest("/auth/forgot-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: { email },
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(data.message || "Failed to send reset link");
+        setError((data && data.message) || "Failed to send reset link");
         return;
       }
 

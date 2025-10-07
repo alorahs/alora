@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth, API_URL } from "@/context/auth_provider";
+import { proxyApiRequest, proxyUploadRequest } from "@/lib/apiProxy";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -73,13 +74,36 @@ const AboutUsAdminPage = () => {
   const [saving, setSaving] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  useEffect(() => {
-    fetchAboutUsData();
-  }, []);
-
-  const fetchAboutUsData = async () => {
+  const initializeAboutUsData = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/aboutus`, {
+      const response = await proxyApiRequest("/aboutus/initialize", {
+        method: "POST",
+        credentials: "include",
+        body: {},
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAboutUsData(data);
+        toast({
+          title: "Success",
+          description: "About Us data initialized successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Error initializing About Us data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to initialize About Us data",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  const fetchAboutUsData = useCallback(async () => {
+    try {
+      const response = await proxyApiRequest("/aboutus", {
+        method: "GET",
         credentials: "include",
       });
 
@@ -100,48 +124,29 @@ const AboutUsAdminPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, initializeAboutUsData]);
 
-  const initializeAboutUsData = async () => {
-    try {
-      const response = await fetch(`${API_URL}/aboutus/initialize`, {
-        method: "POST",
-        credentials: "include",
-      });
+  useEffect(() => {
+    fetchAboutUsData();
+  }, [fetchAboutUsData]);
 
-      if (response.ok) {
-        const data = await response.json();
-        setAboutUsData(data);
-        toast({
-          title: "Success",
-          description: "About Us data initialized successfully",
-        });
-      }
-    } catch (error) {
-      console.error("Error initializing About Us data:", error);
-      toast({
-        title: "Error",
-        description: "Failed to initialize About Us data",
-        variant: "destructive",
-      });
-    }
-  };
+
 
   const handleSave = async () => {
     setSaving(true);
     try {
       const url = aboutUsData._id
-        ? `${API_URL}/aboutus/${aboutUsData._id}`
-        : `${API_URL}/aboutus`;
+        ? `/aboutus/${aboutUsData._id}`
+        : `/aboutus`;
 
       const method = aboutUsData._id ? "PUT" : "POST";
 
-      const response = await fetch(url, {
+      const response = await proxyApiRequest(url, {
         method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(aboutUsData),
+        body: aboutUsData,
         credentials: "include",
       });
 
@@ -167,7 +172,7 @@ const AboutUsAdminPage = () => {
     }
   };
 
-  const handleInputChange = (field: keyof AboutUsData, value: any) => {
+  const handleInputChange = (field: keyof AboutUsData, value: string | string[] | TeamMember[] | SocialLinks) => {
     setAboutUsData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -223,9 +228,8 @@ const AboutUsAdminPage = () => {
       formData.append("file", file);
 
       // Upload file to backend
-      const response = await fetch(`${API_URL}/files`, {
+      const response = await proxyUploadRequest("/files", formData, {
         method: "POST",
-        body: formData,
         credentials: "include",
       });
 
@@ -411,7 +415,7 @@ const AboutUsAdminPage = () => {
                                 <div className="flex items-center space-x-4">
                                   {member.imageUrl ? (
                                     <img
-                                      src={`${API_URL}/files/${member.imageUrl}`}
+                                      src={`${API_URL}/proxy/file/${member.imageUrl}`}
                                       alt={member.name}
                                       className="w-16 h-16 rounded-full object-cover"
                                     />
@@ -678,7 +682,7 @@ const AboutUsAdminPage = () => {
                       <div className="relative">
                         {member.imageUrl ? (
                           <img
-                            src={`${API_URL}/files/${member.imageUrl}`}
+                            src={`${API_URL}/proxy/file/${member.imageUrl}`}
                             alt={member.name || "Team Member"}
                             className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
                           />

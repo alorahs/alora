@@ -1,6 +1,20 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { User } from "../interfaces/user";
 import { Loader } from "../components/shared";
+// Import proxy function
+import { proxyApiRequest } from "../lib/apiProxy";
+
+// Define interfaces for error structures
+interface ValidationError {
+  msg: string;
+  param?: string;
+  location?: string;
+}
+
+interface ErrorData {
+  errors?: ValidationError[];
+  message?: string;
+}
 
 interface LoginParams {
   identifier: string;
@@ -18,8 +32,9 @@ interface SignupParams {
 
 interface AuthContextType {
   user: User | null
-  error: any | null
-  setError: React.Dispatch<React.SetStateAction<any | null>>
+  // Fix: Replace 'any' with specific error type
+  error: ErrorData | null
+  setError: React.Dispatch<React.SetStateAction<ErrorData | null>>
   success: string | null
   login: (loginData: LoginParams) => Promise<boolean>
   signup: (userData: SignupParams) => Promise<boolean>
@@ -27,13 +42,44 @@ interface AuthContextType {
   isLoading: boolean
 }
 export const API_URL = import.meta.env.VITE_API_URL || "http://192.168.29.162:5000/api";
+// API_KEY is no longer needed on the client side for proxied requests
+// export const API_KEY = import.meta.env.VITE_API_KEY || "a587e4d8bb883a03b5ea14411c4e1e1d94589702";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+interface AuthMeResponse {
+  user?: User;
+}
+
+const buildErrorData = (payload: unknown, fallbackMsg: string): ErrorData => {
+  if (payload && typeof payload === "object") {
+    const maybeErrorData = payload as Partial<ErrorData>;
+
+    if (Array.isArray(maybeErrorData.errors)) {
+      return { errors: maybeErrorData.errors };
+    }
+
+    if (typeof maybeErrorData.message === "string") {
+      return { message: maybeErrorData.message };
+    }
+  }
+
+  return { errors: [{ msg: fallbackMsg }] };
+};
+
+const parseJsonSafe = async <T>(response: Response): Promise<T | null> => {
+  try {
+    return (await response.json()) as T;
+  } catch {
+    return null;
+  }
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<any | null>(null);
+  // Fix: Replace 'any' with specific error type
+  const [error, setError] = useState<ErrorData | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,41 +87,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_URL}/auth/refresh`, {
+        const refreshResponse = await proxyApiRequest("/auth/refresh", {
           method: "POST",
-          credentials: "include", // <-- Correct value here
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}), // empty body
+          credentials: "include",
+          body: {},
         });
-        const json = await response.json();
-        if (!response.ok || response.status === 400) {
-          setError(json.errors || "Failed to refresh token");
+        const refreshPayload = await parseJsonSafe<ErrorData & { msg?: string }>(refreshResponse);
+
+        if (!refreshResponse.ok) {
+          setError(buildErrorData(refreshPayload, "Failed to refresh token"));
+          setUser(null);
           return;
         }
-        setSuccess(json.msg || "Token refreshed");
-        const res = await fetch(`${API_URL}/auth/me`, {
+
+        if (refreshPayload?.msg) {
+          setSuccess(refreshPayload.msg);
+        }
+
+        const meResponse = await proxyApiRequest("/auth/me", {
           method: "GET",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
         });
-        if (!response.ok || response.status === 400) {
-          setError(json.errors || "Failed to refresh token");
+        const mePayload = await parseJsonSafe<AuthMeResponse & ErrorData>(meResponse);
+
+        if (!meResponse.ok) {
+          setError(buildErrorData(mePayload, "Failed to fetch authenticated user"));
+          setUser(null);
+          return;
+        }
+
+        if (mePayload?.user) {
+          setUser({ ...mePayload.user });
         } else {
-          const data = await res.json();
-          const userData = data.user;
-          setUser({ ...userData });
+          setUser(null);
         }
       } catch (error) {
         setUser(null);
         setError({errors:[{msg: "Server error: " + (error as Error).message}]});
         setSuccess(null);
       } finally {
-        setError(null);
-        setSuccess(null);
         setIsLoading(false);
       }
     };
@@ -89,38 +139,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { identifier, password } = loginData;
       if (!identifier) {
-        setError("Please provide username, email or phone to login");
-        return ({ "message": "Please provide username, email or phone to login" }) as unknown as boolean;
+        setError({message: "Please provide username, email or phone to login"});
+        return false;
       }
-      const resLogin = await fetch(`${API_URL}/auth/login`, {
+      const resLogin = await proxyApiRequest("/auth/login", {
         method: "POST",
-        body: JSON.stringify({ identifier, password }),
+        body: { identifier, password },
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
-      if (resLogin.status == 400 || !resLogin.ok) {
-        const errorData = await resLogin.json();
-        setError(errorData.errors || "Login failed");
-        return ({ "message": "Login failed", "errors": errorData.errors || [] }) as unknown as boolean;
+      const loginPayload = await parseJsonSafe<ErrorData>(resLogin);
+
+      if (resLogin.status === 400 || !resLogin.ok) {
+        setError(buildErrorData(loginPayload, "Login failed"));
+        return false;
       }
       setSuccess("Login successful");
-      const res = await fetch(`${API_URL}/auth/me`, {
+      const meResponse = await proxyApiRequest("/auth/me", {
         method: "GET",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
-      const data = await res.json();
-      const userData = data.user;
-      setUser({ ...userData });
+      const mePayload = await parseJsonSafe<AuthMeResponse & ErrorData>(meResponse);
+
+      if (!meResponse.ok) {
+        setUser(null);
+        setError(buildErrorData(mePayload, "Failed to fetch authenticated user"));
+        return false;
+      }
+
+      if (mePayload?.user) {
+        setUser({ ...mePayload.user });
+      } else {
+        setUser(null);
+      }
       return true;
     } catch (error) {
       setError({errors:[{msg: "Server error: " + (error as Error).message}]});
-      return ({ "message": "Server error: " + (error as Error).message }) as unknown as boolean;
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -131,35 +186,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     setSuccess(null);
     try {
-      console.log(userData);
-      const response = await fetch(`${API_URL}/auth/register`, {
+      const response = await proxyApiRequest("/auth/register", {
         method: "POST",
-        body: JSON.stringify({
+        body: {
           email: userData.email,
           phone: userData.phone,
           username: userData.username,
           password: userData.password,
           fullName: userData.fullName,
           role: userData.role.toLowerCase(),
-        }),
-        headers: {
-          "Content-Type": "application/json",
         },
         credentials: "include",
       });
-      if (response.status == 400) {
-        const errorData = await response.json();
-        setError(errorData.errors);
-        return ({ "message": "signup failed", "errors": errorData.errors }) as unknown as boolean;
-      }
-      if (!response.ok) {
-        setError("Signup failed");
+      const signupPayload = await parseJsonSafe<ErrorData>(response);
+
+      if (response.status === 400 || !response.ok) {
+        setError(buildErrorData(signupPayload, "Signup failed"));
+        return false;
       }
       setSuccess("Signup successful! Please verify your email.");
       return true;
-    } catch (error: any) {
-      setError("Server error: " + error.message);
-      return ({ "message": "Server error: " + error.message }) as unknown as boolean;
+    } catch (error) {
+      setError({message: "Server error: " + (error as Error).message});
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -170,12 +219,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     setSuccess(null);
     try {
-      await fetch(`${API_URL}/auth/logout`, {
+      const logoutResponse = await proxyApiRequest("/auth/logout", {
         method: "POST",
         credentials: "include",
       });
+      if (!logoutResponse.ok) {
+        const logoutPayload = await parseJsonSafe<ErrorData>(logoutResponse);
+        setError(buildErrorData(logoutPayload, "Logout failed"));
+      } else {
+        setSuccess("Logged out successfully");
+      }
     } catch (error) {
-      setError("Server error: " + (error as Error).message);
+      setError({message: "Server error: " + (error as Error).message});
     } finally {
       setUser(null);
       setIsLoading(false);

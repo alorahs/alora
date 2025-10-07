@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
 import { Loader2, Calendar, Clock, MapPin, User, Star } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 interface Booking {
   _id: string;
@@ -69,14 +70,11 @@ export default function ProfessionalDashboard() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(
-          `${API_URL}/booking/professional/${user._id}`,
+        const response = await proxyApiRequest(
+          `/booking/professional/${user._id}`,
           {
             method: "GET",
             credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
           }
         );
 
@@ -106,8 +104,12 @@ export default function ProfessionalDashboard() {
       }
 
       try {
-        const response = await fetch(
-          `${API_URL}/review?professionalId=${user._id}`
+        const response = await proxyApiRequest(
+          `/review?professionalId=${user._id}`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
         );
 
         if (response.ok) {
@@ -139,7 +141,7 @@ export default function ProfessionalDashboard() {
     setUpdating(true);
 
     try {
-      const response = await fetch(`${API_URL}/booking/${bookingId}/status`, {
+      const response = await proxyApiRequest(`/booking/${bookingId}/status`, {
         method: "PUT",
         credentials: "include",
         headers: {

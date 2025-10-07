@@ -62,14 +62,14 @@ export function truncateText(text: string, maxLength: number): string {
 /**
  * Debounce function
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
   let timeout: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
+    timeout = setTimeout(() => func(...args), wait);
   };
 }
 
@@ -146,7 +146,7 @@ export function toCamelCase(str: string): string {
 /**
  * Check if object is empty
  */
-export function isEmpty(obj: any): boolean {
+export function isEmpty(obj: unknown): boolean {
   if (obj == null) return true;
   if (Array.isArray(obj) || typeof obj === 'string') return obj.length === 0;
   return Object.keys(obj).length === 0;

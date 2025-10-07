@@ -38,6 +38,13 @@ interface FAQ {
   createdAt: string;
 }
 
+// Define interface for FAQ form data
+interface FAQFormData {
+  type: string;
+  question: string;
+  answer: string;
+}
+
 export default function FAQsSection({
   faqs = [],
   loading,
@@ -51,11 +58,15 @@ export default function FAQsSection({
   faqs: FAQ[];
   loading: boolean;
   setIsEditFAQOpen: (open: boolean) => void;
-  setSelectedItem: (item: any) => void;
+  // Fix: Replace 'any' with the specific FAQ type
+  setSelectedItem: (item: FAQ | null) => void;
   deleteFAQ: (id: string) => void;
-  createFAQ: (data: any) => void;
-  updateFAQ: (id: string, data: any) => void;
-  setFormData: (data: any) => void;
+  // Fix: Replace 'any' with the specific FAQFormData type
+  createFAQ: (data: Partial<FAQFormData>) => void;
+  // Fix: Replace 'any' with the specific FAQFormData type
+  updateFAQ: (id: string, data: Partial<FAQFormData>) => void;
+  // Fix: Replace 'any' with the specific FAQFormData type
+  setFormData: (data: Partial<FAQFormData>) => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");

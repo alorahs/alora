@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth, API_URL } from "@/context/auth_provider";
+import { proxyApiRequest, proxyUploadRequest } from "@/lib/apiProxy";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -115,12 +116,13 @@ export default function ProfilePage() {
   }, [user]);
 
   // Fetch user's favorites
-  const fetchFavorites = async () => {
+  const fetchFavorites = useCallback(async () => {
     if (!user) return;
 
     setFavoritesLoading(true);
     try {
-      const response = await fetch(`${API_URL}/favorite`, {
+      const response = await proxyApiRequest("/favorite", {
+        method: "GET",
         credentials: "include",
       });
 
@@ -140,15 +142,16 @@ export default function ProfilePage() {
     } finally {
       setFavoritesLoading(false);
     }
-  };
+  }, [user, toast]);
 
   // Fetch user's bookings
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     if (!user) return;
 
     setBookingsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/booking`, {
+      const response = await proxyApiRequest("/booking", {
+        method: "GET",
         credentials: "include",
       });
 
@@ -168,7 +171,7 @@ export default function ProfilePage() {
     } finally {
       setBookingsLoading(false);
     }
-  };
+  }, [user, toast]);
 
   // Fetch data when sections are active
   useEffect(() => {
@@ -177,12 +180,12 @@ export default function ProfilePage() {
     } else if (activeSection === "bookings" && user) {
       fetchBookings();
     }
-  }, [activeSection, user]);
+  }, [activeSection, user, fetchFavorites, fetchBookings]);
 
   // Remove from favorites
   const handleRemoveFavorite = async (professionalId: string) => {
     try {
-      const response = await fetch(`${API_URL}/favorite/${professionalId}`, {
+      const response = await proxyApiRequest(`/favorite/${professionalId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -229,15 +232,14 @@ export default function ProfilePage() {
         const formData = new FormData();
         formData.append("file", pendingProfilePictureFile);
         if (user.profilePicture) {
-          fetch(`${API_URL}/files/${user.profilePicture}`, {
+          await proxyApiRequest(`/files/${user.profilePicture}`, {
             method: "DELETE",
             credentials: "include",
           });
         }
-        const uploadResponse = await fetch(`${API_URL}/files`, {
+        const uploadResponse = await proxyUploadRequest("/files", formData, {
           method: "POST",
           credentials: "include",
-          body: formData,
         });
 
         if (!uploadResponse.ok) {
@@ -249,15 +251,15 @@ export default function ProfilePage() {
       }
 
       // Update user profile with all data including the new file ID
-      const response = await fetch(`${API_URL}/user`, {
+      const response = await proxyApiRequest(`/user`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
+        body: {
           ...profileData,
           profilePicture: finalProfilePicture,
-        }),
+        },
         credentials: "include",
       });
 
@@ -378,10 +380,9 @@ export default function ProfilePage() {
             }
 
             // Upload file to backend using file route
-            const uploadResponse = await fetch(`${API_URL}/files`, {
+            const uploadResponse = await proxyUploadRequest("/files", formData, {
               method: "POST",
               credentials: "include",
-              body: formData,
             });
 
             if (!uploadResponse.ok) {
@@ -392,16 +393,16 @@ export default function ProfilePage() {
             const fileId = uploadResult.file._id;
 
             // Update user profile with file ID
-            const updateResponse = await fetch(`${API_URL}/user`, {
+            const updateResponse = await proxyApiRequest(`/user`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
               },
               credentials: "include",
-              body: JSON.stringify({
+              body: {
                 ...profileData,
                 profilePicture: fileId,
-              }),
+              },
             });
 
             if (!updateResponse.ok) {
@@ -439,8 +440,8 @@ export default function ProfilePage() {
       setLoading(true);
 
       // Delete file from backend
-      const deleteResponse = await fetch(
-        `${API_URL}/files/${profileData.profilePicture}`,
+      const deleteResponse = await proxyApiRequest(
+        `/files/${profileData.profilePicture}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -452,16 +453,16 @@ export default function ProfilePage() {
       }
 
       // Update user profile to remove profile picture
-      const updateResponse = await fetch(`${API_URL}/user`, {
+      const updateResponse = await proxyApiRequest(`/user`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({
+        body: {
           ...profileData,
           profilePicture: null,
-        }),
+        },
       });
 
       if (!updateResponse.ok) {

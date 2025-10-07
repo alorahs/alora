@@ -42,6 +42,19 @@ interface User {
   createdAt: string;
 }
 
+// Define form data interface
+interface UserFormData {
+  _id?: string;
+  username: string;
+  email: string;
+  fullName: string;
+  role: string;
+  phone: string;
+  isActive: boolean;
+  category?: string;
+  createdAt?: string;
+}
+
 export default function UsersSection({
   users = [],
   loading,
@@ -53,9 +66,9 @@ export default function UsersSection({
   users: User[];
   loading: boolean;
   setIsEditUserOpen: (open: boolean) => void;
-  setSelectedItem: (item: any) => void;
+  setSelectedItem: (item: User) => void;
   deleteUser: (id: string) => void;
-  updateUser: (id: string, data: any) => void;
+  updateUser: (id: string, data: Partial<UserFormData>) => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");

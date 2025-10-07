@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,6 +43,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 interface UserSettings {
   // Notification preferences
@@ -120,7 +121,8 @@ export default function SettingsPage() {
 
   const loadUserSettings = async () => {
     try {
-      const response = await fetch(`${API_URL}/user/settings`, {
+      const response = await proxyApiRequest("/user/settings", {
+        method: "GET",
         credentials: "include",
       });
 
@@ -136,7 +138,7 @@ export default function SettingsPage() {
   const saveSettings = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/user/settings`, {
+      const response = await proxyApiRequest("/user/settings", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -185,7 +187,7 @@ export default function SettingsPage() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/user/change-password`, {
+      const response = await proxyApiRequest("/user/change-password", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -251,7 +253,7 @@ export default function SettingsPage() {
 
   const deleteAccount = async () => {
     try {
-      const response = await fetch(`${API_URL}/user/delete-account`, {
+      const response = await proxyApiRequest("/user/delete-account", {
         method: "DELETE",
         credentials: "include",
       });

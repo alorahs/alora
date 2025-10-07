@@ -1,8 +1,6 @@
-import { API_URL } from "@/context/auth_provider";
 import { HelpCircle, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
   Accordion,
   AccordionContent,
@@ -10,6 +8,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
+import { proxyFetch } from "@/lib/apiProxy";
 
 interface FaqItem {
   _id: string;
@@ -28,11 +27,16 @@ function FaqPage() {
   useEffect(() => {
     const fetchFaqs = async () => {
       try {
-        const response = await fetch(`${API_URL}/_/faqs`);
-        const data: FaqItem[] = await response.json();
-        setFaqs(data);
+        const data = await proxyFetch("/_/faqs");
+        if (Array.isArray(data)) {
+          setFaqs(data as FaqItem[]);
+        } else {
+          console.warn("Unexpected FAQ response", data);
+          setFaqs([]);
+        }
       } catch (error) {
-        console.log(error);
+        console.error("Failed to fetch FAQs", error);
+        setFaqs([]);
       }
     };
     fetchFaqs();

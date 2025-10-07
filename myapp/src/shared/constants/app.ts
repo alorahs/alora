@@ -57,8 +57,6 @@ export const RATING_OPTIONS = [
 ] as const;
 
 export const STORAGE_KEYS = {
-  ACCESS_TOKEN: "alora_access_token",
-  REFRESH_TOKEN: "alora_refresh_token", 
   USER_DATA: "alora_user_data",
   THEME: "alora_theme",
   LOCATION: "alora_user_location",

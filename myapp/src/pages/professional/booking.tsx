@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft,
@@ -16,6 +16,7 @@ import {
   Star,
 } from "lucide-react";
 import { format } from "date-fns";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 interface Booking {
   _id: string;
@@ -64,12 +65,9 @@ export default function ProfessionalBookingDetailsPage() {
       try {
         setLoading(true);
 
-        const response = await fetch(`${API_URL}/booking/${id}`, {
+        const response = await proxyApiRequest(`/booking/${id}`, {
           method: "GET",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
         });
 
         const data = await response.json();
@@ -112,7 +110,7 @@ export default function ProfessionalBookingDetailsPage() {
     setUpdating(true);
 
     try {
-      const response = await fetch(`${API_URL}/booking/${booking._id}/status`, {
+      const response = await proxyApiRequest(`/booking/${booking._id}/status`, {
         method: "PUT",
         credentials: "include",
         headers: {

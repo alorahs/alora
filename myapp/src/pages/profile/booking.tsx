@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import { useToast } from "@/hooks/use-toast";
 import {
   ArrowLeft,
@@ -75,12 +76,9 @@ export default function BookingDetailsPage() {
       try {
         setLoading(true);
 
-        const response = await fetch(`${API_URL}/booking/${id}`, {
+        const response = await proxyApiRequest(`/booking/${id}`, {
           method: "GET",
           credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
         });
 
         const data = await response.json();
@@ -121,13 +119,13 @@ export default function BookingDetailsPage() {
     if (!booking) return;
 
     try {
-      const response = await fetch(`${API_URL}/booking/${booking._id}/status`, {
+      const response = await proxyApiRequest(`/booking/${booking._id}/status`, {
         method: "PUT",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: { status: newStatus },
       });
 
       const data = await response.json();
@@ -155,12 +153,9 @@ export default function BookingDetailsPage() {
     setReviewSubmitted(true);
     // Refresh the booking data to show the new review
     if (id) {
-      fetch(`${API_URL}/booking/${id}`, {
+      proxyApiRequest(`/booking/${id}`, {
         method: "GET",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
       })
         .then((response) => response.json())
         .then((data) => setBooking(data))

@@ -18,13 +18,13 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "@/context/socket_context";
+import { useWebSocket } from "@/context/websocket_context";
 import { useEffect, useState } from "react";
 
 export function NotificationDropdown() {
   const { notifications, markAsRead, markAllAsRead, unreadCount } =
     useNotifications();
-  const { isConnected } = useSocket();
+  const { isConnected } = useWebSocket();
   const [newNotification, setNewNotification] = useState(false);
   const navigate = useNavigate();
 

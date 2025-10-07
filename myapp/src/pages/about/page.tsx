@@ -11,6 +11,8 @@ import {
   Mail,
 } from "lucide-react";
 import { useAuth, API_URL } from "@/context/auth_provider";
+// Import proxy functions
+import { proxyFetch } from "@/lib/apiProxy";
 
 interface TeamMember {
   name: string;
@@ -50,13 +52,9 @@ function AboutPage() {
 
   const fetchAboutUsData = async () => {
     try {
-      const response = await fetch(`${API_URL}/aboutus`, {
-        credentials: "include",
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAboutUsData(data);
-      }
+      // Use proxy instead of direct API call
+      const data = await proxyFetch('/aboutus');
+      setAboutUsData(data);
     } catch (error) {
       console.error("Error fetching About Us data:", error);
     } finally {
@@ -237,7 +235,7 @@ function AboutPage() {
                   <div className="flex justify-center mb-4">
                     {member.imageUrl ? (
                       <img
-                        src={`${API_URL}/files/${member.imageUrl}`}
+                        src={`${API_URL}/proxy/file/${member.imageUrl}`}
                         alt={member.name}
                         className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
                       />

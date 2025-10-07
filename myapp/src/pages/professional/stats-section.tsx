@@ -1,11 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Star } from "lucide-react";
 
+interface Booking {
+  status: string;
+  // Add other properties as needed
+}
+
 export default function StatsSection({
   bookings = [],
   averageRating = 0,
 }: {
-  bookings: any[];
+  bookings: Booking[];
   averageRating: number;
 }) {
   // Calculate stats

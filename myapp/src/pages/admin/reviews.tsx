@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useAuth, API_URL } from "../../context/auth_provider";
+import { useAuth } from "../../context/auth_provider";
+import { proxyApiRequest } from "../../lib/apiProxy";
 import {
   Card,
   CardContent,
@@ -67,7 +68,8 @@ export default function ReviewManagement() {
   const fetchReviews = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/review`, {
+      const response = await proxyApiRequest("/review", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -87,14 +89,19 @@ export default function ReviewManagement() {
     fetchReviews();
   }, []);
 
-  const updateReview = async (reviewId: string, reviewData: any) => {
+  interface ReviewData {
+  rating?: number;
+  comment?: string;
+}
+
+const updateReview = async (reviewId: string, reviewData: ReviewData) => {
     try {
-      const response = await fetch(`${API_URL}/review/${reviewId}`, {
+      const response = await proxyApiRequest(`/review/${reviewId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(reviewData),
+        body: reviewData,
         credentials: "include",
       });
 
@@ -110,10 +117,11 @@ export default function ReviewManagement() {
       } else {
         throw new Error(result.message || "Failed to update review");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       toast({
         title: "Error",
-        description: error.message || "Failed to update review",
+        description: errorMessage || "Failed to update review",
         variant: "destructive",
       });
     }
@@ -121,7 +129,7 @@ export default function ReviewManagement() {
 
   const deleteReview = async (reviewId: string) => {
     try {
-      const response = await fetch(`${API_URL}/review/${reviewId}`, {
+      const response = await proxyApiRequest(`/review/${reviewId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -137,10 +145,11 @@ export default function ReviewManagement() {
       } else {
         throw new Error(result.message || "Failed to delete review");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
       toast({
         title: "Error",
-        description: error.message || "Failed to delete review",
+        description: errorMessage || "Failed to delete review",
         variant: "destructive",
       });
     }

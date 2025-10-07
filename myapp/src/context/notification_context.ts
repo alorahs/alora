@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { API_URL, useAuth } from "./auth_provider";
 import { Loader } from "@/components/shared";
 import { useToast } from "@/hooks/use-toast";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 interface Notification {
   id: string;
@@ -31,7 +32,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const refreshNotifications = async () => {
+  const refreshNotifications = useCallback(async () => {
     // Only fetch notifications if user is authenticated
     if (!user) {
       setNotifications([]);
@@ -39,13 +40,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
 
     try {
-      // Fetch notifications
-      const response = await fetch(`${API_URL}/notification`, {
+      // Fetch notifications using proxy
+      const response = await proxyApiRequest("/notification", {
         method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "include"
       });
 
       if (response.ok) {
@@ -54,7 +52,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         // Validate and process notifications data
         if (Array.isArray(data)) {
           // Convert createdAt strings to Date objects and ensure proper structure
-          const notificationsWithDates = data.map((notification: any) => ({
+          const notificationsWithDates = data.map((notification) => ({
             id: notification._id || notification.id || '', // Use _id from MongoDB
             title: notification.title || '',
             message: notification.message || '',
@@ -92,7 +90,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       });
       setNotifications([]); // Ensure we have a clean state on error
     }
-  };
+  }, [user, toast]);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -106,9 +104,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       setIsLoading(true);
       try {
         // First verify user authentication
-        const responseUser = await fetch(`${API_URL}/auth/me`, { 
+        const responseUser = await proxyApiRequest("/auth/me", { 
           credentials: "include",
-          headers: { "Content-Type": "application/json" },
           method: "GET",
         });
         
@@ -133,7 +130,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     };
 
     fetchNotifications();
-  }, [user, toast]);
+  }, [user, toast, refreshNotifications]);
 
   const markAsRead = async (id: string) => {
     // Prevent calling API with empty ID
@@ -148,12 +145,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
     
     try {
-      await fetch(`${API_URL}/notification/${id}/read`, {
+      await proxyApiRequest(`/notification/${id}/read`, {
         method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "include"
       });
 
       // Update local state
@@ -184,12 +178,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     
     try {
       // Update on backend
-      await fetch(`${API_URL}/notification/read-all`, {
+      await proxyApiRequest("/notification/read-all", {
         method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        credentials: "include"
       });
       setNotifications((prev) =>
         prev.map((notification) => ({ ...notification, read: true }))

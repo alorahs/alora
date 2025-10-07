@@ -34,7 +34,7 @@ export default function TeamSection({
                 <div className="flex justify-center mb-4">
                   {member.imageUrl ? (
                     <img
-                      src={`${API_URL}/files/${member.imageUrl}`}
+                      src={`${API_URL}/proxy/file/${member.imageUrl}`}
                       alt={member.name}
                       className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
                     />

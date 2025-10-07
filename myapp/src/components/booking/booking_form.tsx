@@ -20,7 +20,8 @@ import {
 import { cn } from "../../lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { useToast } from "../../hooks/use-toast";
-import { useAuth, API_URL } from "../../context/auth_provider";
+import { useAuth } from "../../context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import type { User } from "../../interfaces/user";
 
 export function BookingForm({ professional }: { professional: User }) {
@@ -123,13 +124,13 @@ export function BookingForm({ professional }: { professional: User }) {
       const zip = addressParts[3] || "";
 
       // Submit booking to backend
-      const response = await fetch(`${API_URL}/booking`, {
+      const response = await proxyApiRequest(`/booking`, {
         method: "POST",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
+        body: {
           professionalId: professional._id,
           service: selectedService,
           date: date.toISOString(),
@@ -141,7 +142,7 @@ export function BookingForm({ professional }: { professional: User }) {
             zip,
           },
           notes,
-        }),
+        },
       });
 
       const data = await response.json();
@@ -161,11 +162,11 @@ export function BookingForm({ professional }: { professional: User }) {
       setTime("");
       setAddress("");
       setNotes("");
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
         description:
-          error.message || "Failed to send booking request. Please try again.",
+          (error as Error).message || "Failed to send booking request. Please try again.",
         variant: "destructive",
       });
     } finally {

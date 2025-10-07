@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
 import { Star, User } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 interface Review {
   _id: string;
@@ -34,12 +35,13 @@ export default function ProfessionalReviews() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`${API_URL}/review?professionalId=${id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await proxyApiRequest(
+          `/review?professionalId=${id}`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();

@@ -1,10 +1,46 @@
 import express from "express";
 import File from "../models/file.js";
 import multer from "multer";
+import verifyApiKey from "../middleware/verify_api_key.js";
 
 const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
+
+// Add API key verification middleware to all routes except the public file endpoint
+router.use((req, res, next) => {
+  // Skip API key verification for the public file endpoint
+  if (req.path.startsWith('/public/')) {
+    return next();
+  }
+  verifyApiKey(req, res, next);
+});
+
+router.get("/public/:id", async (req, res) => {
+  const fileId = req.params.id;
+  const apiKey = req.query.apiKey;
+  
+  // Verify API key for public file access
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    return res.status(401).json({ errors: [{ msg: 'Invalid API key' }] });
+  }
+  
+  try {
+    const file = await File.findById(fileId);
+    if (!file) {
+      return res.status(404).json({ message: "File not found" });
+    }
+    res.setHeader("Content-Disposition", `inline; filename="${file.filename}"`);
+    res.setHeader("Content-Type", file.mimetype);
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Credentials", true);
+    res.setHeader("cross-origin-resource-policy", "*");
+    res.send(file.data);
+  } catch (error) {
+    console.error("Error fetching file:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 router.get("/:id", async (req, res) => {
   const fileId = req.params.id;
@@ -29,7 +65,6 @@ router.put("/:id", upload.single("file"), async (req, res) => {
   const fileId = req.params.id;
   const file = req.file;
   console.log(fileId, file);
-  
 
   if (!file) {
     return res.status(400).json({ message: "No file uploaded" });
@@ -47,7 +82,6 @@ router.put("/:id", upload.single("file"), async (req, res) => {
       { new: true } // return the updated document
     );
     console.log(updatedFile);
-    
 
     if (!updatedFile) {
       return res.status(404).json({ message: "File not found" });
@@ -89,7 +123,6 @@ router.post("/", upload.single("file"), async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
 
 router.delete("/:id", async (req, res) => {
   const fileId = req.params.id;

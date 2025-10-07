@@ -43,6 +43,13 @@ interface Feedback {
   };
 }
 
+// Define interface for feedback form data
+interface FeedbackFormData {
+  rating?: number;
+  subject?: string;
+  message?: string;
+}
+
 export default function FeedbackSection({
   feedback = [],
   loading,
@@ -55,10 +62,13 @@ export default function FeedbackSection({
   feedback: Feedback[];
   loading: boolean;
   setIsEditFeedbackOpen: (open: boolean) => void;
-  setSelectedItem: (item: any) => void;
+  // Fix: Replace 'any' with the specific Feedback type
+  setSelectedItem: (item: Feedback) => void;
   deleteFeedback: (id: string) => void;
-  updateFeedback: (id: string, data: any) => void;
-  setFormData: (data: any) => void;
+  // Fix: Replace 'any' with the specific FeedbackFormData type
+  updateFeedback: (id: string, data: Partial<FeedbackFormData>) => void;
+  // Fix: Replace 'any' with the specific FeedbackFormData type
+  setFormData: (data: Partial<FeedbackFormData>) => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");

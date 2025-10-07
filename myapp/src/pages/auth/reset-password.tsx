@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { API_URL } from "@/context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import { Eye, EyeOff, Lock } from "lucide-react";
 
 export default function ResetPasswordPage() {
@@ -52,18 +52,18 @@ export default function ResetPasswordPage() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/auth/reset-password`, {
+      const response = await proxyApiRequest("/auth/reset-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ token, password }),
+        body: { token, password },
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        setError(data.message || "Failed to reset password");
+        setError((data && data.message) || "Failed to reset password");
         return;
       }
 

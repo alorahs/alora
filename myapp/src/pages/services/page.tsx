@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Card, CardContent } from "../../components/ui/card";
@@ -33,8 +33,8 @@ import {
 } from "lucide-react";
 
 import Section9 from "./section9";
-import ProfessionalProfileModal from "../../components/professional-profile-modal";
-import { API_URL } from "@/context/auth_provider";
+import ProfessionalProfileModal from "../../components/profile/professional-profile-modal";
+import { proxyFetch } from "@/lib/apiProxy";
 
 // Enhanced professionals data with more comprehensive information for home services
 const professionals = [
@@ -275,14 +275,25 @@ const testimonials = [
   },
 ];
 
+interface Service {
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  color: string;
+}
+
 function ServicePage() {
-  const [services, setServices] = useState<{ title: string; description: string; icon: any; color: string }[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const res = await fetch(`${API_URL}/services`, { method: "GET" });
-        const data = await res.json();
-        setServices(data);
+        const data = await proxyFetch("/services", { method: "GET" });
+        if (Array.isArray(data)) {
+          setServices(data);
+        } else {
+          console.warn("Unexpected services payload", data);
+          setServices([]);
+        }
       } catch (error) {
         console.error("Error fetching services:", error);
       }

@@ -1,4 +1,3 @@
-import { API_URL } from "@/context/auth_provider";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { MapPin, Phone, Mail } from "lucide-react";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 function ContactPage() {
   const [formData, setFormData] = useState({
@@ -57,25 +57,26 @@ function ContactPage() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/_/reachus`, {
+      const response = await proxyApiRequest("/_/reachus", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
+        body: {
           fullName: formData.fullName,
           email: formData.email,
           subject: formData.subject,
           message: formData.message,
-        }),
+        },
       });
 
       if (!response.ok || response.status !== 200) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => null);
         toast({
           title: "Error",
           description:
-            errorData.errors || "Failed to submit form. Please try again.",
+            (errorData && (errorData.errors || errorData.message)) ||
+            "Failed to submit form. Please try again.",
           variant: "destructive",
         });
         setIsLoading(false);

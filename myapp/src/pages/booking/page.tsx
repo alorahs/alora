@@ -15,9 +15,10 @@ import {
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { BookingForm } from "../../components/booking";
-import { useAuth, API_URL } from "../../context/auth_provider";
+import { useAuth } from "../../context/auth_provider";
 import { useToast } from "../../hooks/use-toast";
 import { User } from "../../interfaces/user";
+import { proxyApiRequest } from "@/lib/apiProxy";
 
 export default function BookingPage() {
   const [professional, setProfessional] = useState<User | null>(null);
@@ -35,22 +36,28 @@ export default function BookingPage() {
     const fetchProfessional = async () => {
       if (!id) return;
       try {
-        const response = user
-          ? await fetch(`${API_URL}/user/${id}`, { credentials: "include" })
-          : await fetch(`${API_URL}/_/users/${id}`);
+        const response = await proxyApiRequest(
+          user ? `/user/${id}` : `/_/users/${id}`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
 
         if (!response.ok) {
-          const data = await response.json();
+          const data = await response.json().catch(() => null);
           toast({
             title: "Error",
-            description: data.message || "Failed to load professional.",
+            description:
+              (data && (data.message || data.error)) ||
+              "Failed to load professional.",
             variant: "destructive",
           });
           return;
         }
 
         const data = await response.json();
-        setProfessional(data);
+        setProfessional(data.user || data);
       } catch (error) {
         toast({
           title: "Error",

@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useSidebar } from '@/components/ui/sidebar-hooks'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, VariantProps } from 'class-variance-authority'
 import { PanelLeftIcon } from 'lucide-react'
@@ -43,15 +44,6 @@ type SidebarContextProps = {
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
-
-function useSidebar() {
-  const context = React.useContext(SidebarContext)
-  if (!context) {
-    throw new Error('useSidebar must be used within a SidebarProvider.')
-  }
-
-  return context
-}
 
 function SidebarProvider({
   defaultOpen = true,
@@ -698,6 +690,7 @@ function SidebarMenuSubButton({
   )
 }
 
+// Fix: Export only components to support Fast Refresh
 export {
   Sidebar,
   SidebarContent,
@@ -722,5 +715,4 @@ export {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
-  useSidebar,
 }

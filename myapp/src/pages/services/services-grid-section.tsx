@@ -27,7 +27,15 @@ const categories = [
   { name: "Plumbing", active: false, icon: "🚿" },
 ];
 
-export default function ServicesGridSection({ services }: { services: any[] }) {
+interface Service {
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  color: string;
+  // Add other properties as needed
+}
+
+export default function ServicesGridSection({ services }: { services: Service[] }) {
   return (
     <section className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

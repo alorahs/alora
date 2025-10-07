@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,60 +115,37 @@ const PREDEFINED_ICONS = [
   { name: "Shield", value: "🛡️", category: "Tech Support" },
 ];
 
-export default function ServiceManagement() {
+export default function ServicesManagement() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-
   const [services, setServices] = useState<Service[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Partial<Service>>({
     title: "",
     description: "",
     category: "",
     icon: "",
     color: "blue",
   });
-
-  // Check if user is admin
-  if (!user || user.role !== "admin") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="p-6">
-          <CardContent>
-            <p className="text-center text-red-600">
-              Access Denied: Admin privileges required
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const fetchServices = async () => {
     try {
-      setLoading(true);
-      const response = await fetch(`${API_URL}/services`);
+      const response = await proxyApiRequest("/services", {
+        method: "GET",
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setServices(data);
-      } else {
-        throw new Error("Failed to fetch services");
       }
     } catch (error) {
       console.error("Error fetching services:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch services",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
@@ -220,13 +198,13 @@ export default function ServiceManagement() {
 
   const handleCreateService = async () => {
     try {
-      const response = await fetch(`${API_URL}/services`, {
+      const response = await proxyApiRequest("/services", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(formData),
+        body: formData,
       });
 
       if (response.ok) {
@@ -240,10 +218,10 @@ export default function ServiceManagement() {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to create service");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create service",
+        description: (error as Error).message || "Failed to create service",
         variant: "destructive",
       });
     }
@@ -253,15 +231,15 @@ export default function ServiceManagement() {
     if (!selectedService) return;
 
     try {
-      const response = await fetch(
-        `${API_URL}/services/${selectedService._id}`,
+      const response = await proxyApiRequest(
+        `/services/${selectedService._id}`,
         {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify(formData),
+          body: formData,
         }
       );
 
@@ -276,10 +254,10 @@ export default function ServiceManagement() {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to update service");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update service",
+        description: (error as Error).message || "Failed to update service",
         variant: "destructive",
       });
     }
@@ -287,7 +265,7 @@ export default function ServiceManagement() {
 
   const handleDeleteService = async (serviceId: string) => {
     try {
-      const response = await fetch(`${API_URL}/services/${serviceId}`, {
+      const response = await proxyApiRequest(`/services/${serviceId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -302,14 +280,29 @@ export default function ServiceManagement() {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to delete service");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete service",
+        description: (error as Error).message || "Failed to delete service",
         variant: "destructive",
       });
     }
   };
+
+  // Check if user is admin
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-6">
+          <CardContent>
+            <p className="text-center text-red-600">
+              Access Denied: Admin privileges required
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -40,6 +40,17 @@ interface Service {
   createdAt: string;
 }
 
+// Define form data interface
+interface ServiceFormData {
+  _id?: string;
+  title: string;
+  description: string;
+  icon: string;
+  color: string;
+  category?: string;
+  createdAt?: string;
+}
+
 const PREDEFINED_COLORS = [
   { name: "Blue", value: "#3B82F6" },
   { name: "Green", value: "#10B981" },
@@ -115,11 +126,11 @@ export default function ServicesSection({
   services: Service[];
   loading: boolean;
   setIsEditServiceOpen: (open: boolean) => void;
-  setSelectedItem: (item: any) => void;
+  setSelectedItem: (item: Service | null) => void;
   deleteService: (id: string) => void;
-  createService: (data: any) => void;
-  updateService: (id: string, data: any) => void;
-  setFormData: (data: any) => void;
+  createService: (data: Partial<ServiceFormData>) => void;
+  updateService: (id: string, data: Partial<ServiceFormData>) => void;
+  setFormData: (data: Partial<ServiceFormData>) => void;
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");

@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,58 +55,37 @@ export default function UserManagement() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [editFormData, setEditFormData] = useState({
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<User>>({
     fullName: "",
     username: "",
     email: "",
-    role: "",
+    role: "customer",
     isActive: true,
     phone: "",
     category: "",
   });
-
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
-  // Check if user is admin
-  if (!user || user.role !== "admin") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="p-6">
-          <CardContent>
-            <p className="text-center text-red-600">
-              Access Denied: Admin privileges required
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
-      setLoading(true);
-      const response = await fetch(`${API_URL}/admin/users`, {
+      const response = await proxyApiRequest("/admin/users", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
         const data = await response.json();
         setUsers(data.users || data);
-      } else {
-        throw new Error("Failed to fetch users");
       }
     } catch (error) {
-      console.error("Error fetching users:", error);
       toast({
         title: "Error",
         description: "Failed to fetch users",
@@ -114,11 +94,11 @@ export default function UserManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   useEffect(() => {
     let result = users;
@@ -165,13 +145,13 @@ export default function UserManagement() {
     if (!selectedUser) return;
 
     try {
-      const response = await fetch(`${API_URL}/user/${selectedUser._id}`, {
+      const response = await proxyApiRequest(`/user/${selectedUser._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(editFormData),
+        body: editFormData,
       });
 
       if (response.ok) {
@@ -185,10 +165,10 @@ export default function UserManagement() {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to update user");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to update user",
+        description: (error as Error).message || "Failed to update user",
         variant: "destructive",
       });
     }
@@ -203,8 +183,8 @@ export default function UserManagement() {
     if (!userToDelete) return;
 
     try {
-      const response = await fetch(
-        `${API_URL}/admin/users/${userToDelete._id}`,
+      const response = await proxyApiRequest(
+        `/admin/users/${userToDelete._id}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -222,14 +202,29 @@ export default function UserManagement() {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to delete user");
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete user",
+        description: (error as Error).message || "Failed to delete user",
         variant: "destructive",
       });
     }
   };
+
+  // Check if user is admin
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-6">
+          <CardContent>
+            <p className="text-center text-red-600">
+              Access Denied: Admin privileges required
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

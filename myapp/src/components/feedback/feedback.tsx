@@ -8,7 +8,8 @@ import { Alert, AlertDescription } from "../ui/alert";
 import { Badge } from "../ui/badge";
 import { Separator } from "../ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { API_URL, useAuth } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import {
   CheckCircle,
   AlertCircle,
@@ -80,20 +81,20 @@ function Feedback() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_URL}/feedback`, {
+      const response = await proxyApiRequest(`/feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({
-          user: user._id,
+        body: {
+          user: user?._id,
           rating: formdata.rating,
           subject: formdata.subject,
           message: formdata.message,
           name: formdata.name,
           email: formdata.email,
-        }),
+        },
       });
 
       const responseData = await response.json();

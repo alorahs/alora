@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useAuth, API_URL } from "@/context/auth_provider";
+import { useAuth } from "@/context/auth_provider";
+import { proxyApiRequest } from "@/lib/apiProxy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,7 +68,8 @@ export default function ReachUsManagement() {
   const fetchMessages = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/reachus`, {
+      const response = await proxyApiRequest("/reachus", {
+        method: "GET",
         credentials: "include",
       });
       if (response.ok) {
@@ -85,14 +87,21 @@ export default function ReachUsManagement() {
     fetchMessages();
   }, []);
 
-  const updateMessage = async (messageId: string, messageData: any) => {
+  interface MessageData {
+  fullName?: string;
+  email?: string;
+  subject?: string;
+  message?: string;
+}
+
+const updateMessage = async (messageId: string, messageData: MessageData) => {
     try {
-      const response = await fetch(`${API_URL}/reachus/${messageId}`, {
+      const response = await proxyApiRequest(`/reachus/${messageId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(messageData),
+        body: messageData,
         credentials: "include",
       });
 
@@ -117,7 +126,7 @@ export default function ReachUsManagement() {
 
   const deleteMessage = async (messageId: string) => {
     try {
-      const response = await fetch(`${API_URL}/reachus/${messageId}`, {
+      const response = await proxyApiRequest(`/reachus/${messageId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -179,12 +188,14 @@ export default function ReachUsManagement() {
         return (
           matchesSearch && messageDate.toDateString() === now.toDateString()
         );
-      case "week":
+      case "week": {
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
         return matchesSearch && messageDate >= weekAgo;
-      case "month":
+      }
+      case "month": {
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         return matchesSearch && messageDate >= monthAgo;
+      }
       default:
         return matchesSearch;
     }
