@@ -10,6 +10,7 @@ import { Label } from "../../components/ui/label"
 
 import { User, Lock, Eye, EyeOff } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
+import OTPLogin from "@/components/auth/otp-login"
 
 export default function LoginPage() {
   const [identifier, setIdentifier] = useState("")
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [authMethod, setAuthMethod] = useState<"password" | "otp">("password")
   const { login, user, error: authError } = useAuth()
 
   useEffect(() => {
@@ -56,45 +58,71 @@ export default function LoginPage() {
     setError(null)
     
     // Validate required fields
-    if (!identifier.trim() || !password.trim()) {
+    if (!identifier.trim() || (authMethod === "password" && !password.trim())) {
       toast({
         title: "Please fill in all required fields", 
-        description: "Username/Email/Phone and Password are required"
+        description: authMethod === "password" 
+          ? "Username/Email/Phone and Password are required"
+          : "Username/Email/Phone is required"
       })
       setIsLoading(false)
       return
     }
 
-    const loginData = {
-      identifier: identifier.trim(),
-      password: password.trim()
-    }
-
-    try {
-      const response = await login(loginData)
-
-      if (!response) {
-        // Login failed, error should be in the auth context
-        // We don't need to handle it here as the toast is already shown in the context
-      } else {
-        // Login successful
-        if (user?.emailVerified === false) {
-          navigate("/auth/signup-success")
-        } else {
-          navigate("/")
-        }
+    if (authMethod === "password") {
+      const loginData = {
+        identifier: identifier.trim(),
+        password: password.trim()
       }
-    } catch (error) {
-      const errorMsg = "An unexpected error occurred during login"
-      setError(errorMsg)
-      toast({
-        title: "Login Error",
-        description: errorMsg,
-        variant: "destructive"
-      })
-    } finally {
+
+      try {
+        const response = await login(loginData)
+
+        if (!response) {
+          // Login failed, error should be in the auth context
+          // We don't need to handle it here as the toast is already shown in the context
+        } else {
+          // Login successful
+          if (user?.emailVerified === false) {
+            navigate("/auth/signup-success")
+          } else {
+            navigate("/")
+          }
+        }
+      } catch (error) {
+        const errorMsg = "An unexpected error occurred during login"
+        setError(errorMsg)
+        toast({
+          title: "Login Error",
+          description: errorMsg,
+          variant: "destructive"
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    } else {
+      // For OTP login, we handle it in the OTPLogin component
       setIsLoading(false)
     }
+  }
+
+  const handleLoginSuccess = () => {
+    // The auth context will automatically update the user state
+    if (user?.emailVerified === false) {
+      navigate("/auth/signup-success")
+    } else {
+      navigate("/")
+    }
+  }
+
+  const handleSwitchToOTP = () => {
+    setAuthMethod("otp")
+    setError(null)
+  }
+
+  const handleSwitchToPassword = () => {
+    setAuthMethod("password")
+    setError(null)
   }
 
   return (
@@ -110,67 +138,86 @@ export default function LoginPage() {
           <CardContent>
             {/* Login Form */}
             <div className="flex flex-col gap-6">
-              {/* Identifier Input */}
-              <div className="grid gap-2">
-                <Label htmlFor="identifier">Email, Username, or Phone</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <Input
-                    id="identifier"
-                    type="text"
-                    placeholder="Enter your email, username, or phone"
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
-                </div>
-              </div>
-              {/* Password with toggle */}
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    placeholder="Your password"
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                    onClick={() => setShowPassword(!showPassword)}
+              {authMethod === "password" ? (
+                <>
+                  {/* Identifier Input */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="identifier">Email, Username, or Phone</Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <Input
+                        id="identifier"
+                        type="text"
+                        placeholder="Enter your email, username, or phone"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                  </div>
+                  {/* Password with toggle */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        placeholder="Your password"
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="pl-10 pr-10"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Forgot password */}
+                  <div className="flex justify-end">
+                    <Link
+                      to="/forgot-password"
+                      className="text-sm text-blue-600 hover:text-blue-500"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+
+                  {/* Error message */}
+                  {error && <p className="text-sm text-red-500">{error}</p>}
+
+                  {/* Submit button */}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isLoading}
+                    onClick={handleLogin}
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </div>
+                    {isLoading ? "Signing in..." : "Sign in"}
+                  </Button>
 
-              {/* Forgot password */}
-              <div className="flex justify-end">
-                <Link
-                  to="/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-500"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-
-              {/* Error message */}
-              {error && <p className="text-sm text-red-500">{error}</p>}
-
-              {/* Submit button */}
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-                onClick={handleLogin}
-              >
-                {isLoading ? "Signing in..." : "Sign in"}
-              </Button>
+                  <div className="text-center text-sm">
+                    <button
+                      type="button"
+                      onClick={handleSwitchToOTP}
+                      className="text-blue-600 hover:text-blue-500"
+                    >
+                      Login with OTP instead
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <OTPLogin 
+                  onLoginSuccess={handleLoginSuccess}
+                  onSwitchToPassword={handleSwitchToPassword}
+                />
+              )}
 
               {/* Signup link */}
               <div className="mt-4 text-center text-sm">

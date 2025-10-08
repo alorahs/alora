@@ -1,5 +1,7 @@
 import express from "express";
 import User from "../models/user.js";
+import UserDetails from "../models/user_details.js";
+import Professional from "../models/professional.js";
 import Review from "../models/review.js";
 import { body, validationResult } from "express-validator";
 import { isAdmin } from "../middleware/authorization.js";
@@ -11,7 +13,7 @@ const router = express.Router();
 // Get all users (admin only)
 router.get("/", verifyAccessToken, isAdmin, async (req, res) => {
   try {
-    const users = await User.find().select("-password -resetPasswordToken -resetPasswordExpires -verifyEmailToken -verifyEmailExpires -verifyPhoneToken -verifyPhoneExpires");
+    const users = await User.find().select("-password -resetPasswordToken -resetPasswordExpires -verifyEmailToken -verifyEmailExpires -verifyPhoneToken -verifyPhoneExpires -twoFactorSecret");
     res.status(200).json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -22,7 +24,10 @@ router.get("/", verifyAccessToken, isAdmin, async (req, res) => {
 // Get a specific user by ID (authenticated users)
 router.get("/:id", verifyAccessToken, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password -resetPasswordToken -resetPasswordExpires -verifyEmailToken -verifyEmailExpires -verifyPhoneToken -verifyPhoneExpires");
+    const user = await User.findById(req.params.id)
+      .populate('userDetails')
+      .populate('professionalProfile')
+      .select("-password -resetPasswordToken -resetPasswordExpires -verifyEmailToken -verifyEmailExpires -verifyPhoneToken -verifyPhoneExpires -twoFactorSecret");
     
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -51,6 +56,8 @@ router.put("/", verifyAccessToken, async (req, res) => {
     delete updates.verifyEmailExpires;
     delete updates.verifyPhoneToken;
     delete updates.verifyPhoneExpires;
+    delete updates.twoFactorSecret;
+    delete updates.authMethod;
 
     console.log('Updates:', updates);
     
@@ -58,7 +65,7 @@ router.put("/", verifyAccessToken, async (req, res) => {
       userId,
       updates,
       { new: true, runValidators: true }
-    ).select("-password -resetPasswordToken -resetPasswordExpires -verifyEmailToken -verifyEmailExpires -verifyPhoneToken -verifyPhoneExpires");
+    ).select("-password -resetPasswordToken -resetPasswordExpires -verifyEmailToken -verifyEmailExpires -verifyPhoneToken -verifyPhoneExpires -twoFactorSecret");
     
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -84,6 +91,7 @@ router.put("/:id", verifyAccessToken, isAdmin, async (req, res) => {
     delete updates.verifyEmailExpires;
     delete updates.verifyPhoneToken;
     delete updates.verifyPhoneExpires;
+    delete updates.twoFactorSecret;
     
     // Only admins can update user roles
     if (req.user.role !== 'admin') {
@@ -94,7 +102,7 @@ router.put("/:id", verifyAccessToken, isAdmin, async (req, res) => {
       req.params.id,
       updates,
       { new: true, runValidators: true }
-    ).select("-password -resetPasswordToken -resetPasswordExpires -verifyEmailToken -verifyEmailExpires -verifyPhoneToken -verifyPhoneExpires");
+    ).select("-password -resetPasswordToken -resetPasswordExpires -verifyEmailToken -verifyEmailExpires -verifyPhoneToken -verifyPhoneExpires -twoFactorSecret");
     
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -118,6 +126,10 @@ router.delete("/:id", verifyAccessToken, isAdmin, async (req, res) => {
     
     // Also delete associated reviews
     await Review.deleteMany({ $or: [{ reviewer: req.params.id }, { reviewee: req.params.id }] });
+    
+    // Also delete associated user details and professional profile
+    await UserDetails.findOneAndDelete({ user: req.params.id });
+    await Professional.findOneAndDelete({ user: req.params.id });
     
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
@@ -219,7 +231,7 @@ router.put("/change-password", verifyAccessToken, [
     const { currentPassword, newPassword } = req.body;
     
     // Get user with password
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('+password');
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -240,6 +252,32 @@ router.put("/change-password", verifyAccessToken, [
     res.status(200).json({ message: "Password changed successfully" });
   } catch (error) {
     console.error('Error changing password:', error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Enable/disable two-factor authentication
+router.put("/toggle-2fa", verifyAccessToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { enabled } = req.body;
+    
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { twoFactorEnabled: enabled },
+      { new: true }
+    ).select('twoFactorEnabled');
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    res.status(200).json({ 
+      message: `Two-factor authentication ${enabled ? 'enabled' : 'disabled'} successfully`, 
+      twoFactorEnabled: user.twoFactorEnabled 
+    });
+  } catch (error) {
+    console.error('Error toggling 2FA:', error);
     res.status(500).json({ error: "Server error" });
   }
 });

@@ -28,6 +28,7 @@ interface SignupParams {
   email: string;
   password: string;
   role: string;
+  authMethod?: string;
 }
 
 interface AuthContextType {
@@ -41,7 +42,7 @@ interface AuthContextType {
   logout: () => void
   isLoading: boolean
 }
-export const API_URL = import.meta.env.VITE_API_URL || "http://192.168.29.162:5000/api";
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 // API_KEY is no longer needed on the client side for proxied requests
 // export const API_KEY = import.meta.env.VITE_API_KEY || "a587e4d8bb883a03b5ea14411c4e1e1d94589702";
 
@@ -195,6 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           password: userData.password,
           fullName: userData.fullName,
           role: userData.role.toLowerCase(),
+          authMethod: userData.authMethod || 'password',
         },
         credentials: "include",
       });

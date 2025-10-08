@@ -34,6 +34,8 @@ import AboutUsAdminPage from "./pages/admin/aboutus";
 import SettingsPage from "./pages/settings/page";
 import ProfessionalsDashboard from "./professionals-dashboard/page";
 import ProfessionalBookingDetailsPage from "./pages/professional/booking";
+import ProfessionalDashboard from "./pages/professional/dashboard";
+import DashboardOverview from "./pages/dashboard/overview";
 // Legal pages
 import PrivacyPolicyPage from "./pages/legal/privacy";
 import TermsOfServicePage from "./pages/legal/terms";
@@ -62,6 +64,7 @@ function App() {
             element={<ProfessionalProfileModal />}
           />
           <Route path="/booking/:id" element={<BookingPage />} />
+          <Route path="/dashboard" element={<DashboardOverview />} />
 
           {/* Legal Pages */}
           <Route path="/privacy" element={<PrivacyPolicyPage />} />
@@ -83,6 +86,7 @@ function App() {
             />
           )}
           {user && <Route path="/settings" element={<SettingsPage />} />}
+          {user && <Route path="/dashboard" element={<DashboardOverview />} />}
 
           {user && user.role === "admin" && (
             <Route path="/admin" element={<AdminDashboard />} />
@@ -115,6 +119,12 @@ function App() {
             <Route
               path="/professionals-dashboard"
               element={<ProfessionalsDashboard />}
+            />
+          )}
+          {user && user.role === "professional" && (
+            <Route
+              path="/professional/dashboard"
+              element={<ProfessionalDashboard />}
             />
           )}
           {user && user.role === "professional" && (

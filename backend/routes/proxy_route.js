@@ -5,13 +5,31 @@ import multer from 'multer';
 const router = express.Router();
 const upload = multer();
 
+const applyCorsLikeHeaders = (req, res) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+  res.setHeader('cross-origin-resource-policy', 'cross-origin');
+};
+
 // Proxy endpoint for API requests that need API key authentication
 router.post('/proxy-api', async (req, res) => {
   try {
+    if (!process.env.API_KEY) {
+      applyCorsLikeHeaders(req, res);
+      return res.status(500).json({ error: 'API key is not configured on the server' });
+    }
     const { url, method = 'GET', body, headers = {} } = req.body;
     
     // Validate the requested URL is to our own API
     if (!url || !url.startsWith('/')) {
+      applyCorsLikeHeaders(req, res);
       return res.status(400).json({ error: 'Invalid URL' });
     }
     
@@ -21,7 +39,7 @@ router.post('/proxy-api', async (req, res) => {
     
     // Add API key to headers
     const apiHeaders = {
-      apiKey: process.env.API_KEY,
+      'x-api-key': process.env.API_KEY,
       ...headers
     };
 
@@ -61,6 +79,7 @@ router.post('/proxy-api', async (req, res) => {
     
     // Forward the response with appropriate status and content type
     res.status(response.status);
+    applyCorsLikeHeaders(req, res);
 
     // Forward Set-Cookie headers so the browser stores authentication cookies
     if (rawHeaders['set-cookie']) {
@@ -79,6 +98,7 @@ router.post('/proxy-api', async (req, res) => {
     }
   } catch (error) {
     console.error('Proxy error:', error);
+    applyCorsLikeHeaders(req, res);
     res.status(500).json({ error: 'Proxy request failed' });
   }
 });
@@ -86,16 +106,21 @@ router.post('/proxy-api', async (req, res) => {
 // Proxy endpoint for multipart/form-data requests (e.g., file uploads)
 router.post('/proxy-upload', upload.any(), async (req, res) => {
   try {
+    if (!process.env.API_KEY) {
+      applyCorsLikeHeaders(req, res);
+      return res.status(500).json({ error: 'API key is not configured on the server' });
+    }
     const { url, method = 'POST', headers: headersPayload } = req.body;
 
     if (!url || !url.startsWith('/')) {
+      applyCorsLikeHeaders(req, res);
       return res.status(400).json({ error: 'Invalid URL' });
     }
 
     const apiUrl = `http://localhost:${process.env.PORT || 5000}/api${url}`;
 
     const apiHeaders = {
-      apiKey: process.env.API_KEY,
+      'x-api-key': process.env.API_KEY,
     };
 
     // Merge any additional headers provided (expecting JSON string)
@@ -151,6 +176,7 @@ router.post('/proxy-upload', upload.any(), async (req, res) => {
     }
 
     res.status(response.status);
+    applyCorsLikeHeaders(req, res);
 
     if (rawHeaders['set-cookie']) {
       res.set('Set-Cookie', rawHeaders['set-cookie']);
@@ -167,6 +193,7 @@ router.post('/proxy-upload', upload.any(), async (req, res) => {
     }
   } catch (error) {
     console.error('Proxy upload error:', error);
+    applyCorsLikeHeaders(req, res);
     res.status(500).json({ error: 'Proxy upload failed' });
   }
 });
@@ -174,17 +201,24 @@ router.post('/proxy-upload', upload.any(), async (req, res) => {
 // Proxy endpoint to fetch protected files by ID
 router.get('/file/:id', async (req, res) => {
   try {
+    if (!process.env.API_KEY) {
+      applyCorsLikeHeaders(req, res);
+      return res.status(500).json({ error: 'API key is not configured on the server' });
+    }
     const { id } = req.params;
     if (!id) {
+      applyCorsLikeHeaders(req, res);
       return res.status(400).json({ error: 'File ID is required' });
     }
 
+    // Add API key to query parameters for file access
     const searchParams = new URLSearchParams(req.query);
+    searchParams.set('apiKey', process.env.API_KEY);
     const queryString = searchParams.toString();
     const apiUrl = `http://localhost:${process.env.PORT || 5000}/api/files/${id}${queryString ? `?${queryString}` : ''}`;
 
     const apiHeaders = {
-      apiKey: process.env.API_KEY,
+      'x-api-key': process.env.API_KEY,
     };
 
     if (req.headers.cookie) {
@@ -199,6 +233,7 @@ router.get('/file/:id', async (req, res) => {
     const rawHeaders = response.headers.raw();
 
     res.status(response.status);
+    applyCorsLikeHeaders(req, res);
 
     if (rawHeaders['set-cookie']) {
       res.set('Set-Cookie', rawHeaders['set-cookie']);
@@ -218,6 +253,7 @@ router.get('/file/:id', async (req, res) => {
     res.send(buffer);
   } catch (error) {
     console.error('Proxy file fetch error:', error);
+    applyCorsLikeHeaders(req, res);
     res.status(500).json({ error: 'Proxy file fetch failed' });
   }
 });

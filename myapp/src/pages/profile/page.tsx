@@ -32,6 +32,8 @@ import {
   BookingsSection,
   PlaceholderSection,
 } from "./index";
+import UserDetailsForm from "@/components/user/user-details-form";
+import PaymentMethods from "@/components/user/payment-methods";
 
 interface UserProfile {
   fullName: string;
@@ -294,9 +296,10 @@ export default function ProfilePage() {
           icon: User,
           active: true,
         },
+        { id: "user-details", label: "User Details", icon: User },
+        { id: "payment-methods", label: "Payment Methods", icon: CreditCard },
         { id: "bookings", label: "My Bookings", icon: Calendar },
         { id: "favorites", label: "My Favorites", icon: Heart },
-        { id: "payment-account", label: "Payment Account", icon: CreditCard },
         { id: "account-security", label: "Account Security", icon: Shield },
       ],
     },
@@ -506,6 +509,19 @@ export default function ProfilePage() {
     />
   );
 
+  const renderUserDetailsSection = () => (
+    <UserDetailsForm
+      user={user}
+      onUpdate={() => {}}
+    />
+  );
+
+  const renderPaymentMethodsSection = () => (
+    <PaymentMethods
+      user={user}
+    />
+  );
+
   const renderPlaceholderSection = (title: string) => (
     <PlaceholderSection title={title} />
   );
@@ -514,6 +530,10 @@ export default function ProfilePage() {
     switch (activeSection) {
       case "personal-data":
         return renderPersonalDataSection();
+      case "user-details":
+        return renderUserDetailsSection();
+      case "payment-methods":
+        return renderPaymentMethodsSection();
       case "favorites":
         return (
           <FavoritesSection

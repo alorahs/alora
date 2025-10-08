@@ -16,6 +16,158 @@ const transporter = nodemailer.createTransport({
   debug: true, // Show debug output
 });
 
+export const sendOTPEmail = async (email, otp, name) => {
+  const siteName = "Alora";
+  const userName = name ? name : "User";
+
+  const mailOptions = {
+    from:
+      process.env.EMAIL_FROM || '"Alora Admin" <admin@cyberrakshak.me>',
+    to: email,
+    subject: "Your OTP Code",
+    html: `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your OTP Code</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .otp-code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2563eb;
+            text-align: center;
+            letter-spacing: 4px;
+            margin: 30px 0;
+            padding: 15px;
+            background-color: #f0f9ff;
+            border-radius: 8px;
+            border: 2px dashed #2563eb;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .security-note {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">${siteName}</div>
+        </div>
+
+        <h1>Your One-Time Password (OTP)</h1>
+
+        <p>Hello ${userName},</p>
+
+        <p>You have requested to login to your account. Please use the following OTP code to complete your authentication:</p>
+
+        <div class="otp-code">${otp}</div>
+
+        <p>This code will expire in 10 minutes for security reasons. If you didn't request this code, please ignore this email.</p>
+
+        <div class="security-note">
+            <strong>Security Note:</strong> Never share this code with anyone. Alora will never ask for this code via phone or email.
+        </div>
+
+        <div class="footer">
+            <p>If you have any questions, please contact our support team.</p>
+            <p>&copy; ${new Date().getFullYear()} ${siteName}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+
+</html>`
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error("Error sending OTP email:", error);
+    throw new Error("Failed to send OTP email");
+  }
+};
+
+export const sendOTPSMS = async (phone, otp) => {
+  // This is a placeholder implementation
+  // In a real application, you would integrate with an SMS service provider
+  console.log(`SMS OTP to ${phone}: ${otp}`);
+
+  // For now, we'll just log the OTP
+  // In production, you would use an SMS API like Twilio, AWS SNS, etc.
+
+  // Example placeholder for SMS service integration:
+  /*
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const client = require('twilio')(accountSid, authToken);
+  
+  try {
+    await client.messages.create({
+      body: `Your Alora OTP code is: ${otp}`,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: phone
+    });
+  } catch (error) {
+    console.error("Error sending OTP SMS:", error);
+    throw new Error("Failed to send OTP SMS");
+  }
+  */
+
+  return true;
+};
+
 export const sendVerificationEmail = async (email, token, name) => {
   const verificationLink = `${process.env.CLIENT_URL || "http://192.168.29.106:8000"}/verification/email?token=${token}`;
   const siteName = "Alora";
@@ -27,9 +179,9 @@ export const sendVerificationEmail = async (email, token, name) => {
     to: email,
     subject: "Email Verification",
     html: `<!DOCTYPE html>
-<html lang="en">
+  <html lang="en">
 
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Your Email</title>

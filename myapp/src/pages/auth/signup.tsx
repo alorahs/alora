@@ -11,6 +11,7 @@ import { useEffect, useState } from "react"
 import { AtSign, Eye, EyeOff, Lock, LockKeyhole, Mail, Phone } from "lucide-react"
 import { useAuth } from "../../context/auth_provider"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Switch } from "@/components/ui/switch"
 
 export default function SignupPage() {
   const [firstName, setFirstName] = useState("")
@@ -23,6 +24,7 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [role, setRole] = useState("customer")
+  const [authMethod, setAuthMethod] = useState<"password" | "otp-only">("password")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
@@ -40,8 +42,8 @@ export default function SignupPage() {
     setIsLoading(true)
     setError(null)
     // Basic validation
-    if (!firstName || !lastName || !email || !phone || !username || !password || !confirmPassword) {
-      setError("All fields are required")
+    if (!firstName || !lastName || !email || !phone || !username || (authMethod === "password" && (!password || !confirmPassword))) {
+      setError("All required fields must be filled")
       setIsLoading(false)
       return
     }
@@ -55,14 +57,22 @@ export default function SignupPage() {
       setIsLoading(false)
       return
     }
-    if (password !== confirmPassword) {
+    if (authMethod === "password" && password !== confirmPassword) {
       setError("Passwords do not match")
       setIsLoading(false)
       return
     }
 
     try {
-      const response = await signup({ fullName, password, phone, username, email, role })
+      const response = await signup({ 
+        fullName, 
+        password: authMethod === "password" ? password : "", 
+        phone, 
+        username, 
+        email, 
+        role,
+        authMethod
+      })
       if (!response) {
         // Signup failed, error should be in the auth context
         // We don't need to handle it here as the toast is already shown in the context
@@ -174,53 +184,71 @@ export default function SignupPage() {
                     />
                   </div>
                 </div>
-                <div className="grid gap-2">
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      required
-                      placeholder="Create a password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="px-10" // add padding to make space for the button
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-gray-700">Authentication Method</Label>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Password</span>
+                    <Switch
+                      checked={authMethod === "otp-only"}
+                      onCheckedChange={(checked) => 
+                        setAuthMethod(checked ? "otp-only" : "password")
+                      }
                     />
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="sm"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-0"
-                    >
-                      {showPassword ? <EyeOff /> : <Eye />}
-                    </Button>
+                    <span className="text-sm text-gray-600">OTP Only</span>
                   </div>
                 </div>
 
-                <div className="grid gap-2">
-                  <div className="relative">
-                    <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      required
-                      value={confirmPassword}
-                      placeholder="Re-enter your password"
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="px-10" // space for eye button
-                    />
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="sm"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-0"
-                    >
-                      {showConfirmPassword ? <EyeOff /> : <Eye />}
-                    </Button>
-                  </div>
-                </div>
+                {authMethod === "password" && (
+                  <>
+                    <div className="grid gap-2">
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          required
+                          placeholder="Create a password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="px-10" // add padding to make space for the button
+                        />
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-0"
+                        >
+                          {showPassword ? <EyeOff /> : <Eye />}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <div className="relative">
+                        <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Input
+                          id="confirmPassword"
+                          type={showConfirmPassword ? "text" : "password"}
+                          required
+                          value={confirmPassword}
+                          placeholder="Re-enter your password"
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          className="px-10" // space for eye button
+                        />
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-0"
+                        >
+                          {showConfirmPassword ? <EyeOff /> : <Eye />}
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {error && <p className="text-sm text-red-500">{error}</p>}
                 <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-500" disabled={isLoading}>

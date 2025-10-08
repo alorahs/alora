@@ -37,6 +37,11 @@ export default function TeamSection({
                       src={`${API_URL}/proxy/file/${member.imageUrl}`}
                       alt={member.name}
                       className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                      onError={(e) => {
+                        // Fallback to direct API access if proxy fails
+                        const imgElement = e.target as HTMLImageElement;
+                        imgElement.src = `${API_URL}/api/files/${member.imageUrl}`;
+                      }}
                     />
                   ) : (
                     <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">

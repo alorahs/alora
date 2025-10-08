@@ -1,23 +1,46 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 
-const verifyAccessToken = async (req, res, next) => {
-    const accessToken = req.cookies.accessToken; 
+export const resolveUserFromAccessToken = async (req) => {
+    const accessToken = req.cookies?.accessToken;
+
     if (!accessToken) {
-        return res.status(401).json({ errors: [{ msg: 'No access token provided' }] });
+        return { user: null, reason: 'missing' };
     }
+
     try {
         const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
         const user = await User.findById(decoded.sub).select('-password');
+
         if (!user) {
-            return res.status(401).json({ errors: [{ msg: 'User not found' }] });
+            return { user: null, reason: 'user-not-found' };
         }
-        req.user = user; // Attach user to request object
-        next();
+
+        return { user, reason: null };
     } catch (error) {
-        console.error('Error verifying access token:', error);
-        return res.status(401).json({ errors: [{ msg: 'Invalid or expired access token' }] });
+        return { user: null, reason: 'invalid', error };
     }
+};
+
+const verifyAccessToken = async (req, res, next) => {
+    const { user, reason, error } = await resolveUserFromAccessToken(req);
+
+    if (!user) {
+        if (reason === 'invalid' && error) {
+            console.error('Error verifying access token:', error);
+        }
+
+        const message = {
+            missing: 'No access token provided',
+            'user-not-found': 'User not found',
+            invalid: 'Invalid or expired access token',
+        }[reason] || 'Invalid or expired access token';
+
+        return res.status(401).json({ errors: [{ msg: message }] });
+    }
+
+    req.user = user;
+    next();
 };
 
 export default verifyAccessToken;

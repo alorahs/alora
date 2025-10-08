@@ -1,8 +1,9 @@
 import { apiService } from './api';
 import { API_ENDPOINTS } from '@/shared/constants';
+import type { UserSummary } from './types';
 
 export interface LoginCredentials {
-  email: string;
+  identifier: string;
   password: string;
 }
 
@@ -13,92 +14,78 @@ export interface RegisterData {
   phone: string;
   fullName: string;
   role?: string;
-}
-
-export interface User {
-  _id: string;
-  username: string;
-  email: string;
-  fullName: string;
-  phone: string;
-  role: string;
-  profilePicture?: string;
-  isActive: boolean;
+  authMethod?: 'password' | 'otp-only';
 }
 
 export interface AuthResponse {
-  message: string;
-  user: User;
+  msg?: string;
+  message?: string;
+  user: UserSummary;
   accessToken?: string;
 }
 
-/**
- * Authentication Service
- */
+export interface ForgotPasswordResponse {
+  msg?: string;
+  message?: string;
+}
+
+export interface ResetPasswordResponse {
+  msg?: string;
+  message?: string;
+}
+
+export interface VerifyEmailResponse {
+  msg?: string;
+  message?: string;
+}
+
+export interface OtpRequestPayload {
+  identifier: string;
+}
+
+export interface VerifyOtpPayload extends OtpRequestPayload {
+  otp: string;
+}
+
 class AuthService {
-  /**
-   * Login user
-   */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     return apiService.post<AuthResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials);
   }
 
-  /**
-   * Register user
-   */
+  async requestOtp(payload: OtpRequestPayload): Promise<{ msg?: string; method?: string }> {
+  return apiService.post(API_ENDPOINTS.AUTH.REQUEST_OTP, payload);
+  }
+
+  async verifyOtp(payload: VerifyOtpPayload): Promise<AuthResponse> {
+    return apiService.post<AuthResponse>(API_ENDPOINTS.AUTH.VERIFY_OTP, payload);
+  }
+
   async register(userData: RegisterData): Promise<AuthResponse> {
     return apiService.post<AuthResponse>(API_ENDPOINTS.AUTH.REGISTER, userData);
   }
 
-  /**
-   * Logout user
-   */
-  async logout(): Promise<{ message: string }> {
-    return apiService.post<{ message: string }>(API_ENDPOINTS.AUTH.LOGOUT);
+  async logout(): Promise<{ message?: string; msg?: string }> {
+    return apiService.post(API_ENDPOINTS.AUTH.LOGOUT);
   }
 
-  /**
-   * Get current user profile
-   */
-  async getCurrentUser(): Promise<{ user: User }> {
-    return apiService.get<{ user: User }>(API_ENDPOINTS.AUTH.ME);
+  async getCurrentUser(): Promise<{ user: UserSummary }> {
+    return apiService.get<{ user: UserSummary }>(API_ENDPOINTS.AUTH.ME);
   }
 
-  /**
-   * Refresh access token
-   */
   async refreshToken(): Promise<{ accessToken: string }> {
-    return apiService.post<{ accessToken: string }>(API_ENDPOINTS.AUTH.REFRESH);
+    return apiService.post(API_ENDPOINTS.AUTH.REFRESH);
   }
 
-  /**
-   * Send forgot password email
-   */
-  async forgotPassword(email: string): Promise<{ message: string }> {
-    return apiService.post<{ message: string }>(
-      API_ENDPOINTS.AUTH.FORGOT_PASSWORD,
-      { email }
-    );
+  async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+    return apiService.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
   }
 
-  /**
-   * Reset password
-   */
-  async resetPassword(token: string, password: string): Promise<{ message: string }> {
-    return apiService.post<{ message: string }>(
-      API_ENDPOINTS.AUTH.RESET_PASSWORD,
-      { token, password }
-    );
+  async resetPassword(token: string, password: string): Promise<ResetPasswordResponse> {
+    return apiService.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, { token, password });
   }
 
-  /**
-   * Verify email
-   */
-  async verifyEmail(token: string): Promise<{ message: string }> {
-    return apiService.post<{ message: string }>(
-      API_ENDPOINTS.AUTH.VERIFY_EMAIL,
-      { token }
-    );
+  async verifyEmail(token: string): Promise<VerifyEmailResponse> {
+    return apiService.post(API_ENDPOINTS.AUTH.VERIFY_EMAIL, { token });
   }
 }
 

@@ -82,7 +82,7 @@ async function startServices() {
   try {
     logHeader('ALORA DEVELOPMENT LAUNCHER');
     
-    log('� Checking project structure...', 'cyan');
+    log('🔍 Checking project structure...', 'cyan');
     
     // Check if directories exist
     if (!existsSync('./backend')) {
@@ -101,32 +101,42 @@ async function startServices() {
     log('\n🔍 Checking dependencies...', 'cyan');
     const backendDepsOk = checkDependencies('./backend');
     const frontendDepsOk = checkDependencies('./myapp');
+
+    if (!backendDepsOk) {
+      log('� Installing backend dependencies...', 'yellow');
+      await run('npm install', './backend', 'Backend dependencies');
+    }
+
+    if (!frontendDepsOk) {
+      log('📦 Installing frontend dependencies...', 'yellow');
+      await run('npm install', './myapp', 'Frontend dependencies');
+    }
     
     // Start backend
     log('\n' + '🔧 BACKEND SERVER'.padEnd(30, ' '), 'magenta');
-    const backendCommand = backendDepsOk 
-      ? 'nodemon server.js' 
-      : 'npm install && nodemon server.js';
-    
     const backendProc = spawn('npm', ['run', 'dev'], {
       cwd: './backend',
       stdio: 'inherit',
       shell: true
+    });
+
+    backendProc.on('error', (error) => {
+      log(`❌ Backend process error: ${error.message}`, 'red');
     });
     
     // Give backend time to start
     await new Promise(resolve => setTimeout(resolve, 3000));
     
     // Start frontend
-    log('\n' + '� FRONTEND SERVER'.padEnd(30, ' '), 'magenta');
-    const frontendCommand = frontendDepsOk 
-      ? 'npm run dev' 
-      : 'npm install && npm run dev';
-    
+    log('\n' + '🌐 FRONTEND SERVER'.padEnd(30, ' '), 'magenta');
     const frontendProc = spawn('npm', ['run', 'dev'], {
       cwd: './myapp',
       stdio: 'inherit',
       shell: true
+    });
+
+    frontendProc.on('error', (error) => {
+      log(`❌ Frontend process error: ${error.message}`, 'red');
     });
     
     // Handle process cleanup
