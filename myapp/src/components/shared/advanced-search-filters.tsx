@@ -8,6 +8,7 @@ import { MapPin, Clock, Calendar, Star } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { API_URL } from "@/context/auth_provider";
 import { useGeolocation } from "@/hooks/use-geolocation";
+import { proxyFetch } from "@/lib/apiProxy";
 
 interface FilterProps {
   searchQuery: string;
@@ -51,7 +52,7 @@ export function AdvancedSearchFilters({
   const [searchParams, setSearchParams] = useSearchParams();
   const [clearAdvanceclick, setClearAdvancedClick] = useState(false);
   const detectUserLocation = useGeolocation();
-  
+
   const clearAdvancedFilters = useCallback(() => {
     setSearchQuery("");
     setLocationFilter("");
@@ -60,7 +61,14 @@ export function AdvancedSearchFilters({
     setRatingFilter("");
     setAvailabilityFilter("");
     setCoordinates(null);
-  }, [setSearchQuery, setLocationFilter, setPriceFilter, setRatingFilter, setAvailabilityFilter, setCoordinates]);
+  }, [
+    setSearchQuery,
+    setLocationFilter,
+    setPriceFilter,
+    setRatingFilter,
+    setAvailabilityFilter,
+    setCoordinates,
+  ]);
 
   // Calculate active filters count
   const activeFiltersCount = [
@@ -74,19 +82,17 @@ export function AdvancedSearchFilters({
 
   const fetchAddressFromCoords = async (lat: number, lon: number) => {
     try {
-      const res = await fetch(
-        `${API_URL}/geocode/reverse?lat=${lat}&lon=${lon}`,
-        { method: "GET" }
-      );
-      const data = await res.json();
-      const place =
-        data?.address.city ||
-        data?.address.town ||
-        data?.address.village ||
-        data?.address.city_district;
-      if (place) {
-        setLocationFilter(`${place}, ${data.address.state || ""}`);
-        // setSearchQuery(`${place}, ${data.address.state || ""}`);
+      const data = await proxyFetch(`/geocode/reverse?lat=${lat}&lon=${lon}`);
+      if (data && data.address) {
+        const place =
+          data.address.city ||
+          data.address.town ||
+          data.address.village ||
+          data.address.city_district;
+        if (place) {
+          setLocationFilter(`${place}, ${data.address.state || ""}`);
+          // setSearchQuery(`${place}, ${data.address.state || ""}`);
+        }
       }
     } catch (error) {
       console.error("Error fetching address:", error);
@@ -95,15 +101,14 @@ export function AdvancedSearchFilters({
   // Geocoding: Address -> Coords
   const fetchCoordsFromAddress = async (address: string) => {
     try {
-      const res = await fetch(
-        `${API_URL}/geocode/forward?address=${encodeURIComponent(address)}`,
-        { method: "GET" }
+      // Use proxy instead of direct API call
+      const data = await proxyFetch(
+        `/geocode/forward?address=${encodeURIComponent(address)}`
       );
-      const data = await res.json();
       if (data.length > 0) {
         const { lat, lon } = data[0];
         setCoordinates({ lat: parseFloat(lat), lon: parseFloat(lon) });
-        setLocationName(address);
+        setLocationFilter(address);
       }
     } catch (error) {
       console.error("Error fetching coordinates:", error);

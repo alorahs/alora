@@ -12,7 +12,7 @@ global.connectedUsers = global.connectedUsers || new Map();
 export const initializeSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || ['http://localhost:8081', 'http://10.97.115.2:8081', 'http://localhost:8000', 'https://alorahs.app'],
+      origin: process.env.CLIENT_URL || ['http://localhost:8081', 'http://10.97.115.2:8081', 'http://localhost:8000', 'https://alorahs.app', "http://192.168.31.147:8081"],
       methods: ['GET', 'POST'],
       credentials: true
     }

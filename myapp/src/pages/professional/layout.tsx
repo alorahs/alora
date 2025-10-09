@@ -436,21 +436,8 @@ function Layout({
 
                       <div className="mb-4">
                         <div className="flex flex-wrap gap-1">
-                          {pro.skills
-                            .slice(0, 3)
-                            .map((skill: string, index: number) => (
-                              <span
-                                key={index}
-                                className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full"
-                              >
-                                {skill}
-                              </span>
-                            ))}
-                          {pro.skills.length > 3 && (
-                            <span className="inline-block text-gray-500 text-xs px-2 py-1">
-                              +{pro.skills.length - 3} more
-                            </span>
-                          )}
+                          {pro.skills}
+                          {pro.skills}
                         </div>
                       </div>
 

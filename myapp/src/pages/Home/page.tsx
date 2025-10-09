@@ -138,7 +138,9 @@ function HomePage() {
   const fetchCoordsFromAddress = async (address: string) => {
     try {
       // Use proxy instead of direct API call
-      const data = await proxyFetch(`/geocode/forward?address=${encodeURIComponent(address)}`);
+      const data = await proxyFetch(
+        `/geocode/forward?address=${encodeURIComponent(address)}`
+      );
       if (data.length > 0) {
         const { lat, lon } = data[0];
         setCoordinates({ lat: parseFloat(lat), lon: parseFloat(lon) });
