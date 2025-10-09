@@ -173,6 +173,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ReachUs'
   }],
+  // Add pushTokens array to store device tokens for push notifications
+  pushTokens: [{
+    type: String
+  }],
   settings: {
     // Notification preferences
     emailNotifications: { type: Boolean, default: true },

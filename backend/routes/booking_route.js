@@ -11,6 +11,7 @@ const router = express.Router();
 router.post('/', verifyAccessToken, [
   body('professionalId').isMongoId().withMessage('Professional ID must be a valid MongoDB ID'),
   body('service').notEmpty().withMessage('Service is required'),
+  body('serviceName').notEmpty().withMessage('Service name is required'),
   body('date').isISO8601().withMessage('Date must be a valid ISO date'),
   body('time').notEmpty().withMessage('Time is required'),
   body('address').isObject().withMessage('Address must be an object'),
@@ -22,7 +23,7 @@ router.post('/', verifyAccessToken, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { professionalId, service, date, time, address, notes } = req.body;
+    const { professionalId, service, serviceName, date, time, address, notes } = req.body;
     
     // Verify professional exists and has professional role
     const professional = await User.findById(professionalId);
@@ -35,6 +36,7 @@ router.post('/', verifyAccessToken, [
       user: req.user._id,
       professional: professionalId,
       service,
+      serviceName,
       date: new Date(date),
       time,
       address,
@@ -50,9 +52,16 @@ router.post('/', verifyAccessToken, [
     
     // Send notification to professional
     const notificationTitle = 'New Booking Request';
-    const notificationMessage = `You have a new booking request from ${savedBooking.user.fullName} for ${savedBooking.service} on ${new Date(savedBooking.date).toLocaleDateString()} at ${savedBooking.time}.`;
+    const notificationMessage = `You have a new booking request from ${savedBooking.user.fullName} for ${savedBooking.serviceName} on ${new Date(savedBooking.date).toLocaleDateString()} at ${savedBooking.time}.`;
     const notificationUrl = `/professional/booking/${savedBooking._id}`;
-    await createNotification(professionalId, notificationTitle, notificationMessage, 'info', notificationUrl);
+    await createNotification(professionalId, notificationTitle, notificationMessage, 'info', {
+      url: notificationUrl,
+      channels: ['in-app', 'push'], // Include push notifications
+      relatedEntity: {
+        type: 'booking',
+        id: savedBooking._id
+      }
+    });
     
     res.status(201).json({ message: 'Booking created successfully', booking: savedBooking });
   } catch (error) {
@@ -71,6 +80,64 @@ router.get('/', verifyAccessToken, async (req, res) => {
     res.status(200).json(bookings);
   } catch (error) {
     console.error('Error fetching bookings:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get bookings for a professional
+router.get('/professional', verifyAccessToken, async (req, res) => {
+  try {
+    // Check if user is a professional or admin
+    if (req.user.role !== 'professional' && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to view these bookings' });
+    }
+    
+    // Professionals can only see their own bookings, admins can see all
+    let filter = {};
+    if (req.user.role === 'professional') {
+      filter.professional = req.user._id;
+    }
+    
+    const bookings = await Booking.find(filter)
+      .populate('user', 'fullName email')
+      .populate('professional', 'fullName email category')
+      .sort({ createdAt: -1 });
+    
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.error('Error fetching professional bookings:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get bookings by professional ID (for admins or when a professional wants to see another professional's bookings)
+router.get('/professional/:professionalId', verifyAccessToken, async (req, res) => {
+  try {
+    const { professionalId } = req.params;
+    
+    // Validate professionalId
+    if (!professionalId || professionalId === 'undefined') {
+      return res.status(400).json({ message: 'Professional ID is required' });
+    }
+    
+    // Check authorization - admins can see any professional's bookings
+    // Professionals can only see their own bookings unless they're admin
+    if (req.user.role !== 'admin' && req.user._id.toString() !== professionalId) {
+      return res.status(403).json({ message: 'Not authorized to view these bookings' });
+    }
+    
+    const bookings = await Booking.find({ professional: professionalId })
+      .populate('user', 'fullName email')
+      .populate('professional', 'fullName email category')
+      .sort({ createdAt: -1 });
+    
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.error('Error fetching professional bookings by ID:', error);
+    // Handle CastError specifically
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid professional ID format' });
+    }
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -97,6 +164,10 @@ router.get('/:id', verifyAccessToken, async (req, res) => {
     res.status(200).json(booking);
   } catch (error) {
     console.error('Error fetching booking:', error);
+    // Handle CastError specifically
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid booking ID format' });
+    }
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -149,16 +220,16 @@ router.put('/:id/status', verifyAccessToken, [
     
     if (status === 'confirmed' && previousStatus !== 'confirmed') {
       notificationTitle = 'Booking Confirmed';
-      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.service} has been confirmed.`;
+      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.serviceName} has been confirmed.`;
     } else if (status === 'completed' && previousStatus !== 'completed') {
       notificationTitle = 'Booking Completed';
-      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.service} has been marked as completed.`;
+      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.serviceName} has been marked as completed.`;
     } else if (status === 'cancelled' && previousStatus !== 'cancelled') {
       notificationTitle = 'Booking Cancelled';
-      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.service} has been cancelled.`;
+      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.serviceName} has been cancelled.`;
     } else if (status === 'rejected' && previousStatus !== 'rejected') {
       notificationTitle = 'Booking Rejected';
-      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.service} has been rejected.`;
+      notificationMessage = `Your booking with ${updatedBooking.professional.fullName} for ${updatedBooking.serviceName} has been rejected.`;
     }
     
     if (notificationTitle && notificationMessage) {
@@ -208,25 +279,6 @@ router.put('/:id/rating', verifyAccessToken, [
     res.status(200).json({ message: 'Rating added successfully', booking: updatedBooking });
   } catch (error) {
     console.error('Error adding rating:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Get bookings for a professional
-router.get('/professional/:professionalId', verifyAccessToken, async (req, res) => {
-  try {
-    // Check if user is the professional or admin
-    if (req.user.role !== 'admin' && req.user._id.toString() !== req.params.professionalId) {
-      return res.status(403).json({ message: 'Not authorized to view these bookings' });
-    }
-    
-    const bookings = await Booking.find({ professional: req.params.professionalId })
-      .populate('user', 'fullName email')
-      .sort({ createdAt: -1 });
-    
-    res.status(200).json(bookings);
-  } catch (error) {
-    console.error('Error fetching professional bookings:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

@@ -1,8 +1,6 @@
 import express from "express";
 import Professional from "../models/professional.js";
 import User from "../models/user.js";
-import File from "../models/file.js";
-import { body, validationResult } from "express-validator";
 import { isAdmin } from "../middleware/authorization.js";
 import verifyAccessToken from "../middleware/authentication.js";
 
@@ -11,8 +9,8 @@ const router = express.Router();
 // Get all professionals
 router.get("/", async (req, res) => {
   try {
-    const professionals = await Professional.find({ isVerified: true })
-      .populate('user', 'fullName username profilePicture')
+    const professionals = await Professional.find()
+      .populate('user', 'fullName username profilePicture address')
       .populate('workGallery')
       .populate('servicesOffered')
       .populate({
@@ -35,7 +33,6 @@ router.get("/:id", async (req, res) => {
       .populate('user', 'fullName username profilePicture email phone')
       .populate('workGallery')
       .populate('servicesOffered')
-      .populate('certifications.document')
       .populate({
         path: 'portfolioItems.images',
         select: '_id filename originalName mimetype size url category isPublic createdAt updatedAt'

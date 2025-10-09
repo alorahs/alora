@@ -48,7 +48,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// GET /feedback - Retrieve all feedback (admin only)
+// GET /feedback - Retrieve all feedback publicly
 router.get("/", async (req, res) => {
   try {
     const feedbacks = await Feedback.find()
@@ -63,6 +63,7 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/admin", verifyAccessToken, isAdmin, async (req, res) => {
+  // GET /feedback/admin - Retrieve all feedback by admin (admin only)
   try {
     const feedbacks = await Feedback.find()
       .sort({ createdAt: -1 })

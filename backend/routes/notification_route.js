@@ -189,12 +189,80 @@ export const createNotification = async (userId, title, message, type = 'info', 
         const fullNotification = await Notification.findById(savedNotification._id);
         io.to(socketId).emit('newNotification', fullNotification);
       }
+      
+      // Send push notification if enabled
+      if (channels.includes('push')) {
+        await sendPushNotification(userId, title, message, {
+          notificationId: savedNotification._id,
+          url,
+          type
+        });
+      }
     }
     
     return savedNotification;
   } catch (error) {
     console.error('Error creating notification:', error);
     return null;
+  }
+};
+
+// Send push notification to a user
+const sendPushNotification = async (userId, title, message, data = {}) => {
+  try {
+    // Get user with push tokens
+    const User = (await import('../models/user.js')).default;
+    const user = await User.findById(userId);
+    
+    if (!user || !user.pushTokens || user.pushTokens.length === 0) {
+      console.log('No push tokens found for user:', userId);
+      return;
+    }
+    
+    // Check if user has push notifications enabled
+    if (user.settings && user.settings.pushNotifications === false) {
+      console.log('Push notifications disabled for user:', userId);
+      return;
+    }
+    
+    // Import Expo server SDK
+    const { Expo } = await import('expo-server-sdk');
+    const expo = new Expo();
+    
+    // Create messages for each push token
+    const messages = [];
+    for (const token of user.pushTokens) {
+      // Check if token is valid
+      if (!Expo.isExpoPushToken(token)) {
+        console.error(`Push token ${token} is not a valid Expo push token`);
+        continue;
+      }
+      
+      messages.push({
+        to: token,
+        sound: 'default',
+        title,
+        body: message,
+        data,
+      });
+    }
+    
+    // Send notifications in batches
+    const chunks = expo.chunkPushNotifications(messages);
+    const tickets = [];
+    
+    for (const chunk of chunks) {
+      try {
+        const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+        tickets.push(...ticketChunk);
+      } catch (error) {
+        console.error('Error sending push notification chunk:', error);
+      }
+    }
+    
+    console.log('Push notifications sent successfully');
+  } catch (error) {
+    console.error('Error sending push notification:', error);
   }
 };
 

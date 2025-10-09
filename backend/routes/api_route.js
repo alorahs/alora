@@ -44,9 +44,7 @@ router.use('/files', fileRouter);
 router.use('/geocode',verifyApiKey, navigationRouter);
 router.use('/admin', verifyAccessToken,verifyApiKey, adminRouter);
 router.use('/aboutus',verifyApiKey, aboutUsRouter);
-// Add socket test route
 router.use('/socket-test', verifyAccessToken, socketTestRouter);
-// Add proxy route (no API key verification needed as it handles its own)
 router.use('/proxy', proxyRouter);
 
 export default router;

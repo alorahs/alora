@@ -21,6 +21,44 @@ router.get("/", verifyAccessToken, isAdmin, async (req, res) => {
   }
 });
 
+// Get user settings
+router.get("/settings", verifyAccessToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const user = await User.findById(userId).select('settings');
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // Return default settings if none exist
+    const defaultSettings = {
+      emailNotifications: true,
+      pushNotifications: true,
+      smsNotifications: false,
+      marketingEmails: false,
+      bookingReminders: true,
+      reviewNotifications: true,
+      profileVisibility: 'public',
+      showEmail: false,
+      showPhone: false,
+      allowDirectMessages: true,
+      theme: 'system',
+      language: 'en',
+      timezone: 'Asia/Kolkata',
+      twoFactorEnabled: false,
+      sessionTimeout: 30,
+    };
+    
+    res.status(200).json({ 
+      settings: user.settings ? { ...defaultSettings, ...user.settings } : defaultSettings 
+    });
+  } catch (error) {
+    console.error('Error fetching user settings:', error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // Get a specific user by ID (authenticated users)
 router.get("/:id", verifyAccessToken, async (req, res) => {
   try {
@@ -45,6 +83,7 @@ router.put("/", verifyAccessToken, async (req, res) => {
   try {
     const userId = req.user._id; // Assuming authentication middleware sets req.user
     const updates = req.body;
+    console.log('updates:', updates);
     
     // Remove sensitive fields that shouldn't be updated directly
     delete updates.password;
@@ -74,6 +113,87 @@ router.put("/", verifyAccessToken, async (req, res) => {
     res.status(200).json({ message: "User updated successfully", user });
   } catch (error) {
     console.error('Error updating user:', error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.put("/role", verifyAccessToken, async (req, res) => { 
+  try { 
+    const userId = req.user._id;
+    const updates = req.body;
+    
+    // Validate role value
+    if (updates.role && !['customer', 'professional'].includes(updates.role)) {
+      return res.status(400).json({ message: "Invalid role value" });
+    }
+    
+    // First update the user role
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
+    if (!updatedUser) { 
+      return res.status(404).json({ message: "User not found" }); 
+    }
+    
+    // Then handle professional profile based on the new role
+    if (updates.role === 'professional') {
+      // Create or update professional profile when switching to professional role
+      let professionalProfile = await Professional.findOne({ user: userId });
+      
+      if (!professionalProfile) {
+        // Create a new professional profile
+        professionalProfile = new Professional({
+          user: userId,
+          category: 'other', // Default category
+          bio: updatedUser.bio || '',
+          skills: [],
+          hourlyRate: 0,
+          availability: []
+        });
+        await professionalProfile.save();
+        
+        // Link the professional profile to the user
+        updatedUser.professionalProfile = professionalProfile._id;
+        await updatedUser.save();
+      }
+    } else if (updates.role === 'customer') {
+      // Delete professional profile when switching to customer role
+      const professionalProfile = await Professional.findOne({ user: userId });
+      if (professionalProfile) {
+        await Professional.deleteOne({ user: userId });
+        // Remove the professional profile reference from user
+        updatedUser.professionalProfile = null;
+        await updatedUser.save();
+      }
+    }
+    
+    res.status(200).json({ message: "User role updated successfully", user: updatedUser });
+  } catch (error) { 
+    console.error('Error updating user role:', error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Update user settings
+router.put("/settings", verifyAccessToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { settings } = req.body;
+    
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: { settings } },
+      { new: true, runValidators: true }
+    ).select('settings');
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    res.status(200).json({ 
+      message: "Settings updated successfully", 
+      settings: user.settings 
+    });
+  } catch (error) {
+    console.error('Error updating user settings:', error);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -152,70 +272,6 @@ router.get("/:id/reviews", verifyAccessToken, async (req, res) => {
   }
 });
 
-// Get user settings
-router.get("/settings", verifyAccessToken, async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const user = await User.findById(userId).select('settings');
-    
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    
-    // Return default settings if none exist
-    const defaultSettings = {
-      emailNotifications: true,
-      pushNotifications: true,
-      smsNotifications: false,
-      marketingEmails: false,
-      bookingReminders: true,
-      reviewNotifications: true,
-      profileVisibility: 'public',
-      showEmail: false,
-      showPhone: false,
-      allowDirectMessages: true,
-      theme: 'system',
-      language: 'en',
-      timezone: 'Asia/Kolkata',
-      twoFactorEnabled: false,
-      sessionTimeout: 30,
-    };
-    
-    res.status(200).json({ 
-      settings: user.settings ? { ...defaultSettings, ...user.settings } : defaultSettings 
-    });
-  } catch (error) {
-    console.error('Error fetching user settings:', error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-// Update user settings
-router.put("/settings", verifyAccessToken, async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const { settings } = req.body;
-    
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { $set: { settings } },
-      { new: true, runValidators: true }
-    ).select('settings');
-    
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    
-    res.status(200).json({ 
-      message: "Settings updated successfully", 
-      settings: user.settings 
-    });
-  } catch (error) {
-    console.error('Error updating user settings:', error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
 // Change password
 router.put("/change-password", verifyAccessToken, [
   body('currentPassword').notEmpty().withMessage('Current password is required'),
@@ -278,6 +334,37 @@ router.put("/toggle-2fa", verifyAccessToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error toggling 2FA:', error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Save push notification token
+router.post("/push-token", verifyAccessToken, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { token } = req.body;
+    
+    // Validate token
+    if (!token) {
+      return res.status(400).json({ message: "Push token is required" });
+    }
+    
+    // Add push token to user's settings or create a new field for it
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { 
+        $addToSet: { pushTokens: token } // Use $addToSet to avoid duplicates
+      },
+      { new: true }
+    );
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    res.status(200).json({ message: "Push token saved successfully" });
+  } catch (error) {
+    console.error('Error saving push token:', error);
     res.status(500).json({ error: "Server error" });
   }
 });

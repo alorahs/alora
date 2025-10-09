@@ -191,6 +191,10 @@ professionalSchema.virtual('profilePicture').get(function() {
   return this.user ? this.user.profilePicture : null;
 });
 
+professionalSchema.virtual('address').get(function() {
+  return this.user ? this.user.address : 'Unknown';
+});
+
 // Virtual for review statistics
 professionalSchema.virtual('reviewStats').get(function() {
   return {

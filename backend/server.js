@@ -79,18 +79,18 @@ app.use((req, res) => {
 });
 
 // Connect DB and start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 const startServer = async () => {
   try {
+    // Connect to MongoDB
     await connectDB();
+    
     server.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
-      console.log(`🔌 Socket.IO server listening`);
-      console.log(`📂 Static files served from ${path.join(__dirname, 'public')}`);
     });
-  } catch (err) {
-    console.error('❌ Failed to start server:', err);
+  } catch (error) {
+    console.error('❌ Error starting server:', error);
     process.exit(1);
   }
 };
