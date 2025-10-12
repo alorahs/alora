@@ -29,7 +29,9 @@ router.get("/", async (req, res) => {
 // Get a specific professional by ID
 router.get("/:id", async (req, res) => {
   try {
-    const professional = await Professional.findById(req.params.id)
+    // Accept either a professional _id or a user id in the same route param.
+    // Use findOne with $or: match where _id === param OR user === param
+    const professional = await Professional.findOne({ $or: [ { _id: req.params.id }, { user: req.params.id } ] })
       .populate('user', 'fullName username profilePicture email phone')
       .populate('workGallery')
       .populate('servicesOffered')
