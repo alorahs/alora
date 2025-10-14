@@ -142,40 +142,10 @@ router.get('/professional/:professionalId', verifyAccessToken, async (req, res) 
   }
 });
 
-// Get a specific booking by ID
-router.get('/:id', verifyAccessToken, async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id)
-      .populate('user', 'fullName email')
-      .populate('professional', 'fullName email category rating');
-    
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
-    }
-    
-    // Check if user is authorized to view this booking
-    // Users can view their own bookings, professionals can view bookings assigned to them, and admins can view all bookings
-    if (booking.user._id.toString() !== req.user._id.toString() && 
-        booking.professional._id.toString() !== req.user._id.toString() && 
-        req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Not authorized to view this booking' });
-    }
-    
-    res.status(200).json(booking);
-  } catch (error) {
-    console.error('Error fetching booking:', error);
-    // Handle CastError specifically
-    if (error.name === 'CastError') {
-      return res.status(400).json({ message: 'Invalid booking ID format' });
-    }
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Update booking status (user can cancel, admin/professional can confirm/complete)
-router.put('/:id/status', verifyAccessToken, [
+router.put('/status/:id', verifyAccessToken, [
   body('status').isIn(['pending', 'confirmed', 'completed', 'cancelled', 'rejected']).withMessage('Invalid status')
 ], async (req, res) => {
+  console.log(req.body)
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -240,6 +210,36 @@ router.put('/:id/status', verifyAccessToken, [
     res.status(200).json({ message: 'Booking status updated', booking: updatedBooking });
   } catch (error) {
     console.error('Error updating booking status:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get a specific booking by ID
+router.get('/:id', verifyAccessToken, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate('user', 'fullName email')
+      .populate('professional', 'fullName email category rating');
+    
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    
+    // Check if user is authorized to view this booking
+    // Users can view their own bookings, professionals can view bookings assigned to them, and admins can view all bookings
+    if (booking.user._id.toString() !== req.user._id.toString() && 
+        booking.professional._id.toString() !== req.user._id.toString() && 
+        req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to view this booking' });
+    }
+    
+    res.status(200).json(booking);
+  } catch (error) {
+    console.error('Error fetching booking:', error);
+    // Handle CastError specifically
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid booking ID format' });
+    }
     res.status(500).json({ error: 'Server error' });
   }
 });
