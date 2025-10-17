@@ -271,23 +271,6 @@ function HomePage() {
                 directly with certified professionals. Get immediate support
                 with a single call.
               </p>
-              <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-                <Button
-                  size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 px-6 py-3 sm:px-8 sm:py-4 text-base font-semibold rounded-lg flex items-center justify-center w-full xs:w-auto"
-                  onClick={() => navigate("/professionals")}
-                >
-                  <Plug className="mr-2" size={20} /> Call an Expert
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  className="border-white bg-green-700 text-white hover:bg-green-600 hover:text-gray-900 px-6 py-3 sm:px-8 sm:py-4 text-base font-semibold rounded-lg w-full xs:w-auto"
-                  onClick={() => navigate("/professionals")}
-                >
-                  Explore Professionals
-                </Button>
-              </div>
             </div>
 
             {/* Right Search Form */}
